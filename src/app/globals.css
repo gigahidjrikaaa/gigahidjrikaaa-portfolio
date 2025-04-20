@@ -1,14 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@400;700&display=swap');
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@400;700&display=swap');
-
-@import "tailwindcss/preflight";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
-
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-stack-body: var(--font-body); 
+  --font-stack-heading: var(--font-heading);
+  --bg-color: var(--color-background); 
+  --text-color: var(--color-text-primary);
+  --text-color-secondary: var(--color-text-secondary);
+  --accent-color: var(--color-accent);
 }
 
 @theme inline {
@@ -26,21 +25,24 @@
 }
 
 body {
-  @apply font-body text-text-primary bg-background;
-  /* Add smooth scrolling behavior */
+  font-family: var(--font-body); 
+  color: var(--color-text-primary); 
+  background-color: var(--color-background);
   scroll-behavior: smooth;
-  /* Improve text rendering */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  @apply font-heading font-semibold;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 /* Accessibility: Add default focus styles */
 *:focus-visible {
-  @apply outline-none ring-2 ring-offset-2 ring-accent;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-accent);
 }
 
 /* Accessibility: Reduce motion for users who prefer it */
