@@ -22,7 +22,6 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 600;
-  color: var(--color-text-primary);
 }
 
 /* Accessibility: Add default focus styles */
