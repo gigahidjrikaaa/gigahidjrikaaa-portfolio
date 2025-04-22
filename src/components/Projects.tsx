@@ -24,7 +24,7 @@ const myProjects = [
       challenges: 'Ensuring privacy and real-time performance for sensitive conversations.',
       solutions: 'Implemented Redis for fast session management and strict data anonymization.',
       impact: 'Adopted by 500+ students in the first semester.',
-      imageUrl: '/project-aicare.jpg',
+      // imageUrl: '/project-aicare.jpg',
     },
     {
       title: 'Decentralized Voting System',
@@ -45,7 +45,7 @@ const myProjects = [
       challenges: 'Preventing double voting and ensuring contract security.',
       solutions: 'Used cryptographic signatures and thorough smart contract testing.',
       impact: 'Demoed at a university hackathon, praised for transparency.',
-      imageUrl: '/project-voting.jpg',
+      // imageUrl: '/project-voting.jpg',
     },
     {
       title: 'AI Image Analyzer',
@@ -66,7 +66,7 @@ const myProjects = [
       challenges: 'Handling large image datasets efficiently.',
       solutions: 'Optimized preprocessing and used GPU acceleration.',
       impact: 'Reduced manual image sorting time by 80%.',
-      imageUrl: '/project-ai-image.jpg',
+      // imageUrl: '/project-ai-image.jpg',
     },
     {
       title: 'Portfolio Website',
@@ -87,7 +87,7 @@ const myProjects = [
       challenges: 'Creating a unique, interactive UI with fast load times.',
       solutions: 'Used static generation and optimized images.',
       impact: 'Received positive feedback from recruiters and peers.',
-      imageUrl: '/project-portfolio.jpg',
+      // imageUrl: '/project-portfolio.jpg',
     },
     {
       title: 'E-commerce Platform',
@@ -109,7 +109,7 @@ const myProjects = [
       challenges: 'Integrating secure payments and managing inventory in real-time.',
       solutions: 'Used Stripe for PCI compliance and MongoDB change streams.',
       impact: 'Handled 1000+ orders in the first month.',
-      imageUrl: '/project-ecommerce.jpg',
+      // imageUrl: '/project-ecommerce.jpg',
     },
     {
       title: 'Event Management App',
@@ -130,7 +130,7 @@ const myProjects = [
       challenges: 'Ensuring real-time updates and offline support.',
       solutions: 'Leveraged Firebase real-time database and PWA features.',
       impact: 'Used for 20+ community events with 1000+ attendees.',
-      imageUrl: '/project-event.jpg',
+      // imageUrl: '/project-event.jpg',
     },
   ];
 // --- End Placeholder Data ---

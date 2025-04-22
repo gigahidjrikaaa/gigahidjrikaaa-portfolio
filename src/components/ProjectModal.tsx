@@ -11,7 +11,7 @@ type Project = {
   tagline?: string;
   description: string;
   features?: string[];
-  techStack: string[];
+  techStack?: string[];
   githubUrl?: string;
   liveUrl?: string;
   caseStudyUrl?: string;
@@ -20,7 +20,7 @@ type Project = {
   challenges?: string;
   solutions?: string;
   impact?: string;
-  imageUrl: string;
+  imageUrl?: string;
 };
 
 type ProjectModalProps = {
@@ -80,10 +80,10 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
               <div className="flex flex-col items-center md:items-start md:w-1/3 flex-shrink-0 gap-3">
                 <div className="w-24 h-24 md:w-28 md:h-28 rounded-xl overflow-hidden border-2 border-cyan-400/40 shadow-lg bg-black/30">
                   <Image
-                    src={project.imageUrl}
+                    src={project.imageUrl || '/placeholder.png'}
+                    width={112} // 28 * 4 
+                    height={112} // 28 * 4
                     alt={project.title}
-                    width={112}
-                    height={112}
                     className="object-cover w-full h-full"
                   />
                 </div>
@@ -162,7 +162,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
                 <div className="overflow-y-auto max-h-12 md:max-h-16 pr-1">
                   <h4 className="text-cyan-300 font-semibold mb-1 text-xs uppercase tracking-wider">Tech Stack</h4>
                   <div className="flex flex-wrap gap-2">
-                    {project.techStack.map((tech, i) => (
+                    {project.techStack?.map((tech, i) => (
                       <span
                         key={i}
                         className="text-xs px-2 py-1 rounded bg-cyan-400/10 border border-cyan-400/20 text-cyan-200 font-mono"

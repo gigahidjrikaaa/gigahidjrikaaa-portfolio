@@ -9,8 +9,8 @@ import ProjectModal from './ProjectModal';
 type Project = {
   title: string;
   description: string;
-  imageUrl: string;
-  techStack: string[];
+  imageUrl?: string;
+  techStack?: string[];
   githubUrl?: string;
   liveUrl?: string;
 };
@@ -48,10 +48,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         {/* Project Image with animated border */}
         <div className="relative h-48 w-full overflow-hidden">
           <Image
-            src={project.imageUrl}
+            src={project.imageUrl || "/placeholder.png"}
             alt={project.title}
             fill
             className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.onerror = null; // Prevent infinite loop
+              target.src = "/placeholder.png";
+            }}
           />
           <motion.div
             className="absolute inset-0 rounded-2xl pointer-events-none"
@@ -68,13 +73,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         </div>
         {/* Card Content */}
         <div className="flex-1 flex flex-col p-6 max-w-xl">
-          <h3 className="text-xl font-bold text-white mb-2 font-heading flex items-center gap-2">
+          <h3 className="text-xl font-bold text-black mb-2 font-heading flex items-center gap-2">
             {project.title}
             <span className="w-2 h-2 rounded-full bg-gradient-to-br from-cyan-400 to-pink-400 animate-pulse" />
           </h3>
           <p className="text-black text-sm mb-4 flex-1 line-clamp-3">{project.description}</p>
           <div className="flex flex-wrap gap-2 mb-4">
-            {project.techStack.map((tech, i) => (
+            {project.techStack?.map((tech, i) => (
               <span
                 key={i}
                 className="text-xs px-2 py-1 rounded-md bg-white/10 border border-cyan-400/20 text-cyan-200 font-mono tracking-tight"
