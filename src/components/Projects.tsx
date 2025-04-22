@@ -189,14 +189,38 @@ const Projects = () => {
       </motion.svg>
 
       <div className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl mb-4 font-heading drop-shadow-[0_2px_16px_rgba(0,255,255,0.15)]">
-            My Projects
-          </h2>
-          <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-            Here are some of the projects I&apos;ve worked on, showcasing my skills in web development, AI, and blockchain.
-          </p>
-        </div>
+        <motion.div 
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+        >
+          <div className="flex flex-col items-start text-left">
+            <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-white mb-6 font-heading">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-pink-500 drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]">
+                My Projects
+              </span>
+            </h2>
+            
+            <div className="backdrop-blur-md bg-white/10 rounded-xl border border-white/20 p-6 shadow-xl max-w-2xl">
+                <p className="text-lg leading-relaxed mb-4 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-pink-500">
+                Here are some of the projects I&apos;ve worked on, showcasing my skills in:
+                </p>
+              
+              <div className="flex flex-wrap gap-3 mt-2">
+                <span className="inline-block text-white bg-gradient-to-r from-cyan-500/40 to-cyan-500/20 backdrop-blur-sm rounded-md px-4 py-1.5 text-sm font-medium border border-cyan-400/30 shadow-[0_0_8px_rgba(0,255,255,0.3)]">
+                  Web Development
+                </span>
+                <span className="inline-block text-white bg-gradient-to-r from-pink-500/40 to-pink-500/20 backdrop-blur-sm rounded-md px-4 py-1.5 text-sm font-medium border border-pink-400/30 shadow-[0_0_8px_rgba(255,0,204,0.3)]">
+                  Artificial Intelligence
+                </span>
+                <span className="inline-block text-white bg-gradient-to-r from-purple-500/40 to-purple-500/20 backdrop-blur-sm rounded-md px-4 py-1.5 text-sm font-medium border border-purple-400/30 shadow-[0_0_8px_rgba(128,0,255,0.3)]">
+                  Blockchain
+                </span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
         <ProjectCarousel projects={myProjects} />
 

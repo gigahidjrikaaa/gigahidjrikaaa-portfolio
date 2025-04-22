@@ -97,21 +97,43 @@ const Hero = () => {
       {/* Content */}
       <div className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <motion.div
-          className="max-w-2xl text-left"
+          className="max-w-3xl text-left"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
           {/* Glassmorphism Panel */}
           <div className="bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl p-8 md:p-12 mb-8">
-            <motion.h1
-              className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mb-4 font-heading drop-shadow-[0_2px_16px_rgba(0,255,255,0.25)]"
-              variants={itemVariants}
-            >
-              <span className="text-cyan-400">Giga Hidjrikaaa</span>
-              <br />
-              <span className="text-pink-400">Digital Visionary</span>
-            </motion.h1>
+            <motion.div variants={itemVariants} className="mb-4">
+              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight font-heading">
+                <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 text-transparent bg-clip-text 
+                  drop-shadow-[0_2px_16px_rgba(0,255,255,0.3)] inline-block">
+                  Giga H. A. Adkhy
+                </span>
+              </h1>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 1 }}
+              >
+                <motion.span 
+                  className="text-3xl md:text-5xl bg-gradient-to-r from-pink-400 via-purple-400 to-pink-300 
+                    text-transparent bg-clip-text inline-block relative"
+                  initial={{ width: 0 }}
+                  animate={{ width: "auto" }}
+                  transition={{ duration: 1.2, delay: 1.5 }}
+                >
+                  Digital Visionary
+                </motion.span>
+                <motion.span 
+                  className="ml-1 text-3xl md:text-5xl text-white inline-block"
+                  animate={{ opacity: [0, 1, 0] }}
+                  transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.5 }}
+                >
+                  |
+                </motion.span>
+              </motion.div>
+            </motion.div>
             <motion.p
               className="text-lg md:text-2xl text-gray-200 mb-8 font-light"
               variants={itemVariants}
