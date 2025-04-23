@@ -1,7 +1,30 @@
 // src/components/About.tsx
+'use client';
+
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { FaGraduationCap, FaBriefcase, FaAward, FaUserAlt } from 'react-icons/fa';
+import { FaGraduationCap, FaBriefcase, FaAward, FaUserAlt, FaCode } from 'react-icons/fa';
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.3,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
+  }
+};
 
 // Education data
 const education = [
@@ -52,136 +75,206 @@ const certifications = [
 
 const About = () => {
   return (
-    <section id="about" className="py-20 sm:py-28 bg-gray-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="about" className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-white to-blue-50">
+      {/* Background Elements */}
+      <div className="absolute inset-0 w-full h-full opacity-30">
+        <div className="absolute inset-0 bg-grid-pattern-light"></div>
+      </div>
+      <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-pink-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+      
+      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-          className="max-w-7xl mx-auto"
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+          className="max-w-6xl mx-auto"
         >
-          <h2 className="text-3xl font-bold text-center text-text-primary sm:text-4xl mb-12 font-heading">
-            About <span className="text-blue-600">Me</span>
-          </h2>
+          <motion.div variants={itemVariants} className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold font-heading mb-4">
+              <span className="bg-gradient-to-r from-cyan-500 to-pink-600 text-transparent bg-clip-text drop-shadow-[0_2px_8px_rgba(0,255,255,0.3)]">
+                About Me
+              </span>
+            </h2>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              Information Engineering student and full-stack developer with focus on AI and blockchain technologies.
+            </p>
+          </motion.div>
           
           {/* Personal Info Card */}
-          <div className="bg-white rounded-lg shadow-sm p-8 mb-12 grid grid-cols-1 lg:grid-cols-4 gap-8 items-center">
-            {/* Image */}
-            <div className="lg:col-span-1 flex justify-center">
-              <div className="relative h-48 w-48 rounded-full overflow-hidden border-4 border-blue-100 shadow-md">
-                <Image
-                  src="/profile.jpg"
-                  alt="Giga - Professional Headshot"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  priority
-                  className="object-cover"
-                />
+          <motion.div 
+            variants={itemVariants}
+            className="backdrop-blur-md bg-white/80 border border-cyan-300/30 rounded-2xl shadow-2xl mb-16 overflow-hidden"
+          >
+            <div className="p-8 grid grid-cols-1 lg:grid-cols-4 gap-8 items-center">
+              {/* Image */}
+              <div className="lg:col-span-1 flex justify-center">
+                <div className="relative h-48 w-48 rounded-full overflow-hidden border-4 border-gradient-to-r from-cyan-400 via-blue-500 to-pink-500 shadow-[0_0_25px_rgba(0,255,255,0.4)]">
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-pink-500/10"></div>
+                  <Image
+                    src="/profile.jpg"
+                    alt="Giga - Professional Headshot"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    priority
+                    className="object-cover"
+                  />
+                </div>
               </div>
-            </div>
-            
-            {/* Bio */}
-            <div className="lg:col-span-3">
-              <div className="flex items-center gap-2 mb-3">
-                <FaUserAlt className="text-blue-600" />
-                <h3 className="text-xl font-semibold text-text-primary">Professional Summary</h3>
-              </div>
-              <p className="text-text-secondary mb-4">
-                Hi, I&apos;m <span className="font-semibold text-blue-600">Giga</span>! I&apos;m an Information Engineering student at Universitas Gadjah Mada,
-                focusing on Artificial Intelligence and Blockchain technologies. I thrive on solving complex problems and building impactful solutions.
-              </p>
-              <p className="text-text-secondary">
-                My recent work includes UGM-AICare, leveraging AI for mental health support, and blockchain-based secure voting systems.
-                I&apos;m particularly interested in NLP applications for healthcare and developing sharia-compliant decentralized finance solutions.
-              </p>
               
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-                <div className="bg-blue-50 p-3 rounded-lg text-center">
-                  <div className="text-blue-600 font-semibold">3+</div>
-                  <div className="text-xs text-gray-600">Years Coding</div>
+              {/* Bio */}
+              <div className="lg:col-span-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="text-cyan-600"><FaUserAlt /></div>
+                  <h3 className="text-xl font-semibold text-gray-800">Professional Summary</h3>
                 </div>
-                <div className="bg-blue-50 p-3 rounded-lg text-center">
-                  <div className="text-blue-600 font-semibold">6+</div>
-                  <div className="text-xs text-gray-600">Projects</div>
-                </div>
-                <div className="bg-blue-50 p-3 rounded-lg text-center">
-                  <div className="text-blue-600 font-semibold">3.8</div>
-                  <div className="text-xs text-gray-600">GPA</div>
-                </div>
-                <div className="bg-blue-50 p-3 rounded-lg text-center">
-                  <div className="text-blue-600 font-semibold">3+</div>
-                  <div className="text-xs text-gray-600">Certifications</div>
+                <p className="text-gray-600 mb-4">
+                  Hi, I&apos;m <span className="font-semibold text-cyan-600">Giga</span>! I&apos;m an Information Engineering student at Universitas Gadjah Mada,
+                  focusing on Artificial Intelligence and Blockchain technologies. I thrive on solving complex problems and building impactful solutions.
+                </p>
+                <p className="text-gray-600">
+                  My recent work includes UGM-AICare, leveraging AI for mental health support, and blockchain-based secure voting systems.
+                  I&apos;m particularly interested in NLP applications for healthcare and developing sharia-compliant decentralized finance solutions.
+                </p>
+                
+                {/* Quick Stats */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+                  <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 border border-cyan-400/40 p-3 rounded-lg text-center shadow-sm">
+                    <div className="text-cyan-600 font-semibold">3+</div>
+                    <div className="text-xs text-cyan-700">Years Coding</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-400/40 p-3 rounded-lg text-center shadow-sm">
+                    <div className="text-pink-600 font-semibold">6+</div>
+                    <div className="text-xs text-pink-700">Projects</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-400/40 p-3 rounded-lg text-center shadow-sm">
+                    <div className="text-purple-600 font-semibold">3.8</div>
+                    <div className="text-xs text-purple-700">GPA</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-400/40 p-3 rounded-lg text-center shadow-sm">
+                    <div className="text-blue-600 font-semibold">3+</div>
+                    <div className="text-xs text-blue-700">Certifications</div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
           
-          {/* Education Section */}
-          <div className="mb-12">
-            <div className="flex items-center gap-2 mb-6">
-              <FaGraduationCap className="text-2xl text-blue-600" />
-              <h3 className="text-2xl font-semibold text-text-primary">Education</h3>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-sm">
+            {/* Main Content - Education and Experience */}
+            <motion.div 
+            variants={itemVariants} 
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16"
+            >
+            {/* Education Section */}
+            <div className="h-full flex flex-col">
+              <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-r from-cyan-100 to-blue-100 border border-cyan-400/50 shadow-md">
+                <FaGraduationCap className="text-cyan-600" />
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-800">Education</h3>
+              </div>
+              
+              <div className="backdrop-blur-md bg-white/80 border border-cyan-300/30 rounded-xl shadow-xl flex-1 overflow-hidden hover:shadow-[0_0_25px_rgba(0,200,255,0.2)] transition-all duration-300">
               {education.map((edu, index) => (
-                <div key={index} className="p-6 border-b border-gray-100 last:border-0">
-                  <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-2">
-                    <h4 className="text-lg font-semibold text-blue-600">{edu.degree}</h4>
-                    <span className="text-sm font-medium text-gray-500 md:text-right">{edu.period}</span>
-                  </div>
-                  <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-2">
-                    <div className="text-gray-700">{edu.institution}, {edu.location}</div>
-                    <div className="text-sm font-medium text-gray-700 md:text-right">GPA: {edu.gpa}</div>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-2">{edu.description}</p>
+                <div 
+                key={index} 
+                className="p-5 sm:p-6 border-b border-gray-100 last:border-0 hover:bg-cyan-50/50 transition-colors duration-200"
+                >
+                <div className="flex flex-wrap justify-between items-baseline gap-2 mb-2">
+                  <h4 className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-blue-600 text-transparent bg-clip-text">{edu.degree}</h4>
+                  <span className="text-sm font-medium text-cyan-600 whitespace-nowrap">{edu.period}</span>
+                </div>
+                <div className="flex flex-wrap justify-between items-baseline gap-2 mb-3">
+                  <div className="text-gray-600 text-sm sm:text-base">{edu.institution}, {edu.location}</div>
+                  <div className="text-sm font-medium text-cyan-600 bg-cyan-100/50 px-2 py-0.5 rounded-full">{edu.gpa} GPA</div>
+                </div>
+                <p className="text-sm text-gray-500 mt-2 leading-relaxed">{edu.description}</p>
                 </div>
               ))}
-            </div>
-          </div>
-          
-          {/* Experience Section */}
-          <div className="mb-12">
-            <div className="flex items-center gap-2 mb-6">
-              <FaBriefcase className="text-2xl text-blue-600" />
-              <h3 className="text-2xl font-semibold text-text-primary">Experience</h3>
+              </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow-sm">
+            {/* Experience Section */}
+            <div className="h-full flex flex-col">
+              <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-r from-pink-100 to-purple-100 border border-pink-400/50 shadow-md">
+                <FaBriefcase className="text-pink-600" />
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-800">Experience</h3>
+              </div>
+              
+              <div className="backdrop-blur-md bg-white/80 border border-pink-300/30 rounded-xl shadow-xl flex-1 overflow-hidden hover:shadow-[0_0_25px_rgba(219,39,119,0.2)] transition-all duration-300">
               {experience.map((exp, index) => (
-                <div key={index} className="p-6 border-b border-gray-100 last:border-0">
-                  <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-2">
-                    <h4 className="text-lg font-semibold text-blue-600">{exp.title}</h4>
-                    <span className="text-sm font-medium text-gray-500 md:text-right">{exp.period}</span>
-                  </div>
-                  <div className="text-gray-700 mb-2">{exp.company}, {exp.location}</div>
-                  <p className="text-sm text-gray-600">{exp.description}</p>
+                <div 
+                key={index} 
+                className="p-5 sm:p-6 border-b border-gray-100 last:border-0 hover:bg-pink-50/50 transition-colors duration-200"
+                >
+                <div className="flex flex-wrap justify-between items-baseline gap-2 mb-2">
+                  <h4 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 text-transparent bg-clip-text">{exp.title}</h4>
+                  <span className="text-sm font-medium text-pink-600 whitespace-nowrap">{exp.period}</span>
+                </div>
+                <div className="flex items-center text-gray-600 text-sm sm:text-base mb-3">
+                  <span>{exp.company}</span>
+                  <span className="mx-2 text-gray-400">•</span>
+                  <span>{exp.location}</span>
+                </div>
+                <p className="text-sm text-gray-500 leading-relaxed">{exp.description}</p>
                 </div>
               ))}
+              </div>
             </div>
-          </div>
+            </motion.div>
           
           {/* Certifications Section */}
-          <div className="mb-12">
-            <div className="flex items-center gap-2 mb-6">
-              <FaAward className="text-2xl text-blue-600" />
-              <h3 className="text-2xl font-semibold text-text-primary">Certifications</h3>
+          <motion.div variants={itemVariants} className="mb-16">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-400/50 shadow-md">
+                <FaAward className="text-purple-600" />
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-800">Certifications</h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {certifications.map((cert, index) => (
-                <div key={index} className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="text-md font-semibold text-blue-600 mb-1">{cert.title}</h4>
+                <div key={index} className="backdrop-blur-md bg-white/80 border border-purple-300/30 p-5 rounded-xl shadow-xl
+                  hover:shadow-[0_0_25px_rgba(219,39,119,0.2)] transition-all duration-300 group">
+                  <h4 className="text-md font-semibold bg-gradient-to-r from-cyan-600 to-pink-600 text-transparent bg-clip-text mb-1 group-hover:from-pink-600 group-hover:to-purple-600">{cert.title}</h4>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">{cert.issuer}</span>
-                    <span className="text-gray-500">{cert.date}</span>
+                    <span className="text-pink-600">{cert.date}</span>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
+          
+          {/* Technical Areas */}
+          <motion.div variants={itemVariants}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-100 to-cyan-100 border border-blue-400/50 shadow-md">
+                <FaCode className="text-blue-600" />
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-800">Technical Interests</h3>
+            </div>
+            
+            <div className="backdrop-blur-md bg-white/80 border border-blue-300/30 rounded-xl p-6 shadow-xl">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {[
+                  "Natural Language Processing",
+                  "Healthcare AI Applications",
+                  "Decentralized Finance (DeFi)",
+                  "Ethical AI Development",
+                  "Blockchain Governance Models",
+                  "Full-Stack Web Development"
+                ].map((interest, i) => (
+                  <div key={i} className="flex items-center gap-3 group">
+                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-500 to-pink-600 group-hover:w-3 group-hover:h-3 transition-all duration-300"></div>
+                    <span className="text-gray-600 group-hover:text-cyan-600 transition-colors duration-300">{interest}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>
