@@ -18,26 +18,6 @@ type ProjectCarouselProps = {
   projects: Project[];
 };
 
-const variants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 300 : -300,
-    opacity: 0,
-    scale: 0.95,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.6, ease: [0.6, 0.01, 0.05, 0.95] },
-  },
-  exit: (direction: number) => ({
-    x: direction < 0 ? 300 : -300,
-    opacity: 0,
-    scale: 0.95,
-    transition: { duration: 0.4, ease: 'easeInOut' },
-  }),
-};
-
 const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects }) => {
   const [[page, direction], setPage] = useState<[number, number]>([0, 0]);
   const numProjects = projects.length;
@@ -62,20 +42,6 @@ const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects }) => {
   // Array of offsets for -2, -1, 0, 1, 2 (previous 2, current, next 2)
   const offsets = [-2, -1, 0, 1, 2];
 
-  // Card styles for each position
-  const cardStyles = [
-    // Far left
-    "absolute left-1/2 -translate-x-[220%] scale-75 opacity-30 z-0 pointer-events-none transition-all duration-300",
-    // Left
-    "absolute left-1/2 -translate-x-[130%] scale-85 opacity-50 z-10 pointer-events-none transition-all duration-300",
-    // Center
-    "relative z-20 scale-100 opacity-100 transition-all duration-300",
-    // Right
-    "absolute left-1/2 translate-x-[30%] scale-85 opacity-50 z-10 pointer-events-none transition-all duration-300",
-    // Far right
-    "absolute left-1/2 translate-x-[120%] scale-75 opacity-30 z-0 pointer-events-none transition-all duration-300",
-  ];
-
   return (
     <div className="relative w-full max-w-5xl flex items-center justify-center mx-auto">
       {/* Left Arrow */}
@@ -90,34 +56,42 @@ const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects }) => {
 
       {/* Carousel Cards */}
       <div className="w-full flex items-center justify-center min-h-[480px] relative">
-        {offsets.map((offset, i) => {
-          const idx = getIndex(offset);
-          // Animate only the center card
-          if (offset === 0) {
-            return (
-              <AnimatePresence key={idx} initial={false} custom={direction}>
-                <motion.div
-                  key={page}
-                  custom={direction}
-                  variants={variants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  className={cardStyles[i]}
-                  transition={{ type: "spring", stiffness: 400, damping: 40 }}
-                >
-                  <ProjectCard project={projects[idx]} />
-                </motion.div>
-              </AnimatePresence>
-            );
-          }
-          // Static for previews
-          return (
-            <div key={idx} className={cardStyles[i]}>
-              <ProjectCard project={projects[idx]} />
-            </div>
-          );
-        })}
+        <AnimatePresence initial={false} custom={direction} mode="popLayout">
+          {offsets.map((offset, i) => {
+        const idx = getIndex(offset);
+        return (
+          <motion.div
+            key={`${idx}-${i}`}
+            custom={direction}
+            initial={{ 
+          x: offset * 100 + (direction * 200), 
+          scale: offset === 0 ? 0.95 : offset === -1 || offset === 1 ? 0.85 : 0.75,
+          opacity: offset === 0 ? 0.8 : offset === -1 || offset === 1 ? 0.5 : 0.3,
+          zIndex: 20 - Math.abs(offset) * 5
+            }}
+            animate={{ 
+          x: offset === -2 ? '-120%' : offset === -1 ? '-80%' : offset === 0 ? 0 : offset === 1 ? '80%' : '120%', 
+          scale: offset === 0 ? 1 : offset === -1 || offset === 1 ? 0.85 : 0.75,
+          opacity: offset === 0 ? 1 : offset === -1 || offset === 1 ? 0.5 : 0.3,
+          zIndex: 20 - Math.abs(offset) * 5
+            }}
+            exit={{ 
+          x: offset * 100 - (direction * 200),
+          scale: 0.8,
+          opacity: 0 
+            }}
+            transition={{
+          x: { type: "spring", stiffness: 300, damping: 30, mass: 1 },
+          scale: { type: "spring", stiffness: 400, damping: 35 },
+          opacity: { duration: 0.4 }
+            }}
+            className={`absolute left-1/2 transform -translate-x-1/2 ${offset === 0 ? 'pointer-events-auto' : 'pointer-events-none'}`}
+          >
+            <ProjectCard project={projects[idx]} />
+          </motion.div>
+        );
+          })}
+        </AnimatePresence>
       </div>
 
       {/* Right Arrow */}

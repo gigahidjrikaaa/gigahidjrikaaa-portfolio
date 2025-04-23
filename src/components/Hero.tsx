@@ -166,7 +166,7 @@ const Hero = () => {
           >
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 via-pink-400 to-purple-500 border-4 border-white/20 shadow-lg flex items-center justify-center overflow-hidden">
               <Image
-                src="/hero-bg.jpg"
+                src="/profile-2.jpg"
                 alt="Avatar"
                 width={64}
                 height={64}
@@ -174,7 +174,7 @@ const Hero = () => {
               />
             </div>
             <div>
-              <span className="block text-sm text-gray-300">Based in Tokyo, Japan</span>
+              <span className="block text-sm text-gray-300">Based in Yogyakarta, Indonesia</span>
               <span className="block text-xs text-cyan-400/80">Open for freelance & collab</span>
             </div>
           </motion.div>
