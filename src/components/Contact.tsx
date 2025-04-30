@@ -1,5 +1,5 @@
 // src/components/Contact.js
-import { FaGithub, FaLinkedinIn, FaTwitter, FaEnvelope, FaLink, FaLinkedin } from 'react-icons/fa';
+import { FaGithub, FaLinkedinIn, FaTwitter, FaEnvelope } from 'react-icons/fa';
 
 const Contact = () => {
   // NOTE: Form submission requires a backend handler (API Route or 3rd party service)
@@ -103,7 +103,7 @@ const Contact = () => {
               aria-label="LinkedIn Profile"
               >
               <span className="sr-only">LinkedIn</span>
-              <FaLinkedin />
+              <FaLinkedinIn />
               </a>
               <a
               href="https://twitter.com/gigahidjrikaaa"
@@ -114,6 +114,14 @@ const Contact = () => {
               >
               <span className="sr-only">Twitter</span>
               <FaTwitter />
+              </a>
+              <a
+              href="mailto:gigahidjrikaaa@gmail.com"
+              className="text-text-secondary hover:text-primary transition-colors duration-300"
+              aria-label="Email"
+              >
+              <span className="sr-only">Email</span>
+              <FaEnvelope />
               </a>
             </div>
             </div>
