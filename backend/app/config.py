@@ -1,5 +1,10 @@
 from pydantic_settings import BaseSettings
 from typing import List
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 class Settings(BaseSettings):
     # API Configuration
@@ -10,13 +15,13 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./portfolio.db"
     
     # Security
-    SECRET_KEY: str = "your-secret-key-change-this-in-production"
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "your_default_secret_key")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # Admin credentials
-    ADMIN_USERNAME: str = "admin"
-    ADMIN_PASSWORD: str = "admin123"  # Change this in production
+    ADMIN_USERNAME: str = os.getenv("ADMIN_USERNAME", "")
+    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "")
     
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [
@@ -27,8 +32,8 @@ class Settings(BaseSettings):
     
     # Email Configuration
     SENDGRID_API_KEY: str = ""
-    FROM_EMAIL: str = "noreply@yourdomain.com"
-    TO_EMAIL: str = "gigahidjrikaaa@gmail.com"
+    FROM_EMAIL: str = os.getenv("FROM_EMAIL", "")
+    TO_EMAIL: str = os.getenv("TO_EMAIL", "")
     
     # SMTP Configuration
     SMTP_HOST: str = "smtp.gmail.com"
