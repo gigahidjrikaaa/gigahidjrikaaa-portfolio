@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 from database import get_db, User
 from schemas import UserLogin, Token, UserResponse
-from auth import authenticate_user, create_access_token, get_password_hash
+from ..auth import authenticate_user, create_access_token, get_password_hash
 from config import settings
 
 router = APIRouter()

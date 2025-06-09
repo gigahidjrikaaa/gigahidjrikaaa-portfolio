@@ -60,7 +60,7 @@ async def mark_message_as_read(
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")
     
-    message.is_read = True
+    message.is_read = True  # type: ignore[assignment]
     db.commit()
     
     return {"message": "Message marked as read"}
