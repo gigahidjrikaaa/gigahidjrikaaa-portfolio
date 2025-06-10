@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from database import get_db, Experience
 from schemas import ExperienceResponse, ExperienceCreate, ExperienceUpdate
-from auth import get_current_admin_user
+from ..auth import get_current_admin_user
 
 router = APIRouter()
 

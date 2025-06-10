@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from database import get_db, ContactMessage
 from schemas import ContactForm, ContactMessageResponse
-from auth import get_current_admin_user
+from ..auth import get_current_admin_user
 from services.email_service import EmailService
 import logging
 

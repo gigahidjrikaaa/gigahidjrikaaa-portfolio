@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database import get_db, Project, Experience, Education, Skill, ContactMessage
-from auth import get_current_admin_user
+from ..auth import get_current_admin_user
 from sqlalchemy import func
 
 router = APIRouter()
