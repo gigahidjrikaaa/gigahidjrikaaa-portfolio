@@ -5,10 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   BarChart3,
-  Users,
   FolderOpen,
-  GraduationCap,
-  Briefcase,
   Settings,
   MessageSquare,
   Plus,
