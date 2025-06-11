@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     
     # Admin credentials
     ADMIN_USERNAME: str = os.getenv("ADMIN_USERNAME", "")
+    ADMIN_EMAIL: str = os.getenv("ADMIN_EMAIL", "")
     ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "")
     
     # CORS
