@@ -49,19 +49,18 @@ async def get_current_user(
     try:
         payload = jwt.decode(credentials.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         username_from_payload = payload.get("sub")
-        if not isinstance(username_from_payload, str):
+        if username_from_payload is None:
             raise credentials_exception
-        username: str = username_from_payload
     except JWTError:
         raise credentials_exception
-    
-    user = db.query(User).filter(User.username == username).first()
+        
+    user = db.query(User).filter(User.username == username_from_payload).first()
     if user is None:
         raise credentials_exception
     return user
 
 async def get_current_admin_user(current_user: User = Depends(get_current_user)):
-    if current_user.is_admin is False:
+    if current_user.is_admin is not True:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
