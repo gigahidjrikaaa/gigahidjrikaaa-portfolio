@@ -20,17 +20,10 @@ class ProjectBase(BaseModel):
     display_order: int = 0
 
 class ProjectCreate(ProjectBase):
-    tech_stack: List[str]
-    features: List[str]
-
-class ProjectUpdate(ProjectBase):
-    tech_stack: List[str]
-    features: List[str]
+    pass
 
 class ProjectResponse(ProjectBase):
     id: int
-    tech_stack: List[str]
-    features: List[str]
     created_at: datetime
     updated_at: datetime
     
