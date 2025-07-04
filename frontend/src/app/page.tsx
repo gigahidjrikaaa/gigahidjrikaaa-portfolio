@@ -4,7 +4,8 @@ import Hero from '@/components/Hero';
 import About from '@/components/About';
 import Projects from '@/components/Projects';
 import Skills from '@/components/Skills';
-import Contact from '@/components/Contact';
+import Experience from '@/components/Experience';
+import Education from '@/components/Education';
 
 export default function Home() {
   return (
@@ -14,7 +15,8 @@ export default function Home() {
       <About />
       <Projects />
       <Skills />
-      {/* <Experience />  <-- Uncomment if you add an Experience section */}
+      <Experience />
+      <Education />
       <Contact />
     </>
   );

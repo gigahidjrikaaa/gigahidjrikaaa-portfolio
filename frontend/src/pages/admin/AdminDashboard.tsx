@@ -1,38 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import ProjectManagement from '@/components/admin/ProjectManagement';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  BarChart3,
   FolderOpen,
-  Settings,
   MessageSquare,
-  Plus,
-  Edit,
-  Trash2,
-  Eye
+  Trash2
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { adminApi } from '@/services/api';
+import { useAdminStore } from '@/store/adminStore';
+import withAdminAuth from '@/hoc/withAdminAuth';
 
-interface DashboardStats {
-  total_projects: number;
-  featured_projects: number;
-  total_skills: number;
-  total_experience: number;
-  total_education: number;
-  unread_messages: number;
-  total_messages: number;
-}
-
-interface Project {
-  id: number;
-  title: string;
-  tagline: string;
-  is_featured: boolean;
-  created_at: string;
-  display_order: number;
+interface User {
+  username: string;
+  is_admin: boolean;
 }
 
 interface ContactMessage {
@@ -44,35 +26,19 @@ interface ContactMessage {
   created_at: string;
 }
 
-export default function AdminDashboard() {
-  const { user } = useAuth();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [messages, setMessages] = useState<ContactMessage[]>([]);
-  const [loading, setLoading] = useState(true);
+const AdminDashboard = ({ user }: { user: User }) => {
+  const {
+    projects,
+    messages,
+    loading,
+    fetchProjects,
+    fetchMessages,
+  } = useAdminStore();
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const [statsData, projectsData, messagesData] = await Promise.all([
-        adminApi.getDashboardStats(),
-        adminApi.getProjects(),
-        adminApi.getContactMessages()
-      ]);
-      
-      setStats(statsData);
-      setProjects(projectsData);
-      setMessages(messagesData);
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchProjects();
+    fetchMessages();
+  }, [fetchProjects, fetchMessages]);
 
   const StatCard = ({ title, value, icon: Icon, color }: {
     title: string;
@@ -109,34 +75,21 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Total Projects"
-            value={stats.total_projects}
-            icon={FolderOpen}
-            color="text-blue-600"
-          />
-          <StatCard
-            title="Featured Projects"
-            value={stats.featured_projects}
-            icon={BarChart3}
-            color="text-green-600"
-          />
-          <StatCard
-            title="Unread Messages"
-            value={stats.unread_messages}
-            icon={MessageSquare}
-            color="text-red-600"
-          />
-          <StatCard
-            title="Total Skills"
-            value={stats.total_skills}
-            icon={Settings}
-            color="text-purple-600"
-          />
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard
+          title="Total Projects"
+          value={projects.length}
+          icon={FolderOpen}
+          color="text-blue-600"
+        />
+        <StatCard
+          title="Unread Messages"
+          value={messages.filter((msg: ContactMessage) => !msg.is_read).length}
+          icon={MessageSquare}
+          color="text-red-600"
+        />
+        {/* Add more stats as needed, fetching data from the store */}
+      </div>
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="projects" className="w-full">
@@ -149,46 +102,7 @@ export default function AdminDashboard() {
         </TabsList>
 
         <TabsContent value="projects" className="mt-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Projects Management</CardTitle>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Project
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {projects.map((project) => (
-                  <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{project.title}</h3>
-                        {project.is_featured && (
-                          <Badge variant="secondary">Featured</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600">{project.tagline}</p>
-                      <p className="text-xs text-gray-500">
-                        Created: {new Date(project.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <ProjectManagement />
         </TabsContent>
 
         <TabsContent value="messages" className="mt-6">
@@ -198,7 +112,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {messages.map((message) => (
+                {messages.map((message: ContactMessage) => (
                   <div key={message.id} className="flex items-start justify-between p-4 border rounded-lg">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -235,3 +149,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+export default withAdminAuth(AdminDashboard);

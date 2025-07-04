@@ -5,7 +5,7 @@ from database import Base, engine
 import uvicorn
 
 # Import routers
-from routers import auth, projects, admin
+from routers import auth, projects, admin, experience, education, skills, contact
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -28,6 +28,10 @@ app.add_middleware(
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(projects.router, prefix=f"{settings.API_V1_STR}/projects", tags=["projects"])
 app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["admin"])
+app.include_router(experience.router, prefix=f"{settings.API_V1_STR}/experience", tags=["experience"])
+app.include_router(education.router, prefix=f"{settings.API_V1_STR}/education", tags=["education"])
+app.include_router(skills.router, prefix=f"{settings.API_V1_STR}/skills", tags=["skills"])
+app.include_router(contact.router, prefix=f"{settings.API_V1_STR}/contact", tags=["contact"])
 
 @app.get("/")
 async def root():
