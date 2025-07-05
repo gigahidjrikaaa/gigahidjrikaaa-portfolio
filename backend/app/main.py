@@ -2,13 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .database import Base, engine
+from .init_db import init_db
 import uvicorn
 
 # Import routers
 from .routers import auth, projects, admin, experience, education, skills, contact
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+# Initialize database and create tables
+init_db()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

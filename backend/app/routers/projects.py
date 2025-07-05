@@ -1,14 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from ..database import get_db, Project, Experience, Education, Skill, ContactMessage
+from ..database import get_db, Project
 from ..schemas import (
-    ProjectResponse, 
-    ExperienceResponse, 
-    EducationResponse, 
-    SkillResponse,
-    ContactForm,
-    ContactMessageResponse
+    ProjectResponse
 )
 
 router = APIRouter()
@@ -27,26 +22,3 @@ async def get_project(project_id: int, db: Session = Depends(get_db)):
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
-
-@router.get("/experience/", response_model=List[ExperienceResponse])
-async def get_experience(db: Session = Depends(get_db)):
-    return db.query(Experience).order_by(Experience.display_order).all()
-
-@router.get("/education/", response_model=List[EducationResponse])
-async def get_education(db: Session = Depends(get_db)):
-    return db.query(Education).order_by(Education.display_order).all()
-
-@router.get("/skills/", response_model=List[SkillResponse])
-async def get_skills(db: Session = Depends(get_db)):
-    return db.query(Skill).order_by(Skill.category, Skill.display_order).all()
-
-@router.post("/contact", response_model=ContactMessageResponse)
-async def send_contact_message(
-    contact_form: ContactForm,
-    db: Session = Depends(get_db)
-):
-    db_message = ContactMessage(**contact_form.model_dump())
-    db.add(db_message)
-    db.commit()
-    db.refresh(db_message)
-    return db_message

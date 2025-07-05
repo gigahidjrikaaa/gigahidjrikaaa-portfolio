@@ -1,141 +1,46 @@
-import React from 'react';
+"use client";
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import ProjectCarousel from './ProjectCarousel';
+import { apiService } from '@/services/api';
 
-// --- Placeholder Project Data ---
-const myProjects = [
-    {
-      title: 'UGM-AICare Chatbot',
-      tagline: 'AI-powered mental health support for students',
-      description: 'A mental health support chatbot for university students, providing accessible resources and empathetic conversation using advanced AI and NLP.',
-      features: [
-        'Conversational AI with NLP',
-        'Resource recommendation',
-        'Anonymous chat',
-        '24/7 availability',
-        'Admin dashboard for analytics'
-      ],
-      techStack: ['Next.js', 'FastAPI', 'Redis', 'Python', 'AI/NLP', 'Tailwind CSS'],
-      githubUrl: 'https://github.com/yourusername/ugm-aicare-frontend',
-      liveUrl: undefined,
-      caseStudyUrl: 'https://yourblog.com/ugm-aicare-case-study',
-      role: 'Full Stack Developer',
-      teamSize: 3,
-      challenges: 'Ensuring privacy and real-time performance for sensitive conversations.',
-      solutions: 'Implemented Redis for fast session management and strict data anonymization.',
-      impact: 'Adopted by 500+ students in the first semester.',
-      // imageUrl: '/project-aicare.jpg',
-    },
-    {
-      title: 'Decentralized Voting System',
-      tagline: 'Secure, transparent blockchain voting',
-      description: 'A proof-of-concept blockchain application for secure and transparent voting using Solidity and Ethereum testnet.',
-      features: [
-        'Immutable vote records',
-        'Voter authentication',
-        'Live result tally',
-        'Smart contract auditing'
-      ],
-      techStack: ['Solidity', 'Hardhat', 'Ethers.js', 'React', 'Blockchain'],
-      githubUrl: 'https://github.com/yourusername/blockchain-voting',
-      liveUrl: undefined,
-      caseStudyUrl: undefined,
-      role: 'Blockchain Engineer',
-      teamSize: 2,
-      challenges: 'Preventing double voting and ensuring contract security.',
-      solutions: 'Used cryptographic signatures and thorough smart contract testing.',
-      impact: 'Demoed at a university hackathon, praised for transparency.',
-      // imageUrl: '/project-voting.jpg',
-    },
-    {
-      title: 'AI Image Analyzer',
-      tagline: 'Automated image classification with ML',
-      description: 'A tool utilizing machine learning models to analyze and classify image content for various business use cases.',
-      features: [
-        'Batch image upload',
-        'Real-time classification',
-        'Custom model training',
-        'REST API integration'
-      ],
-      techStack: ['Python', 'TensorFlow', 'Flask', 'Machine Learning', 'API'],
-      githubUrl: 'https://github.com/yourusername/ai-image-analyzer',
-      liveUrl: undefined,
-      caseStudyUrl: 'https://yourblog.com/ai-image-analyzer',
-      role: 'Machine Learning Engineer',
-      teamSize: 1,
-      challenges: 'Handling large image datasets efficiently.',
-      solutions: 'Optimized preprocessing and used GPU acceleration.',
-      impact: 'Reduced manual image sorting time by 80%.',
-      // imageUrl: '/project-ai-image.jpg',
-    },
-    {
-      title: 'Portfolio Website',
-      tagline: 'Showcasing my work and skills',
-      description: 'My personal portfolio showcasing projects, skills, and experiences, built with Next.js and Tailwind CSS.',
-      features: [
-        'Responsive design',
-        'Animated hero section',
-        'Project carousel',
-        'Contact form with email integration'
-      ],
-      techStack: ['Next.js', 'Tailwind CSS', 'React'],
-      githubUrl: 'https://github.com/gigahidjrikaaa/gigahidjrikaaa-portfolio',
-      liveUrl: 'https://gigahidjrikaaa.vercel.app',
-      caseStudyUrl: undefined,
-      role: 'Designer & Developer',
-      teamSize: 1,
-      challenges: 'Creating a unique, interactive UI with fast load times.',
-      solutions: 'Used static generation and optimized images.',
-      impact: 'Received positive feedback from recruiters and peers.',
-      // imageUrl: '/project-portfolio.jpg',
-    },
-    {
-      title: 'E-commerce Platform',
-      tagline: 'Full-stack online store with payments',
-      description: 'A full-stack e-commerce application with user authentication, product management, and Stripe payment integration.',
-      features: [
-        'User authentication',
-        'Product catalog & search',
-        'Shopping cart',
-        'Stripe payments',
-        'Admin dashboard'
-      ],
-      techStack: ['React', 'Node.js', 'Express', 'MongoDB', 'Stripe'],
-      githubUrl: 'https://github.com/gigahidjrikaaa',
-      liveUrl: undefined,
-      caseStudyUrl: undefined,
-      role: 'Lead Developer',
-      teamSize: 4,
-      challenges: 'Integrating secure payments and managing inventory in real-time.',
-      solutions: 'Used Stripe for PCI compliance and MongoDB change streams.',
-      impact: 'Handled 1000+ orders in the first month.',
-      // imageUrl: '/project-ecommerce.jpg',
-    },
-    {
-      title: 'Event Management App',
-      tagline: 'Organize and track events easily',
-      description: 'A web app for creating, managing, and tracking events with real-time updates and notifications.',
-      features: [
-        'Event creation & RSVP',
-        'Calendar integration',
-        'Push notifications',
-        'Admin analytics'
-      ],
-      techStack: ['Vue.js', 'Firebase', 'Tailwind CSS', 'PWA'],
-      githubUrl: 'https://github.com/yourusername/event-management-app',
-      liveUrl: 'https://events.example.com',
-      caseStudyUrl: 'https://yourblog.com/event-management-app',
-      role: 'Frontend Developer',
-      teamSize: 2,
-      challenges: 'Ensuring real-time updates and offline support.',
-      solutions: 'Leveraged Firebase real-time database and PWA features.',
-      impact: 'Used for 20+ community events with 1000+ attendees.',
-      // imageUrl: '/project-event.jpg',
-    },
-  ];
-// --- End Placeholder Data ---
+interface ProjectItem {
+  id: number;
+  title: string;
+  tagline: string;
+  description: string;
+  github_url: string;
+  live_url?: string;
+  case_study_url?: string;
+  role: string;
+  team_size: number;
+  challenges: string;
+  solutions: string;
+  impact: string;
+  image_url?: string;
+  is_featured: boolean;
+  display_order: number;
+}
 
 const Projects = () => {
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await apiService.getProjects();
+        setProjects(data);
+      } catch (error) {
+        console.error('Failed to fetch projects', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Always render the section, data will populate when available
   return (
     <section id="projects" className="relative py-16 sm:py-24 bg-background overflow-hidden">
       {/* Background Image & Neon Overlays */}
@@ -222,7 +127,13 @@ const Projects = () => {
           </div>
         </motion.div>
 
-        <ProjectCarousel projects={myProjects} />
+        {loading ? (
+          <div>Loading projects...</div>
+        ) : projects.length > 0 ? (
+          <ProjectCarousel projects={projects} />
+        ) : (
+          <div>No projects found.</div>
+        )}
 
       </div>
     </section>

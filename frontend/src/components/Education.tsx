@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { getPublicEducation } from '@/services/api';
+import { apiService } from '@/services/api';
 
 interface EducationItem {
   id: number;
@@ -17,20 +17,18 @@ const Education = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getPublicEducation();
+        const data = await apiService.getEducation();
         setEducation(data);
       } catch (error) {
         console.error('Failed to fetch education', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchData();
   }, []);
 
-  if (loading) {
-    return <div>Loading education...</div>;
-  }
-
+  // Always render the section, data will populate when available
   return (
     <section id="education" className="py-16">
       <h2 className="text-3xl font-bold text-center mb-8">Education</h2>

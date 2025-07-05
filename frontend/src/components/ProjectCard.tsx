@@ -7,12 +7,21 @@ import { FaGithub, FaExternalLinkAlt } from 'react-icons/fa';
 import ProjectModal from './ProjectModal';
 
 type Project = {
+  id?: number;
   title: string;
+  tagline: string;
   description: string;
-  imageUrl?: string;
-  techStack?: string[];
-  githubUrl?: string;
-  liveUrl?: string;
+  github_url: string;
+  live_url?: string;
+  case_study_url?: string;
+  role: string;
+  team_size: number;
+  challenges: string;
+  solutions: string;
+  impact: string;
+  image_url?: string;
+  is_featured: boolean;
+  display_order: number;
 };
 
 type ProjectCardProps = {

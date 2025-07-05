@@ -40,6 +40,26 @@ class ApiService {
   async getCurrentUser() {
     return this.request('/auth/me');
   }
+
+  // Public Education
+  async getEducation() {
+    return this.request('/education');
+  }
+
+  // Public Experience
+  async getExperience() {
+    return this.request('/experience');
+  }
+
+  // Public Skills
+  async getSkills() {
+    return this.request('/skills');
+  }
+
+  // Public Projects
+  async getProjects() {
+    return this.request('/projects/all'); // Assuming this endpoint returns all projects
+  }
 }
 
 class AdminApiService extends ApiService {

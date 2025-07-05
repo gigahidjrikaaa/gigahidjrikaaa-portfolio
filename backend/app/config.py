@@ -29,6 +29,7 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "https://localhost:3000",
         "http://localhost:3001",  # For admin dashboard
+        "http://localhost:3002",  # For frontend development
     ]
     
     # Email Configuration

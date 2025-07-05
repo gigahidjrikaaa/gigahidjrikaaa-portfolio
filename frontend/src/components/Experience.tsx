@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { getPublicExperience } from '@/services/api';
+import { apiService } from '@/services/api';
 
 interface ExperienceItem {
   id: number;
@@ -17,20 +17,18 @@ const Experience = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getPublicExperience();
+        const data = await apiService.getExperience();
         setExperience(data);
       } catch (error) {
         console.error('Failed to fetch experience', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchData();
   }, []);
 
-  if (loading) {
-    return <div>Loading experience...</div>;
-  }
-
+  // Always render the section, data will populate when available
   return (
     <section id="experience" className="py-16">
       <h2 className="text-3xl font-bold text-center mb-8">Work Experience</h2>

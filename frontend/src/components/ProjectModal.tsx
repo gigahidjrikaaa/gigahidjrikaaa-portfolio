@@ -7,20 +7,23 @@ import { FaGithub, FaExternalLinkAlt, FaTimes, FaUsers, FaUserTie, FaCheckCircle
 import { createPortal } from 'react-dom';
 
 type Project = {
+  id?: number;
   title: string;
   tagline?: string;
   description: string;
-  features?: string[];
-  techStack?: string[];
-  githubUrl?: string;
-  liveUrl?: string;
-  caseStudyUrl?: string;
+  github_url?: string;
+  live_url?: string;
+  case_study_url?: string;
   role?: string;
-  teamSize?: number;
+  team_size?: number;
   challenges?: string;
   solutions?: string;
   impact?: string;
-  imageUrl?: string;
+  image_url?: string;
+  is_featured?: boolean;
+  display_order?: number;
+  features?: string[];
+  techStack?: string[];
 };
 
 type ProjectModalProps = {
