@@ -19,7 +19,7 @@ const AdminLogin = () => {
         // We need to verify if the user is an admin.
         // For now, we'll assume the login endpoint only succeeds for admins
         // and redirect to the dashboard. A better approach is to check a role from the response.
-        router.push('/admin');
+        router.replace('/admin');
       } else {
         setError('Login failed: No access token received.');
       }
