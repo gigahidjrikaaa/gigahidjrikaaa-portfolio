@@ -4,10 +4,12 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '@/contexts/AuthContext'; // Import the useAuth hook
 
 const Navbar = () => {
   // State to manage mobile menu visibility
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth(); // Get auth state
 
   // Function to toggle mobile menu
   const toggleMobileMenu = () => {
@@ -22,6 +24,12 @@ const Navbar = () => {
     { name: 'Contact', href: '#contact' },
   ];
 
+  // Conditionally add the Admin link
+  const allLinks = [...navLinks];
+  if (isAuthenticated) {
+    allLinks.push({ name: 'Admin', href: '/admin' });
+  }
+
   return (
     <nav className="sticky top-0 z-50 bg-background/90 backdrop-blur-md shadow-sm border-b border-gray-200/50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,12 +43,12 @@ const Navbar = () => {
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex md:items-center md:space-x-6 lg:space-x-8">
-            {navLinks.map((link) => (
+            {/* Don't render auth-dependent links until client-side hydration is complete */}
+            {!isLoading && allLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
                 className="font-medium text-text-secondary hover:text-primary transition-colors duration-200 px-3 py-2 rounded-md text-sm"
-                // Add active link styling here if needed (requires scrollspy for hash links or usePathname for page routes)
               >
                 {link.name}
               </Link>
@@ -75,7 +83,7 @@ const Navbar = () => {
         id="mobile-menu"
       >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200/80">
-          {navLinks.map((link) => (
+          {!isLoading && allLinks.map((link) => (
             <Link
               key={link.name}
               href={link.href}

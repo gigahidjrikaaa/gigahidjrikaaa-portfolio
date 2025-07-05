@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { AuthProvider } from "@/contexts/AuthContext"; // Import the provider
 
 export const metadata: Metadata = {
   title: 'Giga Hidjrika - Blockchain Dev & Software Engineer',
@@ -16,11 +17,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow container mx-auto px-4 py-8 sm:px-6 lg:px-8">{/* Basic container & grow */}
-          {children}
-        </main>
-        <Footer />
+        <AuthProvider> {/* Wrap components with the provider */}
+          <Navbar />
+          <main className="flex-grow container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            {children}
+          </main>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );
