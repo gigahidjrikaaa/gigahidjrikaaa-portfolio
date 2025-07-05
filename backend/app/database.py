@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, Da
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.sql import func
-from config import settings
+from .config import settings
 
 # Create database engine
 engine = create_engine(settings.DATABASE_URL, connect_args={"check_same_thread": False})

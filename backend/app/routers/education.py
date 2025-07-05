@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from .. import models, schemas
-from ..database import get_db
+from .. import schemas
+from ..database import get_db, Education
 
 router = APIRouter()
 
-@router.get("/", response_model=List[schemas.Education])
+@router.get("/", response_model=List[schemas.EducationResponse])
 def read_education(db: Session = Depends(get_db)):
-    education = db.query(models.Education).order_by(models.Education.display_order).all()
+    education = db.query(Education).order_by(Education.display_order).all()
     return education

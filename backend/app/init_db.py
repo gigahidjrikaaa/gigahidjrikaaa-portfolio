@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from database import engine, Base, SessionLocal, User
-from auth import get_password_hash
-from config import settings
+from .database import engine, Base, SessionLocal, User
+from .auth import get_password_hash
+from .config import settings
 
 def init_db():
     # Create all tables

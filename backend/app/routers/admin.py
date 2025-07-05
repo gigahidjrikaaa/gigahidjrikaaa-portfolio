@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-from database import get_db, Project, Experience, Education, Skill, ContactMessage, User, Technology, Feature
+from ..database import get_db, Project, Experience, Education, Skill, ContactMessage, User, Technology, Feature
 from ..auth import get_current_admin_user
-from schemas import (
+from ..schemas import (
     ProjectCreate, ProjectResponse, 
     ExperienceCreate, ExperienceResponse, ExperienceUpdate,
     EducationCreate, EducationResponse, EducationUpdate,

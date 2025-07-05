@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from database import get_db, Project, Experience, Education, Skill, ContactMessage
-from schemas import (
+from ..database import get_db, Project, Experience, Education, Skill, ContactMessage
+from ..schemas import (
     ProjectResponse, 
     ExperienceResponse, 
     EducationResponse, 
