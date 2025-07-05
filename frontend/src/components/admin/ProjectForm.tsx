@@ -54,14 +54,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCancel }) 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value, type } = e.target;
-    setFormData((prev) => ({
+    setFormData((prev: ProjectBase) => ({
       ...prev,
       [id]: type === 'number' ? Number(value) : value,
     }));
   };
 
   const handleCheckboxChange = (checked: boolean) => {
-    setFormData((prev) => ({
+    setFormData((prev: ProjectBase) => ({
       ...prev,
       is_featured: checked,
     }));

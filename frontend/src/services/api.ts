@@ -1,7 +1,7 @@
 const NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
 
 // --- Type Definitions (matching backend schemas) ---
-interface ProjectBase {
+export interface ProjectBase {
   title: string;
   tagline: string;
   description: string;
