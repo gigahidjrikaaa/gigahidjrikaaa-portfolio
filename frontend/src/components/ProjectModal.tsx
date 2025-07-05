@@ -23,7 +23,7 @@ type Project = {
   is_featured?: boolean;
   display_order?: number;
   features?: string[];
-  techStack?: string[];
+  tech_stack?: string[];
 };
 
 type ProjectModalProps = {
@@ -64,7 +64,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 40, opacity: 0 }}
             transition={{ duration: 0.28 }}
-            onClick={e => e.stopPropagation()}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
             {/* Decorative Neon Glow */}
             <div className="absolute -top-16 -left-16 w-56 h-56 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none" />
@@ -83,7 +83,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
               <div className="flex flex-col items-center md:items-start md:w-1/3 flex-shrink-0 gap-3">
                 <div className="w-24 h-24 md:w-28 md:h-28 rounded-xl overflow-hidden border-2 border-cyan-400/40 shadow-lg bg-black/30">
                   <Image
-                    src={project.imageUrl || '/placeholder.png'}
+                    src={project.image_url || '/placeholder.png'}
                     width={112} // 28 * 4 
                     height={112} // 28 * 4
                     alt={project.title}
@@ -99,18 +99,18 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
                 {project.role && (
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-cyan-300">
                     <FaUserTie /> <span>{project.role}</span>
-                    {project.teamSize && (
+                    {project.team_size && (
                       <>
-                        <FaUsers className="ml-2" /> <span>Team of {project.teamSize}</span>
+                        <FaUsers className="ml-2" /> <span>Team of {project.team_size}</span>
                       </>
                     )}
                   </div>
                 )}
                 {/* Links */}
                 <div className="flex gap-2 mt-2 flex-wrap justify-center md:justify-start">
-                  {project.githubUrl && (
+                  {project.github_url && (
                     <a
-                      href={project.githubUrl}
+                      href={project.github_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center px-3 py-1.5 rounded-full border border-cyan-400 text-cyan-200 hover:bg-cyan-500/20 hover:text-cyan-100 transition-all text-xs font-semibold shadow"
@@ -118,9 +118,9 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
                       <FaGithub className="mr-1" /> GitHub
                     </a>
                   )}
-                  {project.liveUrl && (
+                  {project.live_url && (
                     <a
-                      href={project.liveUrl}
+                      href={project.live_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center px-3 py-1.5 rounded-full border border-pink-400 text-pink-200 hover:bg-pink-500/20 hover:text-pink-100 transition-all text-xs font-semibold shadow"
@@ -128,9 +128,9 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
                       <FaExternalLinkAlt className="mr-1" /> Live
                     </a>
                   )}
-                  {project.caseStudyUrl && (
+                  {project.case_study_url && (
                     <a
-                      href={project.caseStudyUrl}
+                      href={project.case_study_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center px-3 py-1.5 rounded-full border border-white/20 text-white hover:bg-white/10 transition-all text-xs font-semibold shadow"
@@ -153,7 +153,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
                   <div className="overflow-y-auto max-h-20 md:max-h-24 pr-1">
                     <h4 className="text-cyan-300 font-semibold mb-1 text-xs uppercase tracking-wider">Key Features</h4>
                     <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-cyan-200 text-xs">
-                      {project.features.map((feature, i) => (
+                      {project.features.map((feature: string, i: number) => (
                         <li key={i} className="flex items-center gap-2">
                           <FaCheckCircle className="text-cyan-400 min-w-[1em]" /> <span>{feature}</span>
                         </li>
@@ -165,7 +165,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
                 <div className="overflow-y-auto max-h-12 md:max-h-16 pr-1">
                   <h4 className="text-cyan-300 font-semibold mb-1 text-xs uppercase tracking-wider">Tech Stack</h4>
                   <div className="flex flex-wrap gap-2">
-                    {project.techStack?.map((tech, i) => (
+                    {project.tech_stack?.map((tech: string, i: number) => (
                       <span
                         key={i}
                         className="text-xs px-2 py-1 rounded bg-cyan-400/10 border border-cyan-400/20 text-cyan-200 font-mono"

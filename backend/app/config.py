@@ -8,8 +8,8 @@ load_dotenv()
 
 class Settings(BaseSettings):
     # API Configuration
-    API_V1_STR: str = "/api"
-    PROJECT_NAME: str = "Portfolio Backend"
+    API_V1_STR: str = os.getenv("API_V1_STR", "/api/v1")
+    PROJECT_NAME: str = "Giga Hidjrika Portfolio Backend"
     
     # Database
     DATABASE_URL: str = "sqlite:///./portfolio.db"

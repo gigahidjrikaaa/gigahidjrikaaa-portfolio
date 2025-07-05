@@ -22,6 +22,7 @@ type Project = {
   image_url?: string;
   is_featured: boolean;
   display_order: number;
+  tech_stack?: string[];
 };
 
 type ProjectCardProps = {
@@ -49,7 +50,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         whileHover={{ y: -10, boxShadow: "0 0 40px 0 rgba(0,255,255,0.22)" }}
         onClick={() => setOpen(true)}
         tabIndex={0}
-        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setOpen(true); }}
+        onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') setOpen(true); }}
         aria-label={`Open details for ${project.title}`}
       >
         {/* Unique angled neon accent */}
@@ -57,11 +58,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         {/* Project Image with animated border */}
         <div className="relative h-48 w-full overflow-hidden">
           <Image
-            src={project.imageUrl || "/placeholder.png"}
+            src={project.image_url || "/placeholder.png"}
             alt={project.title}
             fill
             className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
-            onError={(e) => {
+            onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
               const target = e.target as HTMLImageElement;
               target.onerror = null; // Prevent infinite loop
               target.src = "/placeholder.png";
@@ -88,7 +89,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           </h3>
           <p className="text-black text-sm mb-4 flex-1 line-clamp-3">{project.description}</p>
           <div className="flex flex-wrap gap-2 mb-4">
-            {project.techStack?.map((tech, i) => (
+            {project.tech_stack?.map((tech: string, i: number) => (
               <span
                 key={i}
                 className="text-xs px-2 py-1 rounded-md bg-white/10 border border-cyan-400/20 text-cyan-200 font-mono tracking-tight"
@@ -98,9 +99,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             ))}
           </div>
           <div className="flex gap-3 mt-auto">
-            {project.githubUrl && (
+            {project.github_url && (
               <a
-                href={project.githubUrl}
+                href={project.github_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-3 py-1.5 rounded-full border border-cyan-400 text-cyan-300 hover:bg-cyan-500/20 hover:text-cyan-100 transition-all text-xs font-semibold shadow neon-glow-cyan"
@@ -109,9 +110,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
                 <FaGithub className="mr-1" /> Code
               </a>
             )}
-            {project.liveUrl && (
+            {project.live_url && (
               <a
-                href={project.liveUrl}
+                href={project.live_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-3 py-1.5 rounded-full border border-pink-400 text-pink-300 hover:bg-pink-500/20 hover:text-pink-100 transition-all text-xs font-semibold shadow neon-glow-pink"

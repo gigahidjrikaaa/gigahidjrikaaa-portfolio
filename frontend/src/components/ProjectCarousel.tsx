@@ -21,6 +21,7 @@ type Project = {
   image_url?: string;
   is_featured: boolean;
   display_order: number;
+  tech_stack?: string[];
 };
 
 type ProjectCarouselProps = {

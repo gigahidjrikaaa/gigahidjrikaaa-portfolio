@@ -49,12 +49,13 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <div className="flex items-center md:hidden">
+            {/* The cast below helps TypeScript recognize the button element if JSX intrinsics are not configured correctly. */}
             <button
               onClick={toggleMobileMenu}
               type="button"
               className="inline-flex items-center justify-center p-2 rounded-md text-text-secondary hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent"
               aria-controls="mobile-menu"
-              aria-expanded={isMobileMenuOpen} // Accessibility attribute
+              aria-expanded={isMobileMenuOpen ? 'true' : 'false'} // Accessibility attribute
             >
               <span className="sr-only">Open main menu</span>
               {isMobileMenuOpen ? (
