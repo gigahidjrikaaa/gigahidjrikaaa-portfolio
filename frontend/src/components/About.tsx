@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { FaGraduationCap, FaBriefcase, FaUserAlt, FaCode } from 'react-icons/fa';
-import { adminApi, EducationResponse, ExperienceResponse } from '@/services/api';
+import { apiService, EducationResponse, ExperienceResponse } from '@/services/api';
 
 // Animation variants
 const containerVariants = {
@@ -37,8 +37,8 @@ const About = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const educationData = await adminApi.getEducation();
-        const experienceData = await adminApi.getExperience();
+        const educationData = await apiService.getEducation();
+        const experienceData = await apiService.getExperience();
         setEducation(educationData);
         setExperience(experienceData);
       } catch (err) {
