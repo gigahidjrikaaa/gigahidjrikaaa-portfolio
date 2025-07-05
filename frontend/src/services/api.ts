@@ -154,7 +154,9 @@ class ApiService {
   }
 
   async verifyToken(): Promise<{ valid: boolean; user: UserResponse }> {
-    return this.request<{ valid: boolean; user: UserResponse }>('/auth/verify-token');
+    return this.request<{ valid: boolean; user: UserResponse }>('/auth/verify-token', {
+      method: 'POST'
+    });
   }
 
   async getCurrentUser(): Promise<UserResponse> {
