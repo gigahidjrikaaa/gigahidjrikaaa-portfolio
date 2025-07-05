@@ -1,9 +1,11 @@
 // src/components/About.tsx
 'use client';
 
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { FaGraduationCap, FaBriefcase, FaAward, FaUserAlt, FaCode } from 'react-icons/fa';
+import { FaGraduationCap, FaBriefcase, FaUserAlt, FaCode } from 'react-icons/fa';
+import { adminApi, EducationResponse, ExperienceResponse } from '@/services/api';
 
 // Animation variants
 const containerVariants = {
@@ -26,54 +28,45 @@ const itemVariants = {
   }
 };
 
-// Education data
-const education = [
-  {
-    degree: 'Bachelor of Engineering in Information Engineering',
-    institution: 'Universitas Gadjah Mada',
-    location: 'Yogyakarta, Indonesia',
-    period: '2021 - Present',
-    description: 'Focus on Artificial Intelligence and Blockchain technologies. Relevant coursework includes Machine Learning, Data Structures, and Web Development.',
-    gpa: '3.8/4.0'
-  },
-  // Add more education if needed
-];
-
-// Experience data
-const experience = [
-  {
-    title: 'Full Stack Developer',
-    company: 'UGM-AICare Project',
-    location: 'Yogyakarta, Indonesia',
-    period: 'Jun 2023 - Present',
-    description: 'Developed an AI-powered mental health chatbot for university students using Next.js, FastAPI, and Redis. Implemented real-time conversation features and data privacy measures.'
-  },
-  {
-    title: 'Blockchain Developer',
-    company: 'Decentralized Voting System',
-    location: 'Remote',
-    period: 'Jan 2023 - May 2023',
-    description: 'Created a proof-of-concept blockchain application for secure and transparent voting using Solidity and Ethereum testnet.'
-  },
-  // Add more experience if needed
-];
-
-// Certifications/Awards
-const certifications = [
-  {
-    title: 'TensorFlow Developer Certification',
-    issuer: 'Google',
-    date: 'March 2023'
-  },
-  {
-    title: 'Blockchain Fundamentals',
-    issuer: 'Coursera - UC Berkeley',
-    date: 'November 2022'
-  },
-  // Add more certifications if needed
-];
-
 const About = () => {
+  const [education, setEducation] = useState<EducationResponse[]>([]);
+  const [experience, setExperience] = useState<ExperienceResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const educationData = await adminApi.getEducation();
+        const experienceData = await adminApi.getExperience();
+        setEducation(educationData);
+        setExperience(experienceData);
+      } catch (err) {
+        console.error("Failed to fetch about data:", err);
+        setError("Failed to load data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <section id="about" className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-white to-blue-50">
+      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center text-gray-600">Loading about data...</div>
+      </div>
+    </section>;
+  }
+
+  if (error) {
+    return <section id="about" className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-white to-blue-50">
+      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center text-red-500">{error}</div>
+      </div>
+    </section>;
+  }
+
   return (
     <section id="about" className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-white to-blue-50">
       {/* Background Elements */}
@@ -175,9 +168,9 @@ const About = () => {
               </div>
               
               <div className="backdrop-blur-md bg-white/80 border border-cyan-300/30 rounded-xl shadow-xl flex-1 overflow-hidden hover:shadow-[0_0_25px_rgba(0,200,255,0.2)] transition-all duration-300">
-              {education.map((edu, index) => (
+              {education.map((edu) => (
                 <div 
-                key={index} 
+                key={edu.id} 
                 className="p-5 sm:p-6 border-b border-gray-100 last:border-0 hover:bg-cyan-50/50 transition-colors duration-200"
                 >
                 <div className="flex flex-wrap justify-between items-baseline gap-2 mb-2">
@@ -186,7 +179,7 @@ const About = () => {
                 </div>
                 <div className="flex flex-wrap justify-between items-baseline gap-2 mb-3">
                   <div className="text-gray-600 text-sm sm:text-base">{edu.institution}, {edu.location}</div>
-                  <div className="text-sm font-medium text-cyan-600 bg-cyan-100/50 px-2 py-0.5 rounded-full">{edu.gpa} GPA</div>
+                  {edu.gpa && <div className="text-sm font-medium text-cyan-600 bg-cyan-100/50 px-2 py-0.5 rounded-full">{edu.gpa} GPA</div>}
                 </div>
                 <p className="text-sm text-gray-500 mt-2 leading-relaxed">{edu.description}</p>
                 </div>
@@ -204,9 +197,9 @@ const About = () => {
               </div>
               
               <div className="backdrop-blur-md bg-white/80 border border-pink-300/30 rounded-xl shadow-xl flex-1 overflow-hidden hover:shadow-[0_0_25px_rgba(219,39,119,0.2)] transition-all duration-300">
-              {experience.map((exp, index) => (
+              {experience.map((exp) => (
                 <div 
-                key={index} 
+                key={exp.id} 
                 className="p-5 sm:p-6 border-b border-gray-100 last:border-0 hover:bg-pink-50/50 transition-colors duration-200"
                 >
                 <div className="flex flex-wrap justify-between items-baseline gap-2 mb-2">
@@ -225,28 +218,7 @@ const About = () => {
             </div>
             </motion.div>
           
-          {/* Certifications Section */}
-          <motion.div variants={itemVariants} className="mb-16">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-400/50 shadow-md">
-                <FaAward className="text-purple-600" />
-              </div>
-              <h3 className="text-2xl font-semibold text-gray-800">Certifications</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {certifications.map((cert, index) => (
-                <div key={index} className="backdrop-blur-md bg-white/80 border border-purple-300/30 p-5 rounded-xl shadow-xl
-                  hover:shadow-[0_0_25px_rgba(219,39,119,0.2)] transition-all duration-300 group">
-                  <h4 className="text-md font-semibold bg-gradient-to-r from-cyan-600 to-pink-600 text-transparent bg-clip-text mb-1 group-hover:from-pink-600 group-hover:to-purple-600">{cert.title}</h4>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">{cert.issuer}</span>
-                    <span className="text-pink-600">{cert.date}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+          
           
           {/* Technical Areas */}
           <motion.div variants={itemVariants}>
