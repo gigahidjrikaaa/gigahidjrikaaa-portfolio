@@ -26,7 +26,7 @@ export interface ProjectResponse extends ProjectBase {
   updated_at: string;
 }
 
-interface ExperienceBase {
+export interface ExperienceBase {
   title: string;
   company: string;
   location: string;
@@ -44,7 +44,7 @@ export interface ExperienceResponse extends ExperienceBase {
   updated_at: string;
 }
 
-interface EducationBase {
+export interface EducationBase {
   degree: string;
   institution: string;
   location: string;
@@ -63,7 +63,7 @@ export interface EducationResponse extends EducationBase {
   updated_at: string;
 }
 
-interface SkillBase {
+export interface SkillBase {
   name: string;
   category: string;
   proficiency: number;

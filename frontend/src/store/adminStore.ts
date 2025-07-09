@@ -1,19 +1,12 @@
 import { create } from 'zustand';
-import { adminApi, ProjectBase, ProjectResponse, ExperienceBase, ExperienceResponse, EducationBase, EducationResponse, SkillBase, SkillResponse, ContactMessageResponse } from '@/services/api';
-
-// Define interfaces for our data
-interface Project extends ProjectResponse {}
-interface Experience extends ExperienceResponse {}
-interface Education extends EducationResponse {}
-interface Skill extends SkillResponse {}
-interface ContactMessage extends ContactMessageResponse {}
+import { adminApi, ProjectBase, ProjectResponse, ExperienceBase, EducationBase, SkillBase, ContactMessageResponse } from '@/services/api';
 
 interface AdminState {
-  projects: Project[];
-  experience: Experience[];
-  education: Education[];
-  skills: Skill[];
-  messages: ContactMessage[];
+  projects: ProjectResponse[]; // Use ProjectResponse directly
+  experience: ExperienceBase[]; // Use ExperienceBase or ExperienceResponse if available
+  education: EducationBase[];   // Use EducationBase or EducationResponse if available
+  skills: SkillBase[];          // Use SkillBase or SkillResponse if available
+  messages: ContactMessageResponse[]; // Use ContactMessageResponse directly
   loading: boolean;
   error: string | null;
   
@@ -42,7 +35,7 @@ interface AdminState {
   deleteMessage: (id: number) => Promise<void>;
 }
 
-export const useAdminStore = create<AdminState>((set, get) => ({
+export const useAdminStore = create<AdminState>((set) => ({
   // Initial state
   projects: [],
   experience: [],
@@ -58,7 +51,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       set({ loading: true, error: null });
       const projects = await adminApi.getProjects();
       set({ projects, loading: false });
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to fetch projects', loading: false });
     }
   },
