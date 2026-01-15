@@ -6,14 +6,24 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ProjectBase, ProjectResponse } from '@/services/api';
+import { openMediaLibrary } from '@/lib/cloudinaryWidget';
+
+type ProjectImageDraft = {
+  id?: number;
+  url: string;
+  kind?: string;
+  caption?: string;
+  display_order?: number;
+};
 
 interface ProjectFormProps {
   project?: ProjectResponse | null;
-  onSave: (project: ProjectBase) => void;
+  images?: ProjectImageDraft[];
+  onSave: (project: ProjectBase, images: ProjectImageDraft[]) => void;
   onCancel: () => void;
 }
 
-const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCancel }) => {
+const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave, onCancel }) => {
   const [formData, setFormData] = useState<ProjectBase>({
     title: '',
     tagline: '',
@@ -27,9 +37,15 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCancel }) 
     solutions: '',
     impact: '',
     image_url: '',
+    thumbnail_url: '',
+    ui_image_url: '',
     is_featured: false,
     display_order: 0,
   });
+  const [projectImages, setProjectImages] = useState<ProjectImageDraft[]>(images);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "";
+  const cloudApiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || "";
 
   useEffect(() => {
     if (project) {
@@ -46,11 +62,17 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCancel }) 
         solutions: project.solutions || '',
         impact: project.impact || '',
         image_url: project.image_url || '',
+        thumbnail_url: project.thumbnail_url || '',
+        ui_image_url: project.ui_image_url || '',
         is_featured: project.is_featured || false,
         display_order: project.display_order || 0,
       });
     }
   }, [project]);
+
+  useEffect(() => {
+    setProjectImages(images);
+  }, [images]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value, type } = e.target;
@@ -69,7 +91,96 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCancel }) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    const normalizedImages = projectImages.map((image, index) => ({
+      ...image,
+      display_order: image.display_order ?? index,
+    }));
+    onSave(formData, normalizedImages);
+  };
+
+  const updateImageField = (index: number, key: keyof ProjectImageDraft, value: string | number) => {
+    setProjectImages((prev) =>
+      prev.map((image, idx) => (idx === index ? { ...image, [key]: value } : image))
+    );
+  };
+
+  const addImage = () => {
+    setProjectImages((prev) => ([
+      ...prev,
+      { url: '', kind: 'gallery', caption: '', display_order: prev.length },
+    ]));
+  };
+
+  const removeImage = (index: number) => {
+    setProjectImages((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const moveImage = (index: number, direction: -1 | 1) => {
+    setProjectImages((prev) => {
+      const next = [...prev];
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= next.length) return prev;
+      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+      return next;
+    });
+  };
+
+  const handleDragStart = (index: number) => {
+    setDragIndex(index);
+  };
+
+  const handleDrop = (index: number) => {
+    if (dragIndex === null || dragIndex === index) return;
+    setProjectImages((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(dragIndex, 1);
+      next.splice(index, 0, moved);
+      return next;
+    });
+    setDragIndex(null);
+  };
+
+  const openMediaPicker = async (onSelect: (url: string) => void) => {
+    if (!cloudName || !cloudApiKey) {
+      alert("Cloudinary Media Library is not configured. Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_API_KEY.");
+      return;
+    }
+    await openMediaLibrary(
+      {
+        cloud_name: cloudName,
+        api_key: cloudApiKey,
+        multiple: false,
+      },
+      (assets) => {
+        const asset = assets[0];
+        if (asset?.secure_url || asset?.url) {
+          onSelect(asset.secure_url || asset.url || "");
+        }
+      }
+    );
+  };
+
+  const openGalleryPicker = async () => {
+    if (!cloudName || !cloudApiKey) {
+      alert("Cloudinary Media Library is not configured. Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_API_KEY.");
+      return;
+    }
+    await openMediaLibrary(
+      {
+        cloud_name: cloudName,
+        api_key: cloudApiKey,
+        multiple: true,
+      },
+      (assets) => {
+        const mapped = assets.map((asset) => ({
+          url: asset.secure_url || asset.url || "",
+          caption: "",
+          kind: "gallery",
+          display_order: projectImages.length,
+        }));
+        setProjectImages((prev) => [...prev, ...mapped]);
+      }
+    );
   };
 
   return (
@@ -125,6 +236,108 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCancel }) 
             <Label htmlFor="image_url" className="text-gray-700">Image URL (Optional)</Label>
             <Input id="image_url" value={formData.image_url || ''} onChange={handleChange} className="mt-1" />
             {/* Future: Add actual image upload functionality here */}
+            <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => openMediaPicker((url) => setFormData((prev) => ({ ...prev, image_url: url })))}>
+              Pick from Cloudinary
+            </Button>
+            {formData.image_url ? (
+              <img src={formData.image_url} alt="Project" className="mt-2 h-24 w-full rounded-md object-cover" />
+            ) : null}
+          </div>
+          <div>
+            <Label htmlFor="thumbnail_url" className="text-gray-700">Thumbnail URL (Optional)</Label>
+            <Input id="thumbnail_url" value={formData.thumbnail_url || ''} onChange={handleChange} className="mt-1" />
+            <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => openMediaPicker((url) => setFormData((prev) => ({ ...prev, thumbnail_url: url })))}>
+              Pick from Cloudinary
+            </Button>
+            {formData.thumbnail_url ? (
+              <img src={formData.thumbnail_url} alt="Thumbnail" className="mt-2 h-24 w-full rounded-md object-cover" />
+            ) : null}
+          </div>
+          <div>
+            <Label htmlFor="ui_image_url" className="text-gray-700">UI Image URL (Optional)</Label>
+            <Input id="ui_image_url" value={formData.ui_image_url || ''} onChange={handleChange} className="mt-1" />
+            <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => openMediaPicker((url) => setFormData((prev) => ({ ...prev, ui_image_url: url })))}>
+              Pick from Cloudinary
+            </Button>
+            {formData.ui_image_url ? (
+              <img src={formData.ui_image_url} alt="UI preview" className="mt-2 h-24 w-full rounded-md object-cover" />
+            ) : null}
+          </div>
+          <div className="md:col-span-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-gray-700">Project Gallery Images</Label>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={addImage}>Add Image</Button>
+                <Button type="button" variant="outline" onClick={openGalleryPicker}>Pick from Cloudinary</Button>
+              </div>
+            </div>
+            {projectImages.length === 0 ? (
+              <p className="text-sm text-gray-500 mt-2">No gallery images yet.</p>
+            ) : (
+              <div className="mt-4 space-y-4">
+                {projectImages.map((image, index) => (
+                  <div
+                    key={`${image.id ?? index}`}
+                    className="grid grid-cols-1 md:grid-cols-5 gap-3 border rounded-lg p-3"
+                    draggable
+                    onDragStart={() => handleDragStart(index)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => handleDrop(index)}
+                  >
+                    <div className="md:col-span-2">
+                      <Label htmlFor={`image-url-${index}`} className="text-gray-700">Image URL</Label>
+                      <Input
+                        id={`image-url-${index}`}
+                        value={image.url}
+                        onChange={(e) => updateImageField(index, 'url', e.target.value)}
+                        className="mt-1"
+                        required
+                      />
+                      {image.url ? (
+                        <img src={image.url} alt={image.caption ?? 'Project image'} className="mt-2 h-20 w-full rounded-md object-cover" />
+                      ) : null}
+                    </div>
+                    <div>
+                      <Label htmlFor={`image-kind-${index}`} className="text-gray-700">Kind</Label>
+                      <select
+                        id={`image-kind-${index}`}
+                        value={image.kind || 'gallery'}
+                        onChange={(e) => updateImageField(index, 'kind', e.target.value)}
+                        className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+                      >
+                        <option value="gallery">Gallery</option>
+                        <option value="ui">UI</option>
+                        <option value="thumbnail">Thumbnail</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor={`image-caption-${index}`} className="text-gray-700">Caption</Label>
+                      <Input
+                        id={`image-caption-${index}`}
+                        value={image.caption || ''}
+                        onChange={(e) => updateImageField(index, 'caption', e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor={`image-order-${index}`} className="text-gray-700">Order</Label>
+                      <Input
+                        id={`image-order-${index}`}
+                        type="number"
+                        value={image.display_order ?? index}
+                        onChange={(e) => updateImageField(index, 'display_order', Number(e.target.value))}
+                        className="mt-1"
+                      />
+                      <div className="flex gap-2">
+                        <Button type="button" variant="outline" size="sm" onClick={() => moveImage(index, -1)}>Up</Button>
+                        <Button type="button" variant="outline" size="sm" onClick={() => moveImage(index, 1)}>Down</Button>
+                        <Button type="button" variant="destructive" size="sm" onClick={() => removeImage(index)}>Remove</Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <Label htmlFor="display_order" className="text-gray-700">Display Order</Label>

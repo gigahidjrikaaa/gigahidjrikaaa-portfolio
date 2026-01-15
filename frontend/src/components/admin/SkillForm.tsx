@@ -16,6 +16,7 @@ const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
     name: '',
     category: '',
     proficiency: 0,
+    icon_url: '',
     display_order: 0,
   });
 
@@ -25,6 +26,7 @@ const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
         name: skill.name || '',
         category: skill.category || '',
         proficiency: skill.proficiency || 0,
+        icon_url: skill.icon_url || '',
         display_order: skill.display_order || 0,
       });
     }
@@ -59,6 +61,10 @@ const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
           <div>
             <Label htmlFor="proficiency" className="text-gray-700">Proficiency (1-5)</Label>
             <Input id="proficiency" type="number" value={formData.proficiency} onChange={handleChange} required min={1} max={5} className="mt-1" />
+          </div>
+          <div>
+            <Label htmlFor="icon_url" className="text-gray-700">Icon URL (Optional)</Label>
+            <Input id="icon_url" value={formData.icon_url || ''} onChange={handleChange} className="mt-1" />
           </div>
           <div>
             <Label htmlFor="display_order" className="text-gray-700">Display Order</Label>

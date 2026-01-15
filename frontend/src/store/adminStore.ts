@@ -119,7 +119,7 @@ export const useAdminStore = create<AdminState>((set) => ({
       set({ loading: true, error: null });
       const experience = await adminApi.getExperience();
       set({ experience, loading: false });
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to fetch experience', loading: false });
     }
   },
@@ -132,9 +132,9 @@ export const useAdminStore = create<AdminState>((set) => ({
         experience: [...state.experience, newExperience],
         loading: false,
       }));
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to create experience', loading: false });
-      throw error; // Re-throw to allow component to handle
+      throw new Error('Failed to create experience');
     }
   },
 
@@ -146,9 +146,9 @@ export const useAdminStore = create<AdminState>((set) => ({
         experience: state.experience.map((exp) => (exp.id === id ? updatedExperience : exp)),
         loading: false,
       }));
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to update experience', loading: false });
-      throw error; // Re-throw to allow component to handle
+      throw new Error('Failed to update experience');
     }
   },
 
@@ -160,9 +160,9 @@ export const useAdminStore = create<AdminState>((set) => ({
         experience: state.experience.filter((exp) => exp.id !== id),
         loading: false,
       }));
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to delete experience', loading: false });
-      throw error; // Re-throw to allow component to handle
+      throw new Error('Failed to delete experience');
     }
   },
 
@@ -172,7 +172,7 @@ export const useAdminStore = create<AdminState>((set) => ({
       set({ loading: true, error: null });
       const education = await adminApi.getEducation();
       set({ education, loading: false });
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to fetch education', loading: false });
     }
   },
@@ -185,9 +185,9 @@ export const useAdminStore = create<AdminState>((set) => ({
         education: [...state.education, newEducation],
         loading: false,
       }));
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to create education', loading: false });
-      throw error; // Re-throw to allow component to handle
+      throw new Error('Failed to create education');
     }
   },
 
@@ -199,9 +199,9 @@ export const useAdminStore = create<AdminState>((set) => ({
         education: state.education.map((edu) => (edu.id === id ? updatedEducation : edu)),
         loading: false,
       }));
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to update education', loading: false });
-      throw error; // Re-throw to allow component to handle
+      throw new Error('Failed to update education');
     }
   },
 
@@ -213,9 +213,9 @@ export const useAdminStore = create<AdminState>((set) => ({
         education: state.education.filter((edu) => edu.id !== id),
         loading: false,
       }));
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to delete education', loading: false });
-      throw error; // Re-throw to allow component to handle
+      throw new Error('Failed to delete education');
     }
   },
 
@@ -225,7 +225,7 @@ export const useAdminStore = create<AdminState>((set) => ({
       set({ loading: true, error: null });
       const skills = await adminApi.getSkills();
       set({ skills, loading: false });
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to fetch skills', loading: false });
     }
   },
@@ -238,9 +238,9 @@ export const useAdminStore = create<AdminState>((set) => ({
         skills: [...state.skills, newSkill],
         loading: false,
       }));
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to create skill', loading: false });
-      throw error; // Re-throw to allow component to handle
+      throw new Error('Failed to create skill');
     }
   },
 
@@ -252,9 +252,9 @@ export const useAdminStore = create<AdminState>((set) => ({
         skills: state.skills.map((s) => (s.id === id ? updatedSkill : s)),
         loading: false,
       }));
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to update skill', loading: false });
-      throw error; // Re-throw to allow component to handle
+      throw new Error('Failed to update skill');
     }
   },
 
@@ -266,9 +266,9 @@ export const useAdminStore = create<AdminState>((set) => ({
         skills: state.skills.filter((s) => s.id !== id),
         loading: false,
       }));
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to delete skill', loading: false });
-      throw error; // Re-throw to allow component to handle
+      throw new Error('Failed to delete skill');
     }
   },
 
@@ -278,7 +278,7 @@ export const useAdminStore = create<AdminState>((set) => ({
       set({ loading: true, error: null });
       const messages = await adminApi.getContactMessages();
       set({ messages, loading: false });
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to fetch messages', loading: false });
     }
   },
@@ -291,9 +291,9 @@ export const useAdminStore = create<AdminState>((set) => ({
         messages: state.messages.map((msg) => (msg.id === id ? { ...msg, is_read: true } : msg)),
         loading: false,
       }));
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to mark message as read', loading: false });
-      throw error; // Re-throw to allow component to handle
+      throw new Error('Failed to mark message as read');
     }
   },
 
@@ -305,9 +305,9 @@ export const useAdminStore = create<AdminState>((set) => ({
         messages: state.messages.filter((msg) => msg.id !== id),
         loading: false,
       }));
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to delete message', loading: false });
-      throw error; // Re-throw to allow component to handle
+      throw new Error('Failed to delete message');
     }
   },
 }));

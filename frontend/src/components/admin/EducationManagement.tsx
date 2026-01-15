@@ -61,7 +61,12 @@ const EducationManagement = () => {
           <div className="space-y-4">
             {education.map((edu) => (
               <div key={edu.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-                <h3 className="font-semibold text-gray-800">{edu.degree} from {edu.institution}</h3>
+                <div className="flex items-center gap-3">
+                  {edu.institution_logo_url ? (
+                    <img src={edu.institution_logo_url} alt={edu.institution} className="h-10 w-10 rounded-full object-contain bg-white" />
+                  ) : null}
+                  <h3 className="font-semibold text-gray-800">{edu.degree} from {edu.institution}</h3>
+                </div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => {
                     setSelectedEducation(edu);

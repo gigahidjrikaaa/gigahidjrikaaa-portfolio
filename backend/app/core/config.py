@@ -48,6 +48,17 @@ class Settings(BaseSettings):
     SMTP_USER: str = Field(default="")
     SMTP_PASSWORD: str = Field(default="")
 
+    # Cloudinary Configuration
+    CLOUDINARY_CLOUD_NAME: str = Field(default="")
+    CLOUDINARY_API_KEY: str = Field(default="")
+    CLOUDINARY_API_SECRET: str = Field(default="")
+    CLOUDINARY_FOLDER: str = Field(default="portfolio")
+
+    # Basic rate limiting (in-memory; suitable for single-process dev)
+    RATE_LIMIT_WINDOW_SECONDS: int = Field(default=60)
+    RATE_LIMIT_LOGIN_PER_WINDOW: int = Field(default=10)
+    RATE_LIMIT_CONTACT_PER_WINDOW: int = Field(default=10)
+
     @property
     def is_development(self) -> bool:
         return self.ENVIRONMENT.lower() == "development"
@@ -79,10 +90,12 @@ class Settings(BaseSettings):
 
     @field_validator("ADMIN_PASSWORD")
     @classmethod
-    def _validate_admin_credentials_complete(cls, _value: str, info):
+    def _validate_admin_credentials_complete(cls, value: str, info):
         username = (info.data.get("ADMIN_USERNAME") or "").strip()
         email = (info.data.get("ADMIN_EMAIL") or "").strip()
-        password = (info.data.get("ADMIN_PASSWORD") or "").strip()
+        # NOTE: `info.data` contains only previously-validated fields and does not
+        # include the value for the field currently being validated.
+        password = (value or "").strip()
 
         any_set = bool(username or email or password)
         all_set = bool(username and email and password)

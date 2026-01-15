@@ -1,9 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import Particles from 'react-tsparticles';
+import { loadFull } from 'tsparticles';
+import type { Engine } from 'tsparticles-engine';
+import particlesOptions from '@/config/particlesOptions';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -28,17 +32,37 @@ const itemVariants = {
   },
 };
 
+const copy = {
+  name: 'Giga H. A. Adkhy',
+  role: 'Digital Visionary',
+  headline: 'Building the future at the intersection of AI & Blockchain.',
+  subhead: 'Information Engineering Student & Creative Technologist.',
+  ctaPrimary: 'View Projects',
+  ctaSecondary: 'Get In Touch',
+  location: 'Based in Yogyakarta, Indonesia',
+  availability: 'Open for freelance & collab',
+  heroAlt: 'Futuristic cyberpunk city',
+  avatarAlt: 'Avatar',
+};
+
 const Hero = () => {
+  const reduceMotion = useReducedMotion();
+  const particlesInit = useCallback(async (engine: Engine) => {
+    if (!reduceMotion) {
+      await loadFull(engine);
+    }
+  }, [reduceMotion]);
+
   return (
     <section
       id="hero"
-      className="relative flex items-center min-h-screen overflow-hidden bg-background"
+      className="relative flex items-center min-h-[92vh] overflow-hidden bg-background pt-24 pb-16"
     >
       {/* Background Image with overlay */}
       <div className="absolute inset-0 z-0">
         <Image
           src="/hero-bg.jpg"
-          alt="Futuristic cyberpunk city"
+          alt={copy.heroAlt}
           fill
           priority
           className="object-cover w-full h-full opacity-80"
@@ -49,6 +73,17 @@ const Hero = () => {
         <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-cyan-400/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-pink-500/20 rounded-full blur-2xl" />
       </div>
+
+      {!reduceMotion && (
+        <div className="absolute inset-0 z-[5]">
+          <Particles
+            id="hero-particles"
+            init={particlesInit}
+            options={particlesOptions}
+            className="h-full w-full"
+          />
+        </div>
+      )}
 
       {/* Animated Neon Grid */}
       <motion.svg
@@ -103,12 +138,12 @@ const Hero = () => {
           animate="visible"
         >
           {/* Glassmorphism Panel */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl p-8 md:p-12 mb-8">
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl p-6 sm:p-8 md:p-12 mb-8">
             <motion.div variants={itemVariants} className="mb-4">
-              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight font-heading">
+              <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight font-heading">
                 <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 text-transparent bg-clip-text 
                   drop-shadow-[0_2px_16px_rgba(0,255,255,0.3)] inline-block">
-                  Giga H. A. Adkhy
+                  {copy.name}
                 </span>
               </h1>
               <motion.div
@@ -117,16 +152,16 @@ const Hero = () => {
                 transition={{ duration: 0.8, delay: 1 }}
               >
                 <motion.span 
-                  className="text-3xl md:text-5xl bg-gradient-to-r from-pink-400 via-purple-400 to-pink-300 
+                  className="text-2xl sm:text-3xl md:text-5xl bg-gradient-to-r from-pink-400 via-purple-400 to-pink-300 
                     text-transparent bg-clip-text inline-block relative"
                   initial={{ width: 0 }}
                   animate={{ width: "auto" }}
                   transition={{ duration: 1.2, delay: 1.5 }}
                 >
-                  Digital Visionary
+                  {copy.role}
                 </motion.span>
                 <motion.span 
-                  className="ml-1 text-3xl md:text-5xl text-white inline-block"
+                  className="ml-1 text-2xl sm:text-3xl md:text-5xl text-white inline-block"
                   animate={{ opacity: [0, 1, 0] }}
                   transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.5 }}
                 >
@@ -135,11 +170,11 @@ const Hero = () => {
               </motion.div>
             </motion.div>
             <motion.p
-              className="text-lg md:text-2xl text-gray-200 mb-8 font-light"
+              className="text-base sm:text-lg md:text-2xl text-gray-200 mb-8 font-light"
               variants={itemVariants}
             >
-              Building the future at the intersection of <span className="text-cyan-300 font-semibold">AI</span> & <span className="text-pink-300 font-semibold">Blockchain</span>.<br />
-              <span className="text-white/80">Information Engineering Student & Creative Technologist.</span>
+              {copy.headline}<br />
+              <span className="text-white/80">{copy.subhead}</span>
             </motion.p>
             <motion.div
               className="flex flex-wrap gap-4"
@@ -149,13 +184,13 @@ const Hero = () => {
                 href="#projects"
                 className="inline-block rounded-full bg-cyan-500/90 hover:bg-cyan-400 text-black font-semibold px-7 py-3 shadow-lg neon-glow-cyan transition-all duration-200"
               >
-                View Projects
+                {copy.ctaPrimary}
               </Link>
               <Link
                 href="#contact"
                 className="inline-block rounded-full border border-pink-400 text-pink-300 hover:bg-pink-500/20 font-semibold px-7 py-3 shadow-lg neon-glow-pink transition-all duration-200"
               >
-                Get In Touch
+                {copy.ctaSecondary}
               </Link>
             </motion.div>
           </div>
@@ -167,15 +202,15 @@ const Hero = () => {
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 via-pink-400 to-purple-500 border-4 border-white/20 shadow-lg flex items-center justify-center overflow-hidden">
               <Image
                 src="/profile-2.jpg"
-                alt="Avatar"
+                alt={copy.avatarAlt}
                 width={64}
                 height={64}
                 className="object-cover w-full h-full"
               />
             </div>
             <div>
-              <span className="block text-sm text-gray-300">Based in Yogyakarta, Indonesia</span>
-              <span className="block text-xs text-cyan-400/80">Open for freelance & collab</span>
+              <span className="block text-sm text-gray-300">{copy.location}</span>
+              <span className="block text-xs text-cyan-400/80">{copy.availability}</span>
             </div>
           </motion.div>
         </motion.div>

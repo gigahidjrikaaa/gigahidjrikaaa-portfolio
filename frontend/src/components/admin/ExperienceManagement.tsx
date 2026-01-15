@@ -61,7 +61,12 @@ const ExperienceManagement = () => {
           <div className="space-y-4">
             {experience.map((exp) => (
               <div key={exp.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-                <h3 className="font-semibold text-gray-800">{exp.title} at {exp.company}</h3>
+                <div className="flex items-center gap-3">
+                  {exp.company_logo_url ? (
+                    <img src={exp.company_logo_url} alt={exp.company} className="h-10 w-10 rounded-full object-contain bg-white" />
+                  ) : null}
+                  <h3 className="font-semibold text-gray-800">{exp.title} at {exp.company}</h3>
+                </div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => {
                     setSelectedExperience(exp);

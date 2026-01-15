@@ -61,7 +61,12 @@ const SkillManagement = () => {
           <div className="space-y-4">
             {skills.map((skill) => (
               <div key={skill.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-                <h3 className="font-semibold text-gray-800">{skill.name} ({skill.category})</h3>
+                <div className="flex items-center gap-3">
+                  {skill.icon_url ? (
+                    <img src={skill.icon_url} alt={skill.name} className="h-8 w-8 rounded object-contain bg-white" />
+                  ) : null}
+                  <h3 className="font-semibold text-gray-800">{skill.name} ({skill.category})</h3>
+                </div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => {
                     setSelectedSkill(skill);

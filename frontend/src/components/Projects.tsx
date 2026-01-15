@@ -18,6 +18,9 @@ interface ProjectItem {
   solutions: string;
   impact: string;
   image_url?: string;
+  thumbnail_url?: string;
+  ui_image_url?: string;
+  images?: { id: number; url: string; caption?: string; kind?: string; display_order?: number }[];
   is_featured: boolean;
   display_order: number;
 }
@@ -25,6 +28,14 @@ interface ProjectItem {
 const Projects = () => {
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const copy = {
+    title: 'My Projects',
+    intro: "Here are some of the projects I've worked on, showcasing my skills in:",
+    tags: ['Web Development', 'Artificial Intelligence', 'Blockchain'],
+    loading: 'Loading projects...',
+    empty: 'No projects found.',
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,38 +112,43 @@ const Projects = () => {
           transition={{ duration: 0.7 }}
         >
           <div className="flex flex-col items-start text-left">
-            <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-white mb-6 font-heading">
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white mb-6 font-heading">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-pink-500 drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]">
-                My Projects
+                {copy.title}
               </span>
             </h2>
             
             <div className="backdrop-blur-md bg-white/10 rounded-xl border border-white/20 p-6 shadow-xl max-w-2xl">
-                <p className="text-lg leading-relaxed mb-4 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-pink-500">
-                Here are some of the projects I&apos;ve worked on, showcasing my skills in:
+                <p className="text-base sm:text-lg leading-relaxed mb-4 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-pink-500">
+                {copy.intro}
                 </p>
               
               <div className="flex flex-wrap gap-3 mt-2">
-                <span className="inline-block text-white bg-gradient-to-r from-cyan-500/40 to-cyan-500/20 backdrop-blur-sm rounded-md px-4 py-1.5 text-sm font-medium border border-cyan-400/30 shadow-[0_0_8px_rgba(0,255,255,0.3)]">
-                  Web Development
-                </span>
-                <span className="inline-block text-white bg-gradient-to-r from-pink-500/40 to-pink-500/20 backdrop-blur-sm rounded-md px-4 py-1.5 text-sm font-medium border border-pink-400/30 shadow-[0_0_8px_rgba(255,0,204,0.3)]">
-                  Artificial Intelligence
-                </span>
-                <span className="inline-block text-white bg-gradient-to-r from-purple-500/40 to-purple-500/20 backdrop-blur-sm rounded-md px-4 py-1.5 text-sm font-medium border border-purple-400/30 shadow-[0_0_8px_rgba(128,0,255,0.3)]">
-                  Blockchain
-                </span>
+                {copy.tags.map((tag, idx) => (
+                  <span
+                    key={tag}
+                    className={`inline-block text-white bg-gradient-to-r ${
+                      idx === 0
+                        ? 'from-cyan-500/40 to-cyan-500/20 border-cyan-400/30 shadow-[0_0_8px_rgba(0,255,255,0.3)]'
+                        : idx === 1
+                          ? 'from-pink-500/40 to-pink-500/20 border-pink-400/30 shadow-[0_0_8px_rgba(255,0,204,0.3)]'
+                          : 'from-purple-500/40 to-purple-500/20 border-purple-400/30 shadow-[0_0_8px_rgba(128,0,255,0.3)]'
+                    } backdrop-blur-sm rounded-md px-4 py-1.5 text-sm font-medium border`}
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
         </motion.div>
 
         {loading ? (
-          <div>Loading projects...</div>
+          <div className="text-center text-white/70">{copy.loading}</div>
         ) : projects.length > 0 ? (
           <ProjectCarousel projects={projects} />
         ) : (
-          <div>No projects found.</div>
+          <div className="text-center text-white/70">{copy.empty}</div>
         )}
 
       </div>

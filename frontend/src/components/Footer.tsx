@@ -12,13 +12,25 @@ const Footer = () => {
     setCurrentYear(new Date().getFullYear());
   }, []);
 
-  // Replace with your actual social links
-  const socialLinks = [
-    { name: 'GitHub', href: 'https://github.com/gigahidjrikaaa', icon: FaGithub },
-    { name: 'LinkedIn', href: 'https://linkedin.com/in/gigahidjrikaaa', icon: FaLinkedinIn },
-    { name: 'Twitter', href: 'https://twitter.com/gigahidjrikaaa', icon: FaTwitter },
-    { name: 'Email', href: 'mailto:contact@gigahidjrikaaa.com', icon: FaEnvelope },
-  ];
+  const copy = {
+    brand: '[GigaDev]',
+    rights: `© ${currentYear} Giga Hidjrika. All Rights Reserved.`,
+    attribution: 'Designed and built with ❤️ using Next.js, Framer Motion, and TailwindCSS',
+    links: [
+      { label: 'About', href: '#about' },
+      { label: 'Awards', href: '#awards' },
+      { label: 'Projects', href: '#projects' },
+      { label: 'Testimonials', href: '#testimonials' },
+      { label: 'Blog', href: '#blog' },
+      { label: 'Contact', href: '#contact' },
+    ],
+    socials: [
+      { name: 'GitHub', href: 'https://github.com/gigahidjrikaaa', icon: FaGithub },
+      { name: 'LinkedIn', href: 'https://linkedin.com/in/gigahidjrikaaa', icon: FaLinkedinIn },
+      { name: 'Twitter', href: 'https://twitter.com/gigahidjrikaaa', icon: FaTwitter },
+      { name: 'Email', href: 'mailto:contact@gigahidjrikaaa.com', icon: FaEnvelope },
+    ],
+  };
 
   return (
     <footer className="relative bg-[#0a0a12] border-t border-cyan-400/20 overflow-hidden">
@@ -38,16 +50,16 @@ const Footer = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              [GigaDev]
+              {copy.brand}
             </motion.div>
             <div className="text-sm text-gray-400 text-center md:text-left">
-              © {currentYear} Giga Hidjrika. All Rights Reserved.
+              {copy.rights}
             </div>
           </div>
 
           {/* Social Media Links */}
           <div className="flex space-x-4">
-            {socialLinks.map((item) => (
+            {copy.socials.map((item) => (
               <motion.a
                 key={item.name}
                 href={item.href}
@@ -66,10 +78,16 @@ const Footer = () => {
           </div>
 
           {/* Quick Links */}
-          <div className="flex gap-4 text-xs">
-            <a href="#about" className="text-gray-400 hover:text-cyan-400 transition-colors duration-300">About</a>
-            <a href="#projects" className="text-gray-400 hover:text-pink-400 transition-colors duration-300">Projects</a>
-            <a href="#contact" className="text-gray-400 hover:text-cyan-400 transition-colors duration-300">Contact</a>
+          <div className="flex gap-4 text-xs flex-wrap justify-center">
+            {copy.links.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="text-gray-400 hover:text-cyan-400 transition-colors duration-300"
+              >
+                {link.label}
+              </a>
+            ))}
           </div>
         </div>
         
@@ -78,7 +96,7 @@ const Footer = () => {
         
         {/* Attribution */}
         <div className="mt-6 text-xs text-center text-gray-600">
-          Designed and built with ❤️ using Next.js, Framer Motion, and TailwindCSS
+          {copy.attribution}
         </div>
       </div>
     </footer>

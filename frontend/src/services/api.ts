@@ -14,6 +14,8 @@ export interface ProjectBase {
   solutions: string;
   impact: string;
   image_url?: string;
+  thumbnail_url?: string;
+  ui_image_url?: string;
   is_featured: boolean;
   display_order: number;
 }
@@ -24,6 +26,23 @@ export interface ProjectResponse extends ProjectBase {
   id: number;
   created_at: string;
   updated_at: string;
+  images?: ProjectImageResponse[];
+}
+
+export interface ProjectImageBase {
+  url: string;
+  kind?: string;
+  caption?: string;
+  display_order?: number;
+}
+
+export type ProjectImageCreate = ProjectImageBase;
+export type ProjectImageUpdate = Partial<ProjectImageBase>;
+
+export interface ProjectImageResponse extends ProjectImageBase {
+  id: number;
+  project_id: number;
+  created_at: string;
 }
 
 export interface ExperienceBase {
@@ -32,6 +51,7 @@ export interface ExperienceBase {
   location: string;
   period: string;
   description: string;
+  company_logo_url?: string;
   is_current: boolean;
   display_order: number;
 }
@@ -51,6 +71,7 @@ export interface EducationBase {
   period: string;
   description: string;
   gpa?: string;
+  institution_logo_url?: string;
   is_current: boolean;
   display_order: number;
 }
@@ -67,6 +88,7 @@ export interface SkillBase {
   name: string;
   category: string;
   proficiency: number;
+  icon_url?: string;
   display_order: number;
 }
 
@@ -90,6 +112,74 @@ export interface ContactMessageResponse {
   message: string;
   is_read: boolean;
   created_at: string;
+}
+
+export interface AwardBase {
+  title: string;
+  issuer?: string;
+  award_date?: string;
+  description?: string;
+  credential_url?: string;
+  image_url?: string;
+  display_order: number;
+}
+
+export type AwardUpdate = Partial<AwardBase>;
+
+export interface AwardResponse extends AwardBase {
+  id: number;
+  created_at: string;
+}
+
+export interface CertificateBase {
+  title: string;
+  issuer?: string;
+  issue_date?: string;
+  credential_id?: string;
+  credential_url?: string;
+  image_url?: string;
+  description?: string;
+  display_order: number;
+}
+
+export type CertificateUpdate = Partial<CertificateBase>;
+
+export interface CertificateResponse extends CertificateBase {
+  id: number;
+  created_at: string;
+}
+
+export interface ServiceBase {
+  title: string;
+  subtitle?: string;
+  description?: string;
+  icon?: string;
+  is_featured: boolean;
+  display_order: number;
+}
+
+export type ServiceUpdate = Partial<ServiceBase>;
+
+export interface ServiceResponse extends ServiceBase {
+  id: number;
+  created_at: string;
+}
+
+export interface BlogPostBase {
+  title: string;
+  slug: string;
+  excerpt?: string;
+  cover_image_url?: string;
+  status: string;
+}
+
+export type BlogPostUpdate = Partial<BlogPostBase>;
+
+export interface BlogPostResponse extends BlogPostBase {
+  id: number;
+  published_at?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface UserLogin {
@@ -119,24 +209,76 @@ export interface DashboardStats {
   total_messages: number;
 }
 
+export interface MediaAssetBase {
+  title?: string;
+  alt_text?: string;
+  url: string;
+  public_id?: string;
+  provider?: string;
+  folder?: string;
+  tags?: string;
+  asset_type?: string;
+  width?: number;
+  height?: number;
+  size_bytes?: number;
+}
+
+export type MediaAssetCreate = MediaAssetBase;
+export type MediaAssetUpdate = Partial<MediaAssetBase>;
+
+export interface MediaAssetResponse extends MediaAssetBase {
+  id: number;
+  created_at: string;
+}
+
+export interface MediaAssetListResponse {
+  items: MediaAssetResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
 // --- API Services ---
 class ApiService {
-  private getAuthHeaders() {
-    const token = localStorage.getItem('access_token');
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` })
-    };
+  protected getCookie(name: string): string | null {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}=([^;]*)`));
+    return match ? decodeURIComponent(match[1]) : null;
   }
 
-  protected async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const response = await fetch(`${NEXT_PUBLIC_API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers: {
-        ...this.getAuthHeaders(),
-        ...options.headers
+  protected getAuthHeaders(endpoint: string, method: string, includeJson: boolean = true) {
+    const headers: Record<string, string> = {
+      ...(includeJson ? { 'Content-Type': 'application/json' } : {}),
+    };
+
+    // For cookie-based auth, include CSRF token for state-changing requests.
+    const upper = (method || 'GET').toUpperCase();
+    const needsCsrf = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(upper) && !endpoint.startsWith('/auth/login');
+    if (needsCsrf) {
+      const csrf = this.getCookie('csrf_token');
+      if (csrf) {
+        headers['X-CSRF-Token'] = csrf;
       }
-    });
+    }
+
+    return headers;
+  }
+
+  protected async request<T>(endpoint: string, options: RequestInit = {}, includeJson: boolean = true): Promise<T> {
+    const method = (options.method || 'GET').toString();
+    let response: Response;
+    try {
+      response = await fetch(`${NEXT_PUBLIC_API_BASE_URL}${endpoint}`, {
+        ...options,
+        credentials: 'include',
+        headers: {
+          ...this.getAuthHeaders(endpoint, method, includeJson),
+          ...options.headers
+        }
+      });
+    } catch (error) {
+      throw new Error("Unable to reach the API. Please ensure the backend is running and try again.");
+    }
 
     if (!response.ok) {
       throw new Error(`API Error: ${response.statusText}`);
@@ -150,6 +292,12 @@ class ApiService {
     return this.request<Token>('/auth/login-json', {
       method: 'POST',
       body: JSON.stringify({ username, password })
+    });
+  }
+
+  async logout(): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>('/auth/logout', {
+      method: 'POST',
     });
   }
 
@@ -181,6 +329,26 @@ class ApiService {
   // Public Projects
   async getProjects(): Promise<ProjectResponse[]> {
     return this.request<ProjectResponse[]>('/projects/all');
+  }
+
+  // Awards
+  async getAwards(): Promise<AwardResponse[]> {
+    return this.request<AwardResponse[]>('/awards');
+  }
+
+  // Certificates
+  async getCertificates(): Promise<CertificateResponse[]> {
+    return this.request<CertificateResponse[]>('/certificates');
+  }
+
+  // Services
+  async getServices(): Promise<ServiceResponse[]> {
+    return this.request<ServiceResponse[]>('/services');
+  }
+
+  // Blog
+  async getBlogPosts(): Promise<BlogPostResponse[]> {
+    return this.request<BlogPostResponse[]>('/blog');
   }
 }
 
@@ -215,6 +383,35 @@ class AdminApiService extends ApiService {
 
   async deleteProject(id: number): Promise<{ message: string }> {
     return this.request<{ message: string }>(`/admin/projects/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
+  // Project Images
+  async getProjectImages(projectId: number): Promise<ProjectImageResponse[]> {
+    return this.request<ProjectImageResponse[]>(`/admin/projects/${projectId}/images`);
+  }
+
+  async createProjectImage(projectId: number, payload: ProjectImageCreate): Promise<ProjectImageResponse> {
+    return this.request<ProjectImageResponse>(`/admin/projects/${projectId}/images`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async updateProjectImage(
+    projectId: number,
+    imageId: number,
+    payload: ProjectImageUpdate
+  ): Promise<ProjectImageResponse> {
+    return this.request<ProjectImageResponse>(`/admin/projects/${projectId}/images/${imageId}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async deleteProjectImage(projectId: number, imageId: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/admin/projects/${projectId}/images/${imageId}`, {
       method: 'DELETE'
     });
   }
@@ -309,6 +506,183 @@ class AdminApiService extends ApiService {
     return this.request<{ message: string }>(`/admin/skills/${id}`, {
       method: 'DELETE'
     });
+  }
+
+  // Awards
+  async getAwards(): Promise<AwardResponse[]> {
+    return this.request<AwardResponse[]>('/admin/awards');
+  }
+
+  async createAward(payload: AwardBase): Promise<AwardResponse> {
+    return this.request<AwardResponse>('/admin/awards', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateAward(id: number, payload: AwardUpdate): Promise<AwardResponse> {
+    return this.request<AwardResponse>(`/admin/awards/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async deleteAward(id: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/admin/awards/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Certificates
+  async getCertificates(): Promise<CertificateResponse[]> {
+    return this.request<CertificateResponse[]>('/admin/certificates');
+  }
+
+  async createCertificate(payload: CertificateBase): Promise<CertificateResponse> {
+    return this.request<CertificateResponse>('/admin/certificates', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateCertificate(id: number, payload: CertificateUpdate): Promise<CertificateResponse> {
+    return this.request<CertificateResponse>(`/admin/certificates/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async deleteCertificate(id: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/admin/certificates/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Services
+  async getServices(): Promise<ServiceResponse[]> {
+    return this.request<ServiceResponse[]>('/admin/services');
+  }
+
+  async createService(payload: ServiceBase): Promise<ServiceResponse> {
+    return this.request<ServiceResponse>('/admin/services', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateService(id: number, payload: ServiceUpdate): Promise<ServiceResponse> {
+    return this.request<ServiceResponse>(`/admin/services/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async deleteService(id: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/admin/services/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Blog
+  async getBlogPosts(): Promise<BlogPostResponse[]> {
+    return this.request<BlogPostResponse[]>('/admin/blog');
+  }
+
+  async createBlogPost(payload: BlogPostBase): Promise<BlogPostResponse> {
+    return this.request<BlogPostResponse>('/admin/blog', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateBlogPost(id: number, payload: BlogPostUpdate): Promise<BlogPostResponse> {
+    return this.request<BlogPostResponse>(`/admin/blog/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async deleteBlogPost(id: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/admin/blog/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Media
+  async getMediaAssets(params?: { q?: string; tag?: string; page?: number; page_size?: number }): Promise<MediaAssetListResponse> {
+    const search = new URLSearchParams();
+    if (params?.q) search.set('q', params.q);
+    if (params?.tag) search.set('tag', params.tag);
+    if (params?.page) search.set('page', params.page.toString());
+    if (params?.page_size) search.set('page_size', params.page_size.toString());
+
+    const suffix = search.toString();
+    return this.request<MediaAssetListResponse>(`/admin/media${suffix ? `?${suffix}` : ''}`);
+  }
+
+  async createMediaAsset(payload: MediaAssetCreate): Promise<MediaAssetResponse> {
+    return this.request<MediaAssetResponse>('/admin/media', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async updateMediaAsset(id: number, payload: MediaAssetUpdate): Promise<MediaAssetResponse> {
+    return this.request<MediaAssetResponse>(`/admin/media/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async deleteMediaAsset(id: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/admin/media/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async uploadMediaAsset(
+    file: File,
+    meta?: { title?: string; alt_text?: string; tags?: string; folder?: string }
+  ): Promise<MediaAssetResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (meta?.title) {
+      formData.append('title', meta.title);
+    }
+    if (meta?.alt_text) {
+      formData.append('alt_text', meta.alt_text);
+    }
+    if (meta?.tags) {
+      formData.append('tags', meta.tags);
+    }
+    if (meta?.folder) {
+      formData.append('folder', meta.folder);
+    }
+
+    const response = await fetch(`${NEXT_PUBLIC_API_BASE_URL}/admin/media/upload`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        ...this.getAuthHeaders('/admin/media/upload', 'POST', false)
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async bulkDeleteMediaAssets(ids: number[]): Promise<{ deleted_ids: number[]; failed_ids: number[] }> {
+    return this.request<{ deleted_ids: number[]; failed_ids: number[] }>(
+      '/admin/media/bulk-delete',
+      {
+        method: 'POST',
+        body: JSON.stringify({ ids })
+      }
+    );
   }
 }
 

@@ -5,23 +5,70 @@ import { useAdminStore } from '@/store/adminStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import { ProjectBase, ProjectResponse } from '@/services/api';
+import { adminApi, ProjectBase, ProjectImageResponse, ProjectResponse } from '@/services/api';
 
 const ProjectManagement = () => {
   const { projects, fetchProjects, createProject, updateProject, deleteProject } = useAdminStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<ProjectResponse | null>(null);
+  const [projectImages, setProjectImages] = useState<ProjectImageResponse[]>([]);
 
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
 
-  const handleSaveProject = async (projectData: ProjectBase) => {
+  const handleSaveProject = async (projectData: ProjectBase, images: ProjectImageResponse[]) => {
     try {
       if (selectedProject) {
-        await updateProject(selectedProject.id, projectData);
+        const updated = await updateProject(selectedProject.id, projectData);
+
+        const existingIds = new Set(projectImages.filter((img) => img.id).map((img) => img.id));
+        const nextIds = new Set(images.filter((img) => img.id).map((img) => img.id));
+
+        const toDelete = [...existingIds].filter((id) => !nextIds.has(id));
+        const toUpdate = images.filter((img) => img.id);
+        const toCreate = images.filter((img) => !img.id);
+
+        await Promise.all(
+          toDelete.map((id) => adminApi.deleteProjectImage(selectedProject.id, id))
+        );
+
+        await Promise.all(
+          toUpdate.map((img) =>
+            adminApi.updateProjectImage(selectedProject.id, img.id!, {
+              url: img.url,
+              kind: img.kind,
+              caption: img.caption,
+              display_order: img.display_order,
+            })
+          )
+        );
+
+        await Promise.all(
+          toCreate.map((img) =>
+            adminApi.createProjectImage(selectedProject.id, {
+              url: img.url,
+              kind: img.kind,
+              caption: img.caption,
+              display_order: img.display_order,
+            })
+          )
+        );
+
+        setProjectImages([]);
+        setSelectedProject(updated);
       } else {
-        await createProject(projectData);
+        const created = await createProject(projectData);
+        await Promise.all(
+          images.map((img) =>
+            adminApi.createProjectImage(created.id, {
+              url: img.url,
+              kind: img.kind,
+              caption: img.caption,
+              display_order: img.display_order,
+            })
+          )
+        );
       }
       setIsModalOpen(false);
       setSelectedProject(null);
@@ -61,10 +108,20 @@ const ProjectManagement = () => {
           <div className="space-y-4">
             {projects.map((project) => (
               <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-                <h3 className="font-semibold text-gray-800">{project.title}</h3>
+                <div className="flex items-center gap-3">
+                  {project.thumbnail_url || project.image_url ? (
+                    <img
+                      src={project.thumbnail_url || project.image_url || '/placeholder.png'}
+                      alt={project.title}
+                      className="h-10 w-14 rounded-md object-cover"
+                    />
+                  ) : null}
+                  <h3 className="font-semibold text-gray-800">{project.title}</h3>
+                </div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => {
                     setSelectedProject(project);
+                    adminApi.getProjectImages(project.id).then(setProjectImages).catch(() => setProjectImages([]));
                     setIsModalOpen(true);
                   }}>
                     <Edit className="h-4 w-4" />
@@ -81,10 +138,12 @@ const ProjectManagement = () => {
       {isModalOpen && (
         <ProjectForm
           project={selectedProject}
+          images={projectImages}
           onSave={handleSaveProject}
           onCancel={() => {
             setIsModalOpen(false);
             setSelectedProject(null);
+            setProjectImages([]);
           }}
         />
       )}

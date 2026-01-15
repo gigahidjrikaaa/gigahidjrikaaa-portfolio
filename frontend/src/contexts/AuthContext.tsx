@@ -20,25 +20,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const checkAuth = async () => {
     setIsLoading(true);
     try {
-      // The token is checked on the client-side where localStorage is available
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        await apiService.verifyToken(); // This will throw if the token is invalid
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
+      await apiService.verifyToken();
+      setIsAuthenticated(true);
     } catch (error) {
       console.error("Token verification failed", error);
       setIsAuthenticated(false);
-      localStorage.removeItem('access_token');
     } finally {
       setIsLoading(false);
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('access_token');
+    apiService.logout().catch(() => undefined);
     setIsAuthenticated(false);
   };
 

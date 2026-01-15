@@ -1,4 +1,6 @@
 import React from 'react';
+
+// Deprecated: app router now uses AdminOverview + per-section pages.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProjectManagement from '@/components/admin/ProjectManagement';
 import ExperienceManagement from '@/components/admin/ExperienceManagement';

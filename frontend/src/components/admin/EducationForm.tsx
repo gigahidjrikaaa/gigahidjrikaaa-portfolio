@@ -21,6 +21,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
     period: '',
     description: '',
     gpa: '',
+    institution_logo_url: '',
     is_current: false,
     display_order: 0,
   });
@@ -34,6 +35,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
         period: education.period || '',
         description: education.description || '',
         gpa: education.gpa || '',
+        institution_logo_url: education.institution_logo_url || '',
         is_current: education.is_current || false,
         display_order: education.display_order || 0,
       });
@@ -88,6 +90,15 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
           <div>
             <Label htmlFor="gpa" className="text-gray-700">GPA (Optional)</Label>
             <Input id="gpa" value={formData.gpa || ''} onChange={handleChange} className="mt-1" />
+          </div>
+          <div>
+            <Label htmlFor="institution_logo_url" className="text-gray-700">Institution Logo URL (Optional)</Label>
+            <Input
+              id="institution_logo_url"
+              value={formData.institution_logo_url || ''}
+              onChange={handleChange}
+              className="mt-1"
+            />
           </div>
           <div>
             <Label htmlFor="display_order" className="text-gray-700">Display Order</Label>

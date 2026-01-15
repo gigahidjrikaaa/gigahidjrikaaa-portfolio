@@ -20,6 +20,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
     location: '',
     period: '',
     description: '',
+    company_logo_url: '',
     is_current: false,
     display_order: 0,
   });
@@ -32,6 +33,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
         location: experience.location || '',
         period: experience.period || '',
         description: experience.description || '',
+        company_logo_url: experience.company_logo_url || '',
         is_current: experience.is_current || false,
         display_order: experience.display_order || 0,
       });
@@ -82,6 +84,15 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
           <div>
             <Label htmlFor="description" className="text-gray-700">Description</Label>
             <Textarea id="description" value={formData.description} onChange={handleChange} required rows={4} className="mt-1" />
+          </div>
+          <div>
+            <Label htmlFor="company_logo_url" className="text-gray-700">Company Logo URL (Optional)</Label>
+            <Input
+              id="company_logo_url"
+              value={formData.company_logo_url || ''}
+              onChange={handleChange}
+              className="mt-1"
+            />
           </div>
           <div>
             <Label htmlFor="display_order" className="text-gray-700">Display Order</Label>

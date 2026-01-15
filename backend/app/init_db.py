@@ -1,5 +1,18 @@
-from .database import engine, Base, SessionLocal, User, Project, Experience, Education, Skill
-from .auth import get_password_hash
+from .database import (
+    engine,
+    Base,
+    SessionLocal,
+    User,
+    Project,
+    Experience,
+    Education,
+    Skill,
+    Award,
+    Certificate,
+    Service,
+    BlogPost,
+)
+from .auth import get_password_hash, verify_password
 from .config import settings
 
 def init_db(*, seed_data: bool = False) -> None:
@@ -8,21 +21,34 @@ def init_db(*, seed_data: bool = False) -> None:
     
     db = SessionLocal()
     try:
-        # Create admin user only if credentials are provided.
+        # Ensure there is at least one admin user when credentials are provided.
+        # Behavior:
+        # - If an admin already exists, do nothing.
+        # - If no admin exists, create or promote ADMIN_USERNAME as admin.
         if settings.ADMIN_USERNAME and settings.ADMIN_EMAIL and settings.ADMIN_PASSWORD:
-            admin_user = db.query(User).filter(User.username == settings.ADMIN_USERNAME).first()
-            if not admin_user:
-                admin_user = User(
-                    username=settings.ADMIN_USERNAME,
-                    email=settings.ADMIN_EMAIL,
-                    hashed_password=get_password_hash(settings.ADMIN_PASSWORD),
-                    is_admin=True,
-                    is_active=True,
-                )
-                db.add(admin_user)
-                print(f"Admin user '{settings.ADMIN_USERNAME}' created successfully!")
-            else:
-                print(f"Admin user '{settings.ADMIN_USERNAME}' already exists.")
+            any_admin = db.query(User).filter(User.is_admin.is_(True)).first()
+            if not any_admin:
+                admin_user = db.query(User).filter(User.username == settings.ADMIN_USERNAME).first()
+                if not admin_user:
+                    admin_user = User(
+                        username=settings.ADMIN_USERNAME,
+                        email=settings.ADMIN_EMAIL,
+                        hashed_password=get_password_hash(settings.ADMIN_PASSWORD),
+                        is_admin=True,
+                        is_active=True,
+                    )
+                    db.add(admin_user)
+                    print(f"Admin user '{settings.ADMIN_USERNAME}' created successfully!")
+                else:
+                    admin_user.email = settings.ADMIN_EMAIL
+                    admin_user.is_admin = True
+                    admin_user.is_active = True
+                    # In development, allow repairing admin creds without manual DB edits.
+                    if settings.is_development and not verify_password(settings.ADMIN_PASSWORD, admin_user.hashed_password):
+                        admin_user.hashed_password = get_password_hash(settings.ADMIN_PASSWORD)
+                        print(f"Admin user '{settings.ADMIN_USERNAME}' promoted and password updated (development).")
+                    else:
+                        print(f"Admin user '{settings.ADMIN_USERNAME}' promoted to admin.")
 
         # Seed placeholder data only in development (or when explicitly enabled)
         if seed_data:
@@ -113,6 +139,98 @@ def init_db(*, seed_data: bool = False) -> None:
                     Skill(name="PostgreSQL", category="Databases & ORMs", proficiency=3, display_order=6),
                 ]
                 db.add_all(skills_data)
+
+            if db.query(Award).count() == 0:
+                print("Adding placeholder awards...")
+                awards_data = [
+                    Award(
+                        title="Best Innovation Award",
+                        issuer="UGM Tech Expo",
+                        award_date="2024",
+                        description="Recognized for delivering a top-tier AI mental health assistant prototype.",
+                        display_order=1,
+                    ),
+                    Award(
+                        title="Blockchain Excellence",
+                        issuer="Indonesia Web3 Summit",
+                        award_date="2023",
+                        description="Honored for contributing to secure voting architecture research.",
+                        display_order=2,
+                    ),
+                ]
+                db.add_all(awards_data)
+
+            if db.query(Certificate).count() == 0:
+                print("Adding placeholder certificates...")
+                certificates_data = [
+                    Certificate(
+                        title="Machine Learning Specialization",
+                        issuer="Coursera",
+                        issue_date="2024",
+                        credential_id="ML-2024-UGM",
+                        credential_url="https://example.com/certificates/ml",
+                        description="Advanced ML workflows covering NLP and model deployment.",
+                        display_order=1,
+                    ),
+                    Certificate(
+                        title="Blockchain Fundamentals",
+                        issuer="Ethereum Foundation",
+                        issue_date="2023",
+                        credential_id="ETH-BC-2023",
+                        credential_url="https://example.com/certificates/blockchain",
+                        description="Smart contract development and security best practices.",
+                        display_order=2,
+                    ),
+                ]
+                db.add_all(certificates_data)
+
+            if db.query(Service).count() == 0:
+                print("Adding placeholder services...")
+                services_data = [
+                    Service(
+                        title="AI Product Prototyping",
+                        subtitle="From idea to working demo",
+                        description="Rapidly prototype AI-driven experiences with validated UX flows and deployment-ready pipelines.",
+                        icon="brain",
+                        is_featured=True,
+                        display_order=1,
+                    ),
+                    Service(
+                        title="Full-Stack Engineering",
+                        subtitle="Design, build, launch",
+                        description="End-to-end web application development using modern frameworks and scalable architecture.",
+                        icon="rocket",
+                        is_featured=True,
+                        display_order=2,
+                    ),
+                    Service(
+                        title="Web3 Strategy",
+                        subtitle="Trust-first systems",
+                        description="Advisory and implementation for blockchain governance, smart contracts, and compliance-ready flows.",
+                        icon="cubes",
+                        is_featured=False,
+                        display_order=3,
+                    ),
+                ]
+                db.add_all(services_data)
+
+            if db.query(BlogPost).count() == 0:
+                print("Adding placeholder blog posts...")
+                blog_data = [
+                    BlogPost(
+                        title="Building Human-Centered AI Assistants",
+                        slug="human-centered-ai-assistants",
+                        excerpt="Lessons learned from deploying AI experiences that balance empathy, safety, and performance.",
+                        status="coming_soon",
+                    ),
+                    BlogPost(
+                        title="Designing Trust in Blockchain Systems",
+                        slug="designing-trust-blockchain",
+                        excerpt="A deep dive into governance, transparency, and secure-by-design smart contracts.",
+                        status="coming_soon",
+                    ),
+                ]
+                db.add_all(blog_data)
 
         db.commit()
 

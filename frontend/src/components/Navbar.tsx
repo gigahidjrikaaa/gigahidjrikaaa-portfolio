@@ -16,28 +16,55 @@ const Navbar = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const copy = {
+    brand: '[GigaDev]',
+    openMenu: 'Open main menu',
+    navLabel: 'Primary',
+    links: {
+      about: 'About',
+      highlights: 'Highlights',
+      awards: 'Awards',
+      projects: 'Projects',
+      skills: 'Skills',
+      experience: 'Experience',
+      education: 'Education',
+      services: 'Services',
+      testimonials: 'Testimonials',
+      blog: 'Blog',
+      contact: 'Contact',
+      admin: 'Admin',
+    },
+  };
+
   // Navigation links configuration
   const navLinks = [
-    { name: 'About', href: '#about' }, // Using hash links for potential single-page navigation
-    { name: 'Projects', href: '#projects' },
-    { name: 'Skills', href: '#skills' },
-    { name: 'Contact', href: '#contact' },
+    { name: copy.links.about, href: '#about' },
+    { name: copy.links.highlights, href: '#highlights' },
+    { name: copy.links.awards, href: '#awards' },
+    { name: copy.links.projects, href: '#projects' },
+    { name: copy.links.skills, href: '#skills' },
+    { name: copy.links.experience, href: '#experience' },
+    { name: copy.links.education, href: '#education' },
+    { name: copy.links.services, href: '#services' },
+    { name: copy.links.testimonials, href: '#testimonials' },
+    { name: copy.links.blog, href: '#blog' },
+    { name: copy.links.contact, href: '#contact' },
   ];
 
   // Conditionally add the Admin link
   const allLinks = [...navLinks];
   if (isAuthenticated) {
-    allLinks.push({ name: 'Admin', href: '/admin' });
+    allLinks.push({ name: copy.links.admin, href: '/admin' });
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/90 backdrop-blur-md shadow-sm border-b border-gray-200/50">
+    <nav className="sticky top-0 z-50 bg-background/90 backdrop-blur-md shadow-sm border-b border-gray-200/50" aria-label={copy.navLabel}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="text-2xl font-bold font-heading text-primary hover:text-primary/80 transition-colors duration-200">
-              [GigaDev]
+              {copy.brand}
             </Link>
           </div>
 
@@ -65,7 +92,7 @@ const Navbar = () => {
               aria-controls="mobile-menu"
               aria-expanded={isMobileMenuOpen ? 'true' : 'false'} // Accessibility attribute
             >
-              <span className="sr-only">Open main menu</span>
+              <span className="sr-only">{copy.openMenu}</span>
               {isMobileMenuOpen ? (
                 <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
               ) : (

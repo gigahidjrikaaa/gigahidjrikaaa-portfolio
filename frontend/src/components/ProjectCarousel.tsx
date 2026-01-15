@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useMemo, useState } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import ProjectCard from './ProjectCard';
 
@@ -19,6 +19,9 @@ type Project = {
   solutions: string;
   impact: string;
   image_url?: string;
+  thumbnail_url?: string;
+  ui_image_url?: string;
+  images?: { id: number; url: string; caption?: string; kind?: string; display_order?: number }[];
   is_featured: boolean;
   display_order: number;
   tech_stack?: string[];
@@ -31,6 +34,24 @@ type ProjectCarouselProps = {
 const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects }) => {
   const [[page, direction], setPage] = useState<[number, number]>([0, 0]);
   const numProjects = projects.length;
+  const reduceMotion = useReducedMotion();
+  const [viewport, setViewport] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
+
+  useEffect(() => {
+    const update = () => {
+      if (window.matchMedia('(min-width: 1024px)').matches) {
+        setViewport('desktop');
+      } else if (window.matchMedia('(min-width: 640px)').matches) {
+        setViewport('tablet');
+      } else {
+        setViewport('mobile');
+      }
+    };
+
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
 
   const paginate = (newDirection: number) => {
     setPage(([prevPage]) => {
@@ -49,8 +70,11 @@ const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects }) => {
     return idx;
   };
 
-  // Array of offsets for -2, -1, 0, 1, 2 (previous 2, current, next 2)
-  const offsets = [-2, -1, 0, 1, 2];
+  const offsets = useMemo(() => {
+    if (viewport === 'mobile') return [0];
+    if (viewport === 'tablet') return [-1, 0, 1];
+    return [-2, -1, 0, 1, 2];
+  }, [viewport]);
 
   return (
     <div className="relative w-full max-w-5xl flex items-center justify-center mx-auto">
@@ -65,7 +89,7 @@ const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects }) => {
       </button>
 
       {/* Carousel Cards */}
-      <div className="w-full flex items-center justify-center min-h-[480px] relative">
+      <div className="w-full flex items-center justify-center min-h-[420px] sm:min-h-[480px] relative overflow-hidden">
         <AnimatePresence initial={false} custom={direction} mode="popLayout">
           {offsets.map((offset, i) => {
         const idx = getIndex(offset);
@@ -74,20 +98,22 @@ const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects }) => {
             key={`${idx}-${i}`}
             custom={direction}
             initial={{ 
-          x: offset * 100 + (direction * 200), 
-          scale: offset === 0 ? 0.95 : offset === -1 || offset === 1 ? 0.85 : 0.75,
-          opacity: offset === 0 ? 0.8 : offset === -1 || offset === 1 ? 0.5 : 0.3,
+          x: reduceMotion ? 0 : offset * 100 + (direction * 200), 
+          scale: offset === 0 ? 0.98 : offset === -1 || offset === 1 ? 0.88 : 0.78,
+          opacity: offset === 0 ? 0.9 : offset === -1 || offset === 1 ? 0.55 : 0.3,
           zIndex: 20 - Math.abs(offset) * 5
             }}
             animate={{ 
-          x: offset === -2 ? '-120%' : offset === -1 ? '-80%' : offset === 0 ? 0 : offset === 1 ? '80%' : '120%', 
-          scale: offset === 0 ? 1 : offset === -1 || offset === 1 ? 0.85 : 0.75,
-          opacity: offset === 0 ? 1 : offset === -1 || offset === 1 ? 0.5 : 0.3,
+          x: viewport === 'mobile'
+            ? 0
+            : offset === -2 ? '-120%' : offset === -1 ? '-80%' : offset === 0 ? 0 : offset === 1 ? '80%' : '120%', 
+          scale: offset === 0 ? 1 : offset === -1 || offset === 1 ? 0.88 : 0.78,
+          opacity: offset === 0 ? 1 : offset === -1 || offset === 1 ? 0.55 : 0.3,
           zIndex: 20 - Math.abs(offset) * 5
             }}
             exit={{ 
-          x: offset * 100 - (direction * 200),
-          scale: 0.8,
+          x: reduceMotion ? 0 : offset * 100 - (direction * 200),
+          scale: 0.9,
           opacity: 0 
             }}
             transition={{

@@ -15,10 +15,6 @@ const AdminLogin = () => {
     try {
       const data = await apiService.login(username, password);
       if (data.access_token) {
-        localStorage.setItem('access_token', data.access_token);
-        // We need to verify if the user is an admin.
-        // For now, we'll assume the login endpoint only succeeds for admins
-        // and redirect to the dashboard. A better approach is to check a role from the response.
         router.replace('/admin');
       } else {
         setError('Login failed: No access token received.');

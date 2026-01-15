@@ -13,12 +13,21 @@ Imports from app.database are kept working by re-exporting symbols.
 from .db.base import Base
 from .db.session import SessionLocal, engine, get_db
 from .models.models import (
+    Award,
+    BlogPost,
     ContactMessage,
+    Certificate,
     Education,
     Experience,
     Feature,
+    MediaAsset,
     Project,
+    ProjectImage,
+    Profile,
+    SeoSettings,
+    SiteSettings,
     Skill,
+    Service,
     Technology,
     User,
     project_features,

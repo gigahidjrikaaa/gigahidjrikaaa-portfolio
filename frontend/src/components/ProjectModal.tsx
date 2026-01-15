@@ -20,6 +20,9 @@ type Project = {
   solutions?: string;
   impact?: string;
   image_url?: string;
+  thumbnail_url?: string;
+  ui_image_url?: string;
+  images?: { id: number; url: string; caption?: string; kind?: string; display_order?: number }[];
   is_featured?: boolean;
   display_order?: number;
   features?: string[];
@@ -40,10 +43,18 @@ const modalVariants = {
 
 const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) => {
   const [mounted, setMounted] = useState(false);
+  const [activeImage, setActiveImage] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    const images = project.images?.length ? [...project.images] : [];
+    images.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    const fallback = project.ui_image_url || project.image_url || project.thumbnail_url || '/placeholder.png';
+    setActiveImage(images[0]?.url ?? fallback);
+  }, [project]);
 
   if (!mounted) return null;
 
@@ -81,15 +92,37 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
             <div className="flex flex-col md:flex-row gap-6 p-6 md:p-8 flex-1 min-h-0">
               {/* Left: Visual & Meta */}
               <div className="flex flex-col items-center md:items-start md:w-1/3 flex-shrink-0 gap-3">
-                <div className="w-24 h-24 md:w-28 md:h-28 rounded-xl overflow-hidden border-2 border-cyan-400/40 shadow-lg bg-black/30">
+                <div className="w-full max-w-xs rounded-2xl overflow-hidden border-2 border-cyan-400/40 shadow-lg bg-black/30">
                   <Image
-                    src={project.image_url || '/placeholder.png'}
-                    width={112} // 28 * 4 
-                    height={112} // 28 * 4
+                    src={activeImage || '/placeholder.png'}
+                    width={320}
+                    height={240}
                     alt={project.title}
                     className="object-cover w-full h-full"
                   />
                 </div>
+                {project.images && project.images.length > 1 && (
+                  <div className="flex flex-wrap gap-2">
+                    {project.images
+                      .slice()
+                      .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+                      .map((image) => (
+                        <button
+                          key={image.id}
+                          type="button"
+                          onClick={() => setActiveImage(image.url)}
+                          className={`h-12 w-12 overflow-hidden rounded-lg border ${
+                            activeImage === image.url
+                              ? 'border-pink-400'
+                              : 'border-cyan-400/30'
+                          }`}
+                          aria-label={image.caption ?? 'Project image'}
+                        >
+                          <Image src={image.url} alt={image.caption ?? project.title} width={48} height={48} className="object-cover h-full w-full" />
+                        </button>
+                      ))}
+                  </div>
+                )}
                 <h2 className="text-xl md:text-2xl font-bold text-white font-heading tracking-tight text-center md:text-left truncate w-full">
                   {project.title}
                 </h2>

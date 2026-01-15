@@ -20,6 +20,9 @@ type Project = {
   solutions: string;
   impact: string;
   image_url?: string;
+  thumbnail_url?: string;
+  ui_image_url?: string;
+  images?: { id: number; url: string; caption?: string; kind?: string; display_order?: number }[];
   is_featured: boolean;
   display_order: number;
   tech_stack?: string[];
@@ -58,7 +61,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         {/* Project Image with animated border */}
         <div className="relative h-48 w-full overflow-hidden">
           <Image
-            src={project.image_url || "/placeholder.png"}
+            src={project.thumbnail_url || project.image_url || "/placeholder.png"}
             alt={project.title}
             fill
             className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"

@@ -1,10 +1,9 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useAdminStore } from '@/store/adminStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, Trash2 } from 'lucide-react';
-import { ContactMessageResponse } from '@/services/api';
 
 const ContactMessageManagement = () => {
   const { messages, fetchMessages, markMessageAsRead, deleteMessage } = useAdminStore();

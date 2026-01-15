@@ -28,6 +28,35 @@ const itemVariants = {
   }
 };
 
+const copy = {
+  title: 'About Me',
+  subtitle:
+    'Information Engineering student and full-stack developer with focus on AI and blockchain technologies.',
+  summaryTitle: 'Professional Summary',
+  summaryBody:
+    "Hi, I'm Giga! I'm an Information Engineering student at Universitas Gadjah Mada, focusing on Artificial Intelligence and Blockchain technologies. I thrive on solving complex problems and building impactful solutions.",
+  summaryBody2:
+    "My recent work includes UGM-AICare, leveraging AI for mental health support, and blockchain-based secure voting systems. I'm particularly interested in NLP applications for healthcare and developing sharia-compliant decentralized finance solutions.",
+  stats: [
+    { value: '3+', label: 'Years Coding', gradient: 'from-cyan-50 to-cyan-100', text: 'text-cyan-600', border: 'border-cyan-400/40' },
+    { value: '6+', label: 'Projects', gradient: 'from-pink-50 to-pink-100', text: 'text-pink-600', border: 'border-pink-400/40' },
+    { value: '3.8', label: 'GPA', gradient: 'from-purple-50 to-purple-100', text: 'text-purple-600', border: 'border-purple-400/40' },
+    { value: '3+', label: 'Certifications', gradient: 'from-blue-50 to-blue-100', text: 'text-blue-600', border: 'border-blue-400/40' },
+  ],
+  educationTitle: 'Education',
+  experienceTitle: 'Experience',
+  interestsTitle: 'Technical Interests',
+  interests: [
+    'Natural Language Processing',
+    'Healthcare AI Applications',
+    'Decentralized Finance (DeFi)',
+    'Ethical AI Development',
+    'Blockchain Governance Models',
+    'Full-Stack Web Development',
+  ],
+  profileAlt: 'Giga - Professional Headshot',
+};
+
 const About = () => {
   const [education, setEducation] = useState<EducationResponse[]>([]);
   const [experience, setExperience] = useState<ExperienceResponse[]>([]);
@@ -86,11 +115,11 @@ const About = () => {
           <motion.div variants={itemVariants} className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold font-heading mb-4">
               <span className="bg-gradient-to-r from-cyan-500 to-pink-600 text-transparent bg-clip-text drop-shadow-[0_2px_8px_rgba(0,255,255,0.3)]">
-                About Me
+                {copy.title}
               </span>
             </h2>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Information Engineering student and full-stack developer with focus on AI and blockchain technologies.
+              {copy.subtitle}
             </p>
           </motion.div>
           
@@ -99,14 +128,14 @@ const About = () => {
             variants={itemVariants}
             className="backdrop-blur-md bg-white/80 border border-cyan-300/30 rounded-2xl shadow-2xl mb-16 overflow-hidden"
           >
-            <div className="p-8 grid grid-cols-1 lg:grid-cols-4 gap-8 items-center">
+            <div className="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-4 gap-8 items-center">
               {/* Image */}
               <div className="lg:col-span-1 flex justify-center">
                 <div className="relative h-48 w-48 rounded-full overflow-hidden border-4 border-gradient-to-r from-cyan-400 via-blue-500 to-pink-500 shadow-[0_0_25px_rgba(0,255,255,0.4)]">
                   <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-pink-500/10"></div>
                   <Image
                     src="/profile.jpg"
-                    alt="Giga - Professional Headshot"
+                    alt={copy.profileAlt}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
@@ -119,35 +148,26 @@ const About = () => {
               <div className="lg:col-span-3">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="text-cyan-600"><FaUserAlt /></div>
-                  <h3 className="text-xl font-semibold text-gray-800">Professional Summary</h3>
+                  <h3 className="text-xl font-semibold text-gray-800">{copy.summaryTitle}</h3>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  Hi, I&apos;m <span className="font-semibold text-cyan-600">Giga</span>! I&apos;m an Information Engineering student at Universitas Gadjah Mada,
-                  focusing on Artificial Intelligence and Blockchain technologies. I thrive on solving complex problems and building impactful solutions.
+                  {copy.summaryBody}
                 </p>
                 <p className="text-gray-600">
-                  My recent work includes UGM-AICare, leveraging AI for mental health support, and blockchain-based secure voting systems.
-                  I&apos;m particularly interested in NLP applications for healthcare and developing sharia-compliant decentralized finance solutions.
+                  {copy.summaryBody2}
                 </p>
                 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-                  <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 border border-cyan-400/40 p-3 rounded-lg text-center shadow-sm">
-                    <div className="text-cyan-600 font-semibold">3+</div>
-                    <div className="text-xs text-cyan-700">Years Coding</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-400/40 p-3 rounded-lg text-center shadow-sm">
-                    <div className="text-pink-600 font-semibold">6+</div>
-                    <div className="text-xs text-pink-700">Projects</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-400/40 p-3 rounded-lg text-center shadow-sm">
-                    <div className="text-purple-600 font-semibold">3.8</div>
-                    <div className="text-xs text-purple-700">GPA</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-400/40 p-3 rounded-lg text-center shadow-sm">
-                    <div className="text-blue-600 font-semibold">3+</div>
-                    <div className="text-xs text-blue-700">Certifications</div>
-                  </div>
+                  {copy.stats.map((stat) => (
+                    <div
+                      key={stat.label}
+                      className={`bg-gradient-to-br ${stat.gradient} border ${stat.border} p-3 rounded-lg text-center shadow-sm`}
+                    >
+                      <div className={`${stat.text} font-semibold`}>{stat.value}</div>
+                      <div className={`text-xs ${stat.text.replace('600', '700')}`}>{stat.label}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -164,7 +184,7 @@ const About = () => {
               <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-r from-cyan-100 to-blue-100 border border-cyan-400/50 shadow-md">
                 <FaGraduationCap className="text-cyan-600" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-800">Education</h3>
+              <h3 className="text-2xl font-semibold text-gray-800">{copy.educationTitle}</h3>
               </div>
               
               <div className="backdrop-blur-md bg-white/80 border border-cyan-300/30 rounded-xl shadow-xl flex-1 overflow-hidden hover:shadow-[0_0_25px_rgba(0,200,255,0.2)] transition-all duration-300">
@@ -193,7 +213,7 @@ const About = () => {
               <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-r from-pink-100 to-purple-100 border border-pink-400/50 shadow-md">
                 <FaBriefcase className="text-pink-600" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-800">Experience</h3>
+              <h3 className="text-2xl font-semibold text-gray-800">{copy.experienceTitle}</h3>
               </div>
               
               <div className="backdrop-blur-md bg-white/80 border border-pink-300/30 rounded-xl shadow-xl flex-1 overflow-hidden hover:shadow-[0_0_25px_rgba(219,39,119,0.2)] transition-all duration-300">
@@ -226,19 +246,12 @@ const About = () => {
               <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-100 to-cyan-100 border border-blue-400/50 shadow-md">
                 <FaCode className="text-blue-600" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-800">Technical Interests</h3>
+              <h3 className="text-2xl font-semibold text-gray-800">{copy.interestsTitle}</h3>
             </div>
             
             <div className="backdrop-blur-md bg-white/80 border border-blue-300/30 rounded-xl p-6 shadow-xl">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {[
-                  "Natural Language Processing",
-                  "Healthcare AI Applications",
-                  "Decentralized Finance (DeFi)",
-                  "Ethical AI Development",
-                  "Blockchain Governance Models",
-                  "Full-Stack Web Development"
-                ].map((interest, i) => (
+                {copy.interests.map((interest, i) => (
                   <div key={i} className="flex items-center gap-3 group">
                     <div className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-500 to-pink-600 group-hover:w-3 group-hover:h-3 transition-all duration-300"></div>
                     <span className="text-gray-600 group-hover:text-cyan-600 transition-colors duration-300">{interest}</span>

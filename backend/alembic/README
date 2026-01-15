@@ -1,0 +1,5 @@
+Alembic migrations for the backend database.
+
+Usage:
+  alembic upgrade head
+  alembic revision --autogenerate -m "message"
