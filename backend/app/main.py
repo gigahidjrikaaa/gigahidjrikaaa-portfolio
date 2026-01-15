@@ -1,19 +1,24 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
-from .database import Base, engine
 from .init_db import init_db
 import uvicorn
 
-# Import routers
-from .routers import auth, projects, admin, experience, education, skills, contact
+from .api import auth, projects, admin, experience, education, skills, contact
 
-# Initialize database and create tables
-init_db()
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # Initialize DB schema on startup. Placeholder seeding runs only in development.
+    init_db(seed_data=settings.is_development)
+    yield
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    lifespan=lifespan,
 )
 
 # CORS middleware

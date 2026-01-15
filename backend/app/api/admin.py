@@ -4,7 +4,7 @@ from typing import List
 from ..database import get_db, Project, Experience, Education, Skill, ContactMessage, User, Technology, Feature
 from ..auth import get_current_admin_user
 from ..schemas import (
-    ProjectCreate, ProjectResponse, 
+    ProjectCreate, ProjectUpdate, ProjectResponse, 
     ExperienceCreate, ExperienceResponse, ExperienceUpdate,
     EducationCreate, EducationResponse, EducationUpdate,
     SkillCreate, SkillResponse, SkillUpdate,
@@ -50,17 +50,17 @@ async def get_project_admin(
 @router.put("/projects/{project_id}", response_model=ProjectResponse)
 async def update_project(
     project_id: int,
-    project: ProjectCreate,
+    project: ProjectUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user)
 ):
     db_project = db.query(Project).filter(Project.id == project_id).first()
     if not db_project:
         raise HTTPException(status_code=404, detail="Project not found")
-    
-    for field, value in project.model_dump().items():
+
+    for field, value in project.model_dump(exclude_unset=True).items():
         setattr(db_project, field, value)
-    
+
     db.commit()
     db.refresh(db_project)
     return db_project
@@ -74,7 +74,7 @@ async def delete_project(
     db_project = db.query(Project).filter(Project.id == project_id).first()
     if not db_project:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+
     db.delete(db_project)
     db.commit()
     return {"message": "Project deleted successfully"}
@@ -123,10 +123,10 @@ async def update_experience(
     db_experience = db.query(Experience).filter(Experience.id == experience_id).first()
     if not db_experience:
         raise HTTPException(status_code=404, detail="Experience not found")
-    
-    for field, value in experience.model_dump().items():
+
+    for field, value in experience.model_dump(exclude_unset=True).items():
         setattr(db_experience, field, value)
-    
+
     db.commit()
     db.refresh(db_experience)
     return db_experience
@@ -140,7 +140,7 @@ async def delete_experience(
     db_experience = db.query(Experience).filter(Experience.id == experience_id).first()
     if not db_experience:
         raise HTTPException(status_code=404, detail="Experience not found")
-    
+
     db.delete(db_experience)
     db.commit()
     return {"message": "Experience deleted successfully"}
@@ -189,10 +189,10 @@ async def update_education(
     db_education = db.query(Education).filter(Education.id == education_id).first()
     if not db_education:
         raise HTTPException(status_code=404, detail="Education not found")
-    
-    for field, value in education.model_dump().items():
+
+    for field, value in education.model_dump(exclude_unset=True).items():
         setattr(db_education, field, value)
-    
+
     db.commit()
     db.refresh(db_education)
     return db_education
@@ -206,7 +206,7 @@ async def delete_education(
     db_education = db.query(Education).filter(Education.id == education_id).first()
     if not db_education:
         raise HTTPException(status_code=404, detail="Education not found")
-    
+
     db.delete(db_education)
     db.commit()
     return {"message": "Education deleted successfully"}
@@ -255,10 +255,10 @@ async def update_skill(
     db_skill = db.query(Skill).filter(Skill.id == skill_id).first()
     if not db_skill:
         raise HTTPException(status_code=404, detail="Skill not found")
-    
-    for field, value in skill.model_dump().items():
+
+    for field, value in skill.model_dump(exclude_unset=True).items():
         setattr(db_skill, field, value)
-    
+
     db.commit()
     db.refresh(db_skill)
     return db_skill
@@ -272,7 +272,7 @@ async def delete_skill(
     db_skill = db.query(Skill).filter(Skill.id == skill_id).first()
     if not db_skill:
         raise HTTPException(status_code=404, detail="Skill not found")
-    
+
     db.delete(db_skill)
     db.commit()
     return {"message": "Skill deleted successfully"}
@@ -308,7 +308,7 @@ async def mark_message_as_read(
     db_message = db.query(ContactMessage).filter(ContactMessage.id == message_id).first()
     if not db_message:
         raise HTTPException(status_code=404, detail="Message not found")
-    
+
     setattr(db_message, "is_read", True)
     db.commit()
     return {"message": "Message marked as read"}
@@ -322,7 +322,7 @@ async def delete_contact_message(
     db_message = db.query(ContactMessage).filter(ContactMessage.id == message_id).first()
     if not db_message:
         raise HTTPException(status_code=404, detail="Message not found")
-    
+
     db.delete(db_message)
     db.commit()
     return {"message": "Message deleted successfully"}
@@ -343,7 +343,7 @@ async def get_dashboard_stats(
     total_education = db.query(Education).count()
     unread_messages = db.query(ContactMessage).filter(ContactMessage.is_read == False).count()
     total_messages = db.query(ContactMessage).count()
-    
+
     return {
         "total_projects": total_projects,
         "featured_projects": featured_projects,
@@ -351,5 +351,5 @@ async def get_dashboard_stats(
         "total_experience": total_experience,
         "total_education": total_education,
         "unread_messages": unread_messages,
-        "total_messages": total_messages
+        "total_messages": total_messages,
     }

@@ -22,6 +22,23 @@ class ProjectBase(BaseModel):
 class ProjectCreate(ProjectBase):
     pass
 
+
+class ProjectUpdate(BaseModel):
+    title: Optional[str] = None
+    tagline: Optional[str] = None
+    description: Optional[str] = None
+    github_url: Optional[str] = None
+    live_url: Optional[str] = None
+    case_study_url: Optional[str] = None
+    role: Optional[str] = None
+    team_size: Optional[int] = None
+    challenges: Optional[str] = None
+    solutions: Optional[str] = None
+    impact: Optional[str] = None
+    image_url: Optional[str] = None
+    is_featured: Optional[bool] = None
+    display_order: Optional[int] = None
+
 class ProjectResponse(ProjectBase):
     id: int
     created_at: datetime
@@ -43,8 +60,14 @@ class ExperienceBase(BaseModel):
 class ExperienceCreate(ExperienceBase):
     pass
 
-class ExperienceUpdate(ExperienceBase):
-    pass
+class ExperienceUpdate(BaseModel):
+    title: Optional[str] = None
+    company: Optional[str] = None
+    location: Optional[str] = None
+    period: Optional[str] = None
+    description: Optional[str] = None
+    is_current: Optional[bool] = None
+    display_order: Optional[int] = None
 
 class ExperienceResponse(ExperienceBase):
     id: int
@@ -68,8 +91,15 @@ class EducationBase(BaseModel):
 class EducationCreate(EducationBase):
     pass
 
-class EducationUpdate(EducationBase):
-    pass
+class EducationUpdate(BaseModel):
+    degree: Optional[str] = None
+    institution: Optional[str] = None
+    location: Optional[str] = None
+    period: Optional[str] = None
+    description: Optional[str] = None
+    gpa: Optional[str] = None
+    is_current: Optional[bool] = None
+    display_order: Optional[int] = None
 
 class EducationResponse(EducationBase):
     id: int
@@ -89,8 +119,11 @@ class SkillBase(BaseModel):
 class SkillCreate(SkillBase):
     pass
 
-class SkillUpdate(SkillBase):
-    pass
+class SkillUpdate(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    proficiency: Optional[int] = None
+    display_order: Optional[int] = None
 
 class SkillResponse(SkillBase):
     id: int
@@ -133,3 +166,8 @@ class UserResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+class TokenVerificationResponse(BaseModel):
+    valid: bool
+    user: UserResponse

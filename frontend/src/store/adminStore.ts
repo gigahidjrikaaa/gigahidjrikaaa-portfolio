@@ -1,33 +1,48 @@
 import { create } from 'zustand';
-import { adminApi, ProjectBase, ProjectResponse, ExperienceBase, EducationBase, SkillBase, ContactMessageResponse } from '@/services/api';
+import {
+  adminApi,
+  ContactMessageResponse,
+  EducationBase,
+  EducationResponse,
+  EducationUpdate,
+  ExperienceBase,
+  ExperienceResponse,
+  ExperienceUpdate,
+  ProjectBase,
+  ProjectResponse,
+  ProjectUpdate,
+  SkillBase,
+  SkillResponse,
+  SkillUpdate,
+} from '@/services/api';
 
 interface AdminState {
   projects: ProjectResponse[]; // Use ProjectResponse directly
-  experience: ExperienceBase[]; // Use ExperienceBase or ExperienceResponse if available
-  education: EducationBase[];   // Use EducationBase or EducationResponse if available
-  skills: SkillBase[];          // Use SkillBase or SkillResponse if available
+  experience: ExperienceResponse[];
+  education: EducationResponse[];
+  skills: SkillResponse[];
   messages: ContactMessageResponse[]; // Use ContactMessageResponse directly
   loading: boolean;
   error: string | null;
   
   fetchProjects: () => Promise<void>;
   createProject: (project: ProjectBase) => Promise<void>;
-  updateProject: (id: number, project: ProjectBase) => Promise<void>;
+  updateProject: (id: number, project: ProjectUpdate) => Promise<void>;
   deleteProject: (id: number) => Promise<void>;
 
   fetchExperience: () => Promise<void>;
   createExperience: (experience: ExperienceBase) => Promise<void>;
-  updateExperience: (id: number, experience: ExperienceBase) => Promise<void>;
+  updateExperience: (id: number, experience: ExperienceUpdate) => Promise<void>;
   deleteExperience: (id: number) => Promise<void>;
 
   fetchEducation: () => Promise<void>;
   createEducation: (education: EducationBase) => Promise<void>;
-  updateEducation: (id: number, education: EducationBase) => Promise<void>;
+  updateEducation: (id: number, education: EducationUpdate) => Promise<void>;
   deleteEducation: (id: number) => Promise<void>;
 
   fetchSkills: () => Promise<void>;
   createSkill: (skill: SkillBase) => Promise<void>;
-  updateSkill: (id: number, skill: SkillBase) => Promise<void>;
+  updateSkill: (id: number, skill: SkillUpdate) => Promise<void>;
   deleteSkill: (id: number) => Promise<void>;
 
   fetchMessages: () => Promise<void>;
@@ -70,7 +85,7 @@ export const useAdminStore = create<AdminState>((set) => ({
     }
   },
 
-  updateProject: async (id: number, project: ProjectBase) => {
+  updateProject: async (id: number, project: ProjectUpdate) => {
     try {
       set({ loading: true, error: null });
       const updatedProject = await adminApi.updateProject(id, project);
@@ -123,7 +138,7 @@ export const useAdminStore = create<AdminState>((set) => ({
     }
   },
 
-  updateExperience: async (id: number, experience: ExperienceBase) => {
+  updateExperience: async (id: number, experience: ExperienceUpdate) => {
     try {
       set({ loading: true, error: null });
       const updatedExperience = await adminApi.updateExperience(id, experience);
@@ -176,7 +191,7 @@ export const useAdminStore = create<AdminState>((set) => ({
     }
   },
 
-  updateEducation: async (id: number, education: EducationBase) => {
+  updateEducation: async (id: number, education: EducationUpdate) => {
     try {
       set({ loading: true, error: null });
       const updatedEducation = await adminApi.updateEducation(id, education);
@@ -229,7 +244,7 @@ export const useAdminStore = create<AdminState>((set) => ({
     }
   },
 
-  updateSkill: async (id: number, skill: SkillBase) => {
+  updateSkill: async (id: number, skill: SkillUpdate) => {
     try {
       set({ loading: true, error: null });
       const updatedSkill = await adminApi.updateSkill(id, skill);
