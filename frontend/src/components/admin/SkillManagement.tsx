@@ -8,6 +8,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { SkillBase, SkillResponse } from '@/services/api';
 
+const PROFICIENCY_LABELS: Record<number, string> = {
+  1: 'Beginner',
+  2: 'Intermediate',
+  3: 'Advanced',
+  4: 'Expert',
+  5: 'Master',
+};
+
+const getProficiencyLabel = (value: number | null | undefined) => {
+  if (typeof value !== 'number') return 'Unspecified';
+  return PROFICIENCY_LABELS[value] ?? 'Unspecified';
+};
+
 const SkillManagement = () => {
   const { skills, fetchSkills, createSkill, updateSkill, deleteSkill } = useAdminStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,7 +86,13 @@ const SkillManagement = () => {
                       className="h-8 w-8 rounded object-contain bg-white"
                     />
                   ) : null}
-                  <h3 className="font-semibold text-gray-800">{skill.name} ({skill.category})</h3>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-semibold text-gray-800">{skill.name}</h3>
+                    <span className="rounded-full bg-gray-900 px-2 py-0.5 text-xs font-medium text-white">
+                      {getProficiencyLabel(skill.proficiency)}
+                    </span>
+                    <span className="text-sm text-gray-500">({skill.category})</span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => {

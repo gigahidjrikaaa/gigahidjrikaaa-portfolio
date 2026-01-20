@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, HttpUrl, constr
+from pydantic import BaseModel, EmailStr, HttpUrl, constr, Field
 from typing import List, Optional
 from datetime import datetime
 
@@ -127,12 +127,12 @@ class SkillBase(BaseModel):
     display_order: int = 0
 
 class SkillCreate(SkillBase):
-    pass
+    proficiency: int = Field(..., ge=1, le=5, description="Skill level on a 1-5 scale")
 
 class SkillUpdate(BaseModel):
     name: Optional[str] = None
     category: Optional[str] = None
-    proficiency: Optional[int] = None
+    proficiency: Optional[int] = Field(None, ge=1, le=5, description="Skill level on a 1-5 scale")
     icon_url: Optional[str] = None
     display_order: Optional[int] = None
 

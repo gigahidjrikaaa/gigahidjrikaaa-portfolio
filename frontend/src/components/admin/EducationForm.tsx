@@ -13,6 +13,16 @@ interface EducationFormProps {
   onCancel: () => void;
 }
 
+const degreeOptions = [
+  'High School Diploma',
+  'Associate Degree',
+  "Bachelor's Degree",
+  "Master's Degree",
+  'Doctorate (PhD)',
+  'Bootcamp',
+  'Other',
+];
+
 const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCancel }) => {
   const [formData, setFormData] = useState<EducationBase>({
     degree: '',
@@ -25,9 +35,14 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
     is_current: false,
     display_order: 0,
   });
+  const [degreePreset, setDegreePreset] = useState('');
+  const [degreeCustom, setDegreeCustom] = useState('');
+  const [startMonth, setStartMonth] = useState('');
+  const [endMonth, setEndMonth] = useState('');
 
   useEffect(() => {
     if (education) {
+      const preset = degreeOptions.includes(education.degree) ? education.degree : 'Other';
       setFormData({
         degree: education.degree || '',
         institution: education.institution || '',
@@ -39,8 +54,25 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
         is_current: education.is_current || false,
         display_order: education.display_order || 0,
       });
+      setDegreePreset(preset);
+      setDegreeCustom(preset === 'Other' ? (education.degree || '') : '');
     }
   }, [education]);
+
+  const formatMonthLabel = (value: string) => {
+    if (!value) return '';
+    const [year, month] = value.split('-').map(Number);
+    if (!year || !month) return '';
+    return new Date(year, month - 1).toLocaleString('en-US', { month: 'short', year: 'numeric' });
+  };
+
+  const buildPeriod = (start: string, end: string, isCurrent: boolean) => {
+    const startLabel = formatMonthLabel(start);
+    if (!startLabel) return '';
+    if (isCurrent) return `${startLabel} — Present`;
+    const endLabel = formatMonthLabel(end);
+    return endLabel ? `${startLabel} — ${endLabel}` : startLabel;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value, type } = e.target;
@@ -51,10 +83,39 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
   };
 
   const handleCheckboxChange = (checked: boolean) => {
+    const nextPeriod = buildPeriod(startMonth, endMonth, checked);
     setFormData((prev) => ({
       ...prev,
       is_current: checked,
+      period: nextPeriod || prev.period,
     }));
+  };
+
+  const handleDegreePresetChange = (value: string) => {
+    setDegreePreset(value);
+    if (value !== 'Other') {
+      setFormData((prev) => ({ ...prev, degree: value }));
+      setDegreeCustom('');
+    } else {
+      setFormData((prev) => ({ ...prev, degree: degreeCustom }));
+    }
+  };
+
+  const handleDegreeCustomChange = (value: string) => {
+    setDegreeCustom(value);
+    setFormData((prev) => ({ ...prev, degree: value }));
+  };
+
+  const handleStartMonthChange = (value: string) => {
+    setStartMonth(value);
+    const periodValue = buildPeriod(value, endMonth, formData.is_current);
+    setFormData((prev) => ({ ...prev, period: periodValue || prev.period }));
+  };
+
+  const handleEndMonthChange = (value: string) => {
+    setEndMonth(value);
+    const periodValue = buildPeriod(startMonth, value, formData.is_current);
+    setFormData((prev) => ({ ...prev, period: periodValue || prev.period }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -69,7 +130,27 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
           <div>
             <Label htmlFor="degree" className="text-gray-700">Degree</Label>
-            <Input id="degree" value={formData.degree} onChange={handleChange} required className="mt-1" />
+            <select
+              id="degree"
+              value={degreePreset || 'Other'}
+              onChange={(e) => handleDegreePresetChange(e.target.value)}
+              className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+              required
+            >
+              {degreeOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            {degreePreset === 'Other' && (
+              <Input
+                id="degree_custom"
+                value={degreeCustom}
+                onChange={(e) => handleDegreeCustomChange(e.target.value)}
+                placeholder="Enter degree"
+                className="mt-2"
+                required
+              />
+            )}
           </div>
           <div>
             <Label htmlFor="institution" className="text-gray-700">Institution</Label>
@@ -79,9 +160,39 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
             <Label htmlFor="location" className="text-gray-700">Location</Label>
             <Input id="location" value={formData.location} onChange={handleChange} required className="mt-1" />
           </div>
-          <div>
-            <Label htmlFor="period" className="text-gray-700">Period</Label>
-            <Input id="period" value={formData.period} onChange={handleChange} required className="mt-1" />
+          <div className="grid grid-cols-1 gap-3">
+            <Label className="text-gray-700">Period</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="start_month" className="text-xs text-gray-500">Start Month</Label>
+                <Input
+                  id="start_month"
+                  type="month"
+                  value={startMonth}
+                  onChange={(e) => handleStartMonthChange(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="end_month" className="text-xs text-gray-500">End Month</Label>
+                <Input
+                  id="end_month"
+                  type="month"
+                  value={endMonth}
+                  onChange={(e) => handleEndMonthChange(e.target.value)}
+                  disabled={formData.is_current}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <Input
+              id="period"
+              value={formData.period}
+              onChange={handleChange}
+              required
+              className="mt-1"
+              placeholder="e.g., Sep 2020 — Jun 2024"
+            />
           </div>
           <div>
             <Label htmlFor="description" className="text-gray-700">Description</Label>

@@ -13,6 +13,17 @@ interface ExperienceFormProps {
   onCancel: () => void;
 }
 
+const titleOptions = [
+  'Software Engineer',
+  'Full-Stack Developer',
+  'Frontend Developer',
+  'Backend Developer',
+  'UI/UX Designer',
+  'Product Designer',
+  'AI Engineer',
+  'Other',
+];
+
 const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onCancel }) => {
   const [formData, setFormData] = useState<ExperienceBase>({
     title: '',
@@ -24,9 +35,14 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
     is_current: false,
     display_order: 0,
   });
+  const [titlePreset, setTitlePreset] = useState('');
+  const [titleCustom, setTitleCustom] = useState('');
+  const [startMonth, setStartMonth] = useState('');
+  const [endMonth, setEndMonth] = useState('');
 
   useEffect(() => {
     if (experience) {
+      const preset = titleOptions.includes(experience.title) ? experience.title : 'Other';
       setFormData({
         title: experience.title || '',
         company: experience.company || '',
@@ -37,8 +53,25 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
         is_current: experience.is_current || false,
         display_order: experience.display_order || 0,
       });
+      setTitlePreset(preset);
+      setTitleCustom(preset === 'Other' ? (experience.title || '') : '');
     }
   }, [experience]);
+
+  const formatMonthLabel = (value: string) => {
+    if (!value) return '';
+    const [year, month] = value.split('-').map(Number);
+    if (!year || !month) return '';
+    return new Date(year, month - 1).toLocaleString('en-US', { month: 'short', year: 'numeric' });
+  };
+
+  const buildPeriod = (start: string, end: string, isCurrent: boolean) => {
+    const startLabel = formatMonthLabel(start);
+    if (!startLabel) return '';
+    if (isCurrent) return `${startLabel} — Present`;
+    const endLabel = formatMonthLabel(end);
+    return endLabel ? `${startLabel} — ${endLabel}` : startLabel;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value, type } = e.target;
@@ -49,10 +82,39 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
   };
 
   const handleCheckboxChange = (checked: boolean) => {
+    const nextPeriod = buildPeriod(startMonth, endMonth, checked);
     setFormData((prev) => ({
       ...prev,
       is_current: checked,
+      period: nextPeriod || prev.period,
     }));
+  };
+
+  const handleTitlePresetChange = (value: string) => {
+    setTitlePreset(value);
+    if (value !== 'Other') {
+      setFormData((prev) => ({ ...prev, title: value }));
+      setTitleCustom('');
+    } else {
+      setFormData((prev) => ({ ...prev, title: titleCustom }));
+    }
+  };
+
+  const handleTitleCustomChange = (value: string) => {
+    setTitleCustom(value);
+    setFormData((prev) => ({ ...prev, title: value }));
+  };
+
+  const handleStartMonthChange = (value: string) => {
+    setStartMonth(value);
+    const periodValue = buildPeriod(value, endMonth, formData.is_current);
+    setFormData((prev) => ({ ...prev, period: periodValue || prev.period }));
+  };
+
+  const handleEndMonthChange = (value: string) => {
+    setEndMonth(value);
+    const periodValue = buildPeriod(startMonth, value, formData.is_current);
+    setFormData((prev) => ({ ...prev, period: periodValue || prev.period }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -67,7 +129,27 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
           <div>
             <Label htmlFor="title" className="text-gray-700">Title</Label>
-            <Input id="title" value={formData.title} onChange={handleChange} required className="mt-1" />
+            <select
+              id="title"
+              value={titlePreset || 'Other'}
+              onChange={(e) => handleTitlePresetChange(e.target.value)}
+              className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+              required
+            >
+              {titleOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            {titlePreset === 'Other' && (
+              <Input
+                id="title_custom"
+                value={titleCustom}
+                onChange={(e) => handleTitleCustomChange(e.target.value)}
+                placeholder="Enter title"
+                className="mt-2"
+                required
+              />
+            )}
           </div>
           <div>
             <Label htmlFor="company" className="text-gray-700">Company</Label>
@@ -77,9 +159,39 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
             <Label htmlFor="location" className="text-gray-700">Location</Label>
             <Input id="location" value={formData.location} onChange={handleChange} required className="mt-1" />
           </div>
-          <div>
-            <Label htmlFor="period" className="text-gray-700">Period</Label>
-            <Input id="period" value={formData.period} onChange={handleChange} required className="mt-1" />
+          <div className="grid grid-cols-1 gap-3">
+            <Label className="text-gray-700">Period</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="start_month" className="text-xs text-gray-500">Start Month</Label>
+                <Input
+                  id="start_month"
+                  type="month"
+                  value={startMonth}
+                  onChange={(e) => handleStartMonthChange(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="end_month" className="text-xs text-gray-500">End Month</Label>
+                <Input
+                  id="end_month"
+                  type="month"
+                  value={endMonth}
+                  onChange={(e) => handleEndMonthChange(e.target.value)}
+                  disabled={formData.is_current}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <Input
+              id="period"
+              value={formData.period}
+              onChange={handleChange}
+              required
+              className="mt-1"
+              placeholder="e.g., Jan 2022 — Present"
+            />
           </div>
           <div>
             <Label htmlFor="description" className="text-gray-700">Description</Label>

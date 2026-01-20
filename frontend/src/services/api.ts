@@ -265,6 +265,16 @@ export interface MediaAssetListResponse {
 }
 
 // --- API Services ---
+class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 class ApiService {
   protected getCookie(name: string): string | null {
     if (typeof document === 'undefined') return null;
@@ -307,7 +317,7 @@ class ApiService {
     }
 
     if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`);
+      throw new ApiError(`API Error: ${response.statusText}`, response.status);
     }
 
     return response.json();
@@ -327,14 +337,28 @@ class ApiService {
     });
   }
 
-  async verifyToken(): Promise<{ valid: boolean; user: UserResponse }> {
-    return this.request<{ valid: boolean; user: UserResponse }>('/auth/verify-token', {
-      method: 'POST'
-    });
+  async verifyToken(): Promise<{ valid: boolean; user?: UserResponse | null }> {
+    try {
+      return await this.request<{ valid: boolean; user?: UserResponse | null }>('/auth/verify-token', {
+        method: 'POST'
+      });
+    } catch (error) {
+      if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+        return { valid: false, user: null };
+      }
+      throw error;
+    }
   }
 
-  async getCurrentUser(): Promise<UserResponse> {
-    return this.request<UserResponse>('/auth/me');
+  async getCurrentUser(): Promise<UserResponse | null> {
+    try {
+      return await this.request<UserResponse>('/auth/me');
+    } catch (error) {
+      if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+        return null;
+      }
+      throw error;
+    }
   }
 
   // Public Education

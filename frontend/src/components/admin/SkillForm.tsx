@@ -11,7 +11,25 @@ interface SkillFormProps {
   onCancel: () => void;
 }
 
+const categoryOptions = [
+  'Frontend',
+  'Backend',
+  'DevOps',
+  'AI/ML',
+  'Design',
+  'Data',
+  'Tools',
+  'Other',
+];
+
 const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
+  const proficiencyOptions = [
+    { value: 1, label: 'Beginner' },
+    { value: 2, label: 'Intermediate' },
+    { value: 3, label: 'Advanced' },
+    { value: 4, label: 'Expert' },
+    { value: 5, label: 'Master' },
+  ];
   const [formData, setFormData] = useState<SkillBase>({
     name: '',
     category: '',
@@ -19,9 +37,12 @@ const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
     icon_url: '',
     display_order: 0,
   });
+  const [categoryPreset, setCategoryPreset] = useState('');
+  const [categoryCustom, setCategoryCustom] = useState('');
 
   useEffect(() => {
     if (skill) {
+      const preset = categoryOptions.includes(skill.category) ? skill.category : 'Other';
       setFormData({
         name: skill.name || '',
         category: skill.category || '',
@@ -29,6 +50,8 @@ const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
         icon_url: skill.icon_url || '',
         display_order: skill.display_order || 0,
       });
+      setCategoryPreset(preset);
+      setCategoryCustom(preset === 'Other' ? (skill.category || '') : '');
     }
   }, [skill]);
 
@@ -38,6 +61,21 @@ const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
       ...prev,
       [id]: type === 'number' ? Number(value) : value,
     }));
+  };
+
+  const handleCategoryPresetChange = (value: string) => {
+    setCategoryPreset(value);
+    if (value !== 'Other') {
+      setFormData((prev) => ({ ...prev, category: value }));
+      setCategoryCustom('');
+    } else {
+      setFormData((prev) => ({ ...prev, category: categoryCustom }));
+    }
+  };
+
+  const handleCategoryCustomChange = (value: string) => {
+    setCategoryCustom(value);
+    setFormData((prev) => ({ ...prev, category: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -56,11 +94,43 @@ const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
           </div>
           <div>
             <Label htmlFor="category" className="text-gray-700">Category</Label>
-            <Input id="category" value={formData.category} onChange={handleChange} required className="mt-1" />
+            <select
+              id="category"
+              value={categoryPreset || 'Other'}
+              onChange={(e) => handleCategoryPresetChange(e.target.value)}
+              className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+              required
+            >
+              {categoryOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            {categoryPreset === 'Other' && (
+              <Input
+                id="category_custom"
+                value={categoryCustom}
+                onChange={(e) => handleCategoryCustomChange(e.target.value)}
+                placeholder="Enter category"
+                className="mt-2"
+                required
+              />
+            )}
           </div>
           <div>
-            <Label htmlFor="proficiency" className="text-gray-700">Proficiency (1-5)</Label>
-            <Input id="proficiency" type="number" value={formData.proficiency} onChange={handleChange} required min={1} max={5} className="mt-1" />
+            <Label htmlFor="proficiency" className="text-gray-700">Skill Level</Label>
+            <select
+              id="proficiency"
+              value={formData.proficiency || ''}
+              onChange={(e) => setFormData((prev) => ({ ...prev, proficiency: Number(e.target.value) }))}
+              className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+              required
+            >
+              <option value="">Select level</option>
+              {proficiencyOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">Tip: use “Expert/Master” only for your strongest skills.</p>
           </div>
           <div>
             <Label htmlFor="icon_url" className="text-gray-700">Icon URL (Optional)</Label>

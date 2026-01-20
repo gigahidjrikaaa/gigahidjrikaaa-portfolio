@@ -1,7 +1,7 @@
 // src/components/Skills.tsx
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { apiService, SkillResponse } from '@/services/api';
 
@@ -22,12 +22,28 @@ const itemVariants = {
   },
 };
 
-const barVariants = {
-  hidden: { scaleX: 0 },
-  visible: (proficiency: number) => ({
-    scaleX: proficiency / 100,
-    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 },
-  }),
+const PROFICIENCY_LEVELS = [
+  { value: 1, label: 'Beginner' },
+  { value: 2, label: 'Intermediate' },
+  { value: 3, label: 'Advanced' },
+  { value: 4, label: 'Expert' },
+  { value: 5, label: 'Master' },
+] as const;
+
+const clampProficiency = (value: number | null | undefined) => {
+  if (typeof value !== 'number' || Number.isNaN(value)) return 0;
+  return Math.max(0, Math.min(5, Math.round(value)));
+};
+
+const getProficiencyLabel = (value: number | null | undefined) => {
+  const clamped = clampProficiency(value);
+  const match = PROFICIENCY_LEVELS.find((l) => l.value === clamped);
+  return match?.label ?? 'Unspecified';
+};
+
+const levelDotVariants = {
+  hidden: { scale: 0.9, opacity: 0.5 },
+  visible: { scale: 1, opacity: 1, transition: { duration: 0.25 } },
 };
 
 const copy = {
@@ -106,14 +122,27 @@ const Skills = () => {
                       <div key={skill.id}>
                         <div className="mb-2 flex items-center justify-between">
                           <span className="text-sm font-medium text-gray-900">{skill.name}</span>
-                          <span className="text-xs text-gray-500">{skill.proficiency}%</span>
+                          <span className="text-xs text-gray-500">{getProficiencyLabel(skill.proficiency)}</span>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-gray-200">
-                          <motion.div
-                            className="h-full origin-left rounded-full bg-gray-900"
-                            variants={barVariants}
-                            custom={skill.proficiency}
-                          />
+                        <div
+                          className="flex items-center gap-1"
+                          role="img"
+                          aria-label={`Skill level: ${getProficiencyLabel(skill.proficiency)}`}
+                        >
+                          {Array.from({ length: 5 }).map((_, i) => {
+                            const level = clampProficiency(skill.proficiency);
+                            const filled = i < level;
+                            return (
+                              <motion.span
+                                key={i}
+                                variants={levelDotVariants}
+                                className={
+                                  'h-2.5 w-2.5 rounded-full ' +
+                                  (filled ? 'bg-gray-900' : 'bg-gray-200')
+                                }
+                              />
+                            );
+                          })}
                         </div>
                       </div>
                     ))}

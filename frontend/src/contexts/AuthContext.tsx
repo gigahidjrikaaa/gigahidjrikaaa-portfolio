@@ -20,8 +20,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const checkAuth = async () => {
     setIsLoading(true);
     try {
-      await apiService.verifyToken();
-      setIsAuthenticated(true);
+      const result = await apiService.verifyToken();
+      setIsAuthenticated(!!result.valid);
     } catch (error) {
       console.error("Token verification failed", error);
       setIsAuthenticated(false);

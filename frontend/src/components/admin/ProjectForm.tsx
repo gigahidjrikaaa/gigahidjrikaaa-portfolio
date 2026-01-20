@@ -24,7 +24,19 @@ interface ProjectFormProps {
   onCancel: () => void;
 }
 
+const roleOptions = [
+  'Full-Stack Developer',
+  'Frontend Developer',
+  'Backend Developer',
+  'UI/UX Designer',
+  'Product Designer',
+  'AI Engineer',
+  'Tech Lead',
+  'Other',
+];
+
 const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave, onCancel }) => {
+  const teamSizeOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20];
   const [formData, setFormData] = useState<ProjectBase>({
     title: '',
     tagline: '',
@@ -43,6 +55,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
     is_featured: false,
     display_order: 0,
   });
+  const [rolePreset, setRolePreset] = useState('');
+  const [roleCustom, setRoleCustom] = useState('');
   const [projectImages, setProjectImages] = useState<ProjectImageDraft[]>(images);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "";
@@ -50,6 +64,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
 
   useEffect(() => {
     if (project) {
+      const preset = roleOptions.includes(project.role) ? project.role : 'Other';
       setFormData({
         title: project.title || '',
         tagline: project.tagline || '',
@@ -68,6 +83,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
         is_featured: project.is_featured || false,
         display_order: project.display_order || 0,
       });
+      setRolePreset(preset);
+      setRoleCustom(preset === 'Other' ? (project.role || '') : '');
     }
   }, [project]);
 
@@ -88,6 +105,21 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
       ...prev,
       is_featured: checked,
     }));
+  };
+
+  const handleRolePresetChange = (value: string) => {
+    setRolePreset(value);
+    if (value !== 'Other') {
+      setFormData((prev) => ({ ...prev, role: value }));
+      setRoleCustom('');
+    } else {
+      setFormData((prev) => ({ ...prev, role: roleCustom }));
+    }
+  };
+
+  const handleRoleCustomChange = (value: string) => {
+    setRoleCustom(value);
+    setFormData((prev) => ({ ...prev, role: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -203,23 +235,54 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
           </div>
           <div>
             <Label htmlFor="github_url" className="text-gray-700">GitHub URL</Label>
-            <Input id="github_url" value={formData.github_url} onChange={handleChange} required className="mt-1" />
+            <Input id="github_url" type="url" value={formData.github_url} onChange={handleChange} required className="mt-1" />
           </div>
           <div>
             <Label htmlFor="live_url" className="text-gray-700">Live URL (Optional)</Label>
-            <Input id="live_url" value={formData.live_url || ''} onChange={handleChange} className="mt-1" />
+            <Input id="live_url" type="url" value={formData.live_url || ''} onChange={handleChange} className="mt-1" />
           </div>
           <div>
             <Label htmlFor="case_study_url" className="text-gray-700">Case Study URL (Optional)</Label>
-            <Input id="case_study_url" value={formData.case_study_url || ''} onChange={handleChange} className="mt-1" />
+            <Input id="case_study_url" type="url" value={formData.case_study_url || ''} onChange={handleChange} className="mt-1" />
           </div>
           <div>
             <Label htmlFor="role" className="text-gray-700">Role</Label>
-            <Input id="role" value={formData.role} onChange={handleChange} required className="mt-1" />
+            <select
+              id="role"
+              value={rolePreset || 'Other'}
+              onChange={(e) => handleRolePresetChange(e.target.value)}
+              className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+              required
+            >
+              {roleOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            {rolePreset === 'Other' && (
+              <Input
+                id="role_custom"
+                value={roleCustom}
+                onChange={(e) => handleRoleCustomChange(e.target.value)}
+                placeholder="Enter role"
+                className="mt-2"
+                required
+              />
+            )}
           </div>
           <div>
             <Label htmlFor="team_size" className="text-gray-700">Team Size</Label>
-            <Input id="team_size" type="number" value={formData.team_size} onChange={handleChange} required className="mt-1" />
+            <select
+              id="team_size"
+              value={formData.team_size}
+              onChange={(e) => setFormData((prev) => ({ ...prev, team_size: Number(e.target.value) }))}
+              className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+              required
+            >
+              <option value="">Select team size</option>
+              {teamSizeOptions.map((size) => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
           </div>
           <div className="md:col-span-2">
             <Label htmlFor="challenges" className="text-gray-700">Challenges</Label>
