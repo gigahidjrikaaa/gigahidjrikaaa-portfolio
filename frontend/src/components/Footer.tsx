@@ -33,26 +33,22 @@ const Footer = () => {
   };
 
   return (
-    <footer className="relative bg-[#0a0a12] border-t border-cyan-400/20 overflow-hidden">
-      {/* Decorative Elements */}
-      <div className="absolute -top-40 left-1/2 w-96 h-96 bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none"></div>
-      <div className="absolute -bottom-20 right-1/4 w-64 h-64 bg-pink-500/5 rounded-full blur-[80px] pointer-events-none"></div>
-      
-      {/* Grid Pattern Overlay */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
-      
+    <footer className="relative bg-white border-t border-gray-200/60 overflow-hidden">
+      <div className="absolute -top-40 left-1/2 w-96 h-96 bg-gray-100/80 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute -bottom-20 right-1/4 w-64 h-64 bg-gray-100/80 rounded-full blur-[100px] pointer-events-none"></div>
+
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Logo & Copyright */}
           <div className="flex flex-col items-center md:items-start">
-            <motion.div 
-              className="text-xl font-bold mb-3 bg-gradient-to-r from-cyan-400 to-pink-500 text-transparent bg-clip-text drop-shadow-[0_2px_8px_rgba(0,255,255,0.3)]"
-              whileHover={{ scale: 1.05 }}
+            <motion.div
+              className="text-xl font-semibold mb-3 text-gray-900"
+              whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.2 }}
             >
               {copy.brand}
             </motion.div>
-            <div className="text-sm text-gray-400 text-center md:text-left">
+            <div className="text-sm text-gray-500 text-center md:text-left">
               {copy.rights}
             </div>
           </div>
@@ -65,14 +61,14 @@ const Footer = () => {
                 href={item.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative p-2 text-gray-300 hover:text-cyan-400 transition-colors duration-300 group"
+                className="relative p-2 text-gray-500 hover:text-gray-900 transition-colors duration-300 group"
                 whileHover={{ y: -3 }}
                 transition={{ duration: 0.2 }}
               >
-                <span className="absolute inset-0 rounded-full bg-white/5 border border-cyan-400/20 backdrop-blur-sm scale-0 group-hover:scale-100 transition-transform duration-300"></span>
+                <span className="absolute inset-0 rounded-full bg-gray-100 border border-gray-200 scale-0 group-hover:scale-100 transition-transform duration-300"></span>
                 <item.icon className="h-5 w-5 relative z-10" aria-hidden="true" />
                 <span className="sr-only">{item.name}</span>
-                <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">{item.name}</span>
+                <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">{item.name}</span>
               </motion.a>
             ))}
           </div>
@@ -83,19 +79,17 @@ const Footer = () => {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-gray-400 hover:text-cyan-400 transition-colors duration-300"
+                className="text-gray-500 hover:text-gray-900 transition-colors duration-300"
               >
                 {link.label}
               </a>
             ))}
           </div>
         </div>
-        
-        {/* Neon Border Line */}
-        <div className="mt-6 h-px w-full bg-gradient-to-r from-cyan-500/0 via-cyan-500/30 to-pink-500/0"></div>
-        
-        {/* Attribution */}
-        <div className="mt-6 text-xs text-center text-gray-600">
+
+        <div className="mt-6 h-px w-full bg-gray-200"></div>
+
+        <div className="mt-6 text-xs text-center text-gray-500">
           {copy.attribution}
         </div>
       </div>

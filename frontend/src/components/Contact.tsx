@@ -1,4 +1,4 @@
-// src/components/Contact.js
+// src/components/Contact.tsx
 "use client";
 
 import { useState } from 'react';
@@ -6,19 +6,22 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { FaGithub, FaLinkedinIn, FaTwitter, FaEnvelope } from 'react-icons/fa';
 
 const copy = {
-  title: 'Get In Touch',
-  subtitle: 'Interested in collaborating or have a question? Feel free to reach out!',
+  eyebrow: 'GET IN TOUCH',
+  title: 'Contact Us',
+  subtitle: "Let's align on scope, timelines, and the right engagement model for your team.",
   form: {
-    name: 'Name',
+    firstName: 'First Name',
+    lastName: 'Last Name',
     email: 'Email',
     message: 'Message',
-    namePlaceholder: 'Your Name',
+    firstNamePlaceholder: 'Giga',
+    lastNamePlaceholder: 'Hidjrika',
     emailPlaceholder: 'you@example.com',
-    messagePlaceholder: 'Your message here...',
-    submit: 'Send Message',
+    messagePlaceholder: 'Write your message here...',
+    submit: 'Send Inquiry',
   },
-  statusPending: 'Thanks! Your message is ready to send. Wire it to the backend when available.',
-  socialPrompt: 'Or connect with me on:',
+  statusPending: 'Thanks! Your message has been received.',
+  socialPrompt: 'Prefer another channel?',
   socials: {
     github: 'GitHub',
     linkedin: 'LinkedIn',
@@ -28,144 +31,150 @@ const copy = {
 };
 
 const Contact = () => {
-  // NOTE: Form submission requires a backend handler (API Route or 3rd party service)
   const [status, setStatus] = useState<string | null>(null);
   const reduceMotion = useReducedMotion();
 
   const handleSubmit = (event: { preventDefault: () => void }) => {
     event.preventDefault();
-    // Add form submission logic here
     setStatus(copy.statusPending);
   };
 
   return (
-    <section id="contact" className="py-16 sm:py-24 bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="contact" className="relative overflow-hidden bg-gray-100 py-24 md:py-32">
+      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          className="text-center mb-12"
           initial={reduceMotion ? false : { opacity: 0, y: 20 }}
           whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.6 }}
+          className="mx-auto max-w-4xl rounded-[32px] bg-white p-8 shadow-sm md:p-12"
         >
-          <h2 className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl mb-4 font-heading">
-            {copy.title}
-          </h2>
-          <p className="text-base sm:text-lg text-text-secondary max-w-2xl mx-auto">
-            {copy.subtitle}
-          </p>
-        </motion.div>
+          <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.2fr]">
+            {/* Left: Heading & socials */}
+            <div className="space-y-6">
+              <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
+                {copy.eyebrow}
+              </span>
+              <h2 className="text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl">
+                {copy.title}
+              </h2>
+              <p className="text-gray-500 leading-relaxed">{copy.subtitle}</p>
 
-        <div className="max-w-3xl mx-auto">
-          {/* Contact Form */}
-          <form onSubmit={handleSubmit} className="space-y-6 bg-secondary/5 p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-200/60">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="transition-all duration-300 focus-within:scale-[1.01]">
-                <label htmlFor="name" className="block text-sm font-medium text-text-primary mb-1">
-                  {copy.form.name}
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  id="name"
-                  required
-                  className="block w-full rounded-md border border-gray-200 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm py-3 px-4 bg-background transition-all duration-200"
-                  placeholder={copy.form.namePlaceholder}
-                  aria-label={copy.form.name}
-                />
+              <div className="pt-4">
+                <p className="text-xs uppercase tracking-wider text-gray-400">{copy.socialPrompt}</p>
+                <div className="mt-3 flex gap-4">
+                  <a
+                    href="https://github.com/gigahidjrikaaa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900"
+                    aria-label={copy.socials.github}
+                  >
+                    <FaGithub className="h-4 w-4" />
+                  </a>
+                  <a
+                    href="https://linkedin.com/in/gigahidjrikaaa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900"
+                    aria-label={copy.socials.linkedin}
+                  >
+                    <FaLinkedinIn className="h-4 w-4" />
+                  </a>
+                  <a
+                    href="https://twitter.com/gigahidjrikaaa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900"
+                    aria-label={copy.socials.twitter}
+                  >
+                    <FaTwitter className="h-4 w-4" />
+                  </a>
+                  <a
+                    href="mailto:gigahidjrikaaa@gmail.com"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900"
+                    aria-label={copy.socials.email}
+                  >
+                    <FaEnvelope className="h-4 w-4" />
+                  </a>
+                </div>
               </div>
-              <div className="transition-all duration-300 focus-within:scale-[1.01]">
-                <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-1">
+            </div>
+
+            {/* Right: Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="firstName" className="mb-1 block text-sm font-medium text-gray-700">
+                    {copy.form.firstName}
+                  </label>
+                  <input
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    required
+                    placeholder={copy.form.firstNamePlaceholder}
+                    className="block w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-0"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="lastName" className="mb-1 block text-sm font-medium text-gray-700">
+                    {copy.form.lastName}
+                  </label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    name="lastName"
+                    required
+                    placeholder={copy.form.lastNamePlaceholder}
+                    className="block w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-0"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
                   {copy.form.email}
                 </label>
                 <input
                   type="email"
-                  name="email"
                   id="email"
+                  name="email"
                   required
-                  className="block w-full rounded-md border border-gray-200 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm py-3 px-4 bg-background transition-all duration-200"
                   placeholder={copy.form.emailPlaceholder}
-                  aria-label={copy.form.email}
+                  className="block w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-0"
                 />
               </div>
-            </div>
-            <div className="transition-all duration-300 focus-within:scale-[1.01]">
-              <label htmlFor="message" className="block text-sm font-medium text-text-primary mb-1">
-                {copy.form.message}
-              </label>
-              <textarea
-                name="message"
-                id="message"
-                rows={5}
-                required
-                className="block w-full rounded-md border border-gray-200 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm py-3 px-4 bg-background transition-all duration-200"
-                placeholder={copy.form.messagePlaceholder}
-                aria-label={copy.form.message}
-              />
-            </div>
-            <div>
+
+              <div>
+                <label htmlFor="message" className="mb-1 block text-sm font-medium text-gray-700">
+                  {copy.form.message}
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  rows={4}
+                  required
+                  placeholder={copy.form.messagePlaceholder}
+                  className="block w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-0"
+                />
+              </div>
+
               <button
                 type="submit"
-                className="w-full flex justify-center items-center gap-2 rounded-md border border-transparent bg-primary px-6 py-3 text-base font-medium text-black shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 hover:scale-[1.01]"
+                className="inline-flex w-full items-center justify-center rounded-full bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800"
               >
-                <span>{copy.form.submit}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                </svg>
+                {copy.form.submit}
               </button>
-            </div>
-            {status ? (
-              <div className="rounded-md border border-cyan-200/60 bg-cyan-50 px-4 py-3 text-sm text-cyan-800" role="status" aria-live="polite">
-                {status}
-              </div>
-            ) : null}
-          </form>
 
-            {/* Social Links */}
-            <div className="mt-12 text-center">
-            <p className="text-text-secondary mb-4">{copy.socialPrompt}</p>
-            <div className="flex justify-center space-x-6">
-              <a 
-              href="https://github.com/gigahidjrikaaa" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-text-secondary hover:text-primary transition-colors duration-300"
-              aria-label={copy.socials.github}
-              >
-              <span className="sr-only">{copy.socials.github}</span>
-              <FaGithub />
-              </a>
-              <a 
-              href="https://linkedin.com/in/gigahidjrikaaa" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-text-secondary hover:text-primary transition-colors duration-300"
-              aria-label={copy.socials.linkedin}
-              >
-              <span className="sr-only">{copy.socials.linkedin}</span>
-              <FaLinkedinIn />
-              </a>
-              <a
-              href="https://twitter.com/gigahidjrikaaa"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-text-secondary hover:text-primary transition-colors duration-300"
-              aria-label={copy.socials.twitter}
-              >
-              <span className="sr-only">{copy.socials.twitter}</span>
-              <FaTwitter />
-              </a>
-              <a
-              href="mailto:gigahidjrikaaa@gmail.com"
-              className="text-text-secondary hover:text-primary transition-colors duration-300"
-              aria-label={copy.socials.email}
-              >
-              <span className="sr-only">{copy.socials.email}</span>
-              <FaEnvelope />
-              </a>
-            </div>
-            </div>
-        </div>
+              {status ? (
+                <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700" role="status" aria-live="polite">
+                  {status}
+                </div>
+              ) : null}
+            </form>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

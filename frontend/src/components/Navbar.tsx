@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon, PhoneIcon, CameraIcon, ArrowUpRightIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext'; // Import the useAuth hook
 
 const Navbar = () => {
@@ -17,37 +17,30 @@ const Navbar = () => {
   };
 
   const copy = {
-    brand: '[GigaDev]',
+    brand: 'Giga Hidjrika',
     openMenu: 'Open main menu',
     navLabel: 'Primary',
     links: {
       about: 'About',
-      highlights: 'Highlights',
-      awards: 'Awards',
+      experience: 'Experience',
       projects: 'Projects',
       skills: 'Skills',
-      experience: 'Experience',
-      education: 'Education',
-      services: 'Services',
-      testimonials: 'Testimonials',
-      blog: 'Blog',
       contact: 'Contact',
       admin: 'Admin',
+    },
+    cta: 'Get in Touch',
+    social: {
+      phone: 'Call',
+      socials: 'Socials',
     },
   };
 
   // Navigation links configuration
   const navLinks = [
     { name: copy.links.about, href: '#about' },
-    { name: copy.links.highlights, href: '#highlights' },
-    { name: copy.links.awards, href: '#awards' },
+    { name: copy.links.experience, href: '#experience' },
     { name: copy.links.projects, href: '#projects' },
     { name: copy.links.skills, href: '#skills' },
-    { name: copy.links.experience, href: '#experience' },
-    { name: copy.links.education, href: '#education' },
-    { name: copy.links.services, href: '#services' },
-    { name: copy.links.testimonials, href: '#testimonials' },
-    { name: copy.links.blog, href: '#blog' },
     { name: copy.links.contact, href: '#contact' },
   ];
 
@@ -58,28 +51,57 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/90 backdrop-blur-md shadow-sm border-b border-gray-200/50" aria-label={copy.navLabel}>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <nav className="sticky top-0 z-50" aria-label={copy.navLabel}>
+      <div className="mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative mt-4 flex items-center justify-between rounded-[28px] border border-white/40 bg-white/80 px-4 py-3 shadow-[0_20px_50px_rgba(15,23,42,0.12)] backdrop-blur-xl">
           {/* Logo */}
-          <div className="flex-shrink-0">
-            <Link href="/" className="text-2xl font-bold font-heading text-primary hover:text-primary/80 transition-colors duration-200">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-900 text-white text-xs font-semibold">
+              GH
+            </div>
+            <Link href="/" className="text-base font-semibold text-gray-900">
               {copy.brand}
             </Link>
           </div>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex md:items-center md:space-x-6 lg:space-x-8">
+          <div className="hidden md:flex md:items-center md:space-x-2 absolute left-1/2 -translate-x-1/2 rounded-full border border-gray-200 bg-white/90 px-4 py-2 shadow-sm">
             {/* Don't render auth-dependent links until client-side hydration is complete */}
             {!isLoading && allLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className="font-medium text-text-secondary hover:text-primary transition-colors duration-200 px-3 py-2 rounded-md text-sm"
+                className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-600 hover:text-gray-900 transition-colors duration-200 px-3 py-2 rounded-full"
               >
                 {link.name}
               </Link>
             ))}
+          </div>
+
+          <div className="hidden md:flex items-center gap-2">
+            <a
+              href="tel:+628000000000"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 hover:text-gray-900"
+              aria-label={copy.social.phone}
+            >
+              <PhoneIcon className="h-4 w-4" />
+            </a>
+            <a
+              href="https://instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 hover:text-gray-900"
+              aria-label={copy.social.socials}
+            >
+              <CameraIcon className="h-4 w-4" />
+            </a>
+            <Link
+              href="#contact"
+              className="ml-2 inline-flex items-center gap-2 rounded-full bg-gray-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white"
+            >
+              {copy.cta}
+              <ArrowUpRightIcon className="h-4 w-4" />
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -88,7 +110,7 @@ const Navbar = () => {
             <button
               onClick={toggleMobileMenu}
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-text-secondary hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900"
               aria-controls="mobile-menu"
               aria-expanded={isMobileMenuOpen ? 'true' : 'false'} // Accessibility attribute
             >
@@ -109,18 +131,26 @@ const Navbar = () => {
         className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden transition-all duration-300 ease-out`}
         id="mobile-menu"
       >
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200/80">
+        <div className="mt-2 rounded-2xl border border-gray-200/60 bg-white/95 px-3 py-3 shadow-lg">
           {!isLoading && allLinks.map((link) => (
             <Link
               key={link.name}
               href={link.href}
               onClick={() => setIsMobileMenuOpen(false)} // Close menu on link click
-              className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:text-primary hover:bg-gray-50 transition-colors duration-200"
+              className="block px-3 py-2 rounded-md text-sm font-semibold uppercase tracking-[0.15em] text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200"
               // Add active link styling here if needed
             >
               {link.name}
             </Link>
           ))}
+          <Link
+            href="#contact"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-gray-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white"
+          >
+            {copy.cta}
+            <ArrowUpRightIcon className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </nav>

@@ -182,6 +182,32 @@ export interface BlogPostResponse extends BlogPostBase {
   updated_at: string;
 }
 
+export interface ProfileBase {
+  full_name?: string;
+  headline?: string;
+  bio?: string;
+  location?: string;
+  availability?: string;
+  avatar_url?: string;
+  resume_url?: string;
+}
+
+export type ProfileUpdate = Partial<ProfileBase>;
+
+export interface ProfileResponse extends ProfileBase {
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProfileImportResponse {
+  profile: ProfileUpdate;
+  meta: {
+    pages_scanned: number;
+    text_length: number;
+  };
+}
+
 export interface UserLogin {
   username: string;
   password: string;
@@ -276,7 +302,7 @@ class ApiService {
           ...options.headers
         }
       });
-    } catch (error) {
+    } catch {
       throw new Error("Unable to reach the API. Please ensure the backend is running and try again.");
     }
 
@@ -331,6 +357,11 @@ class ApiService {
     return this.request<ProjectResponse[]>('/projects/all');
   }
 
+  // Public Profile
+  async getProfile(): Promise<ProfileResponse> {
+    return this.request<ProfileResponse>('/profile');
+  }
+
   // Awards
   async getAwards(): Promise<AwardResponse[]> {
     return this.request<AwardResponse[]>('/awards');
@@ -356,6 +387,39 @@ class AdminApiService extends ApiService {
   // Dashboard
   async getDashboardStats(): Promise<DashboardStats> {
     return this.request<DashboardStats>('/admin/dashboard/stats');
+  }
+
+  // Profile
+  async getProfile(): Promise<ProfileResponse> {
+    return this.request<ProfileResponse>('/admin/profile');
+  }
+
+  async updateProfile(payload: ProfileUpdate): Promise<ProfileResponse> {
+    return this.request<ProfileResponse>('/admin/profile', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async importProfileFromLinkedInPdf(file: File): Promise<ProfileImportResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${NEXT_PUBLIC_API_BASE_URL}/admin/profile/import-linkedin-pdf`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        ...this.getAuthHeaders('/admin/profile/import-linkedin-pdf', 'POST', false),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const message = await response.text().catch(() => '');
+      throw new Error(message || `API Error: ${response.statusText}`);
+    }
+
+    return response.json();
   }
 
   // Projects

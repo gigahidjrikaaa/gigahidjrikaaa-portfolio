@@ -4,75 +4,63 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { FaGraduationCap, FaBriefcase, FaUserAlt, FaCode } from 'react-icons/fa';
-import { apiService, EducationResponse, ExperienceResponse } from '@/services/api';
+import {
+  FaBrain,
+  FaCode,
+  FaCubes,
+  FaPalette,
+  FaChartLine,
+  FaUsers,
+} from 'react-icons/fa';
+import { apiService, ProfileResponse } from '@/services/api';
 
-// Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.3,
-    },
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
   },
 };
 
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
-  visible: { 
-    y: 0, 
+  visible: {
+    y: 0,
     opacity: 1,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
-  }
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  },
 };
+
+const amenities = [
+  { title: 'AI Strategy', icon: FaBrain },
+  { title: 'Full-Stack Dev', icon: FaCode },
+  { title: 'Web3 Architecture', icon: FaCubes },
+  { title: 'Design Systems', icon: FaPalette },
+  { title: 'Analytics', icon: FaChartLine },
+  { title: 'Collaboration', icon: FaUsers },
+];
 
 const copy = {
   title: 'About Me',
-  subtitle:
-    'Information Engineering student and full-stack developer with focus on AI and blockchain technologies.',
-  summaryTitle: 'Professional Summary',
-  summaryBody:
-    "Hi, I'm Giga! I'm an Information Engineering student at Universitas Gadjah Mada, focusing on Artificial Intelligence and Blockchain technologies. I thrive on solving complex problems and building impactful solutions.",
-  summaryBody2:
-    "My recent work includes UGM-AICare, leveraging AI for mental health support, and blockchain-based secure voting systems. I'm particularly interested in NLP applications for healthcare and developing sharia-compliant decentralized finance solutions.",
-  stats: [
-    { value: '3+', label: 'Years Coding', gradient: 'from-cyan-50 to-cyan-100', text: 'text-cyan-600', border: 'border-cyan-400/40' },
-    { value: '6+', label: 'Projects', gradient: 'from-pink-50 to-pink-100', text: 'text-pink-600', border: 'border-pink-400/40' },
-    { value: '3.8', label: 'GPA', gradient: 'from-purple-50 to-purple-100', text: 'text-purple-600', border: 'border-purple-400/40' },
-    { value: '3+', label: 'Certifications', gradient: 'from-blue-50 to-blue-100', text: 'text-blue-600', border: 'border-blue-400/40' },
-  ],
-  educationTitle: 'Education',
-  experienceTitle: 'Experience',
-  interestsTitle: 'Technical Interests',
-  interests: [
-    'Natural Language Processing',
-    'Healthcare AI Applications',
-    'Decentralized Finance (DeFi)',
-    'Ethical AI Development',
-    'Blockchain Governance Models',
-    'Full-Stack Web Development',
-  ],
-  profileAlt: 'Giga - Professional Headshot',
+  intro:
+    'A creative technologist passionate about building innovative digital products — from AI-powered applications to blockchain solutions and modern web experiences.',
+  body: 'I bring a versatile skill set that spans the entire product development lifecycle. Whether it\'s crafting intuitive user interfaces, architecting scalable backends, or integrating cutting-edge AI, I focus on delivering solutions that make a real impact.',
+  imageCaption: 'MY WORKSPACE',
+  imageCaptionBody: 'Where ideas become reality',
+  profileAlt: 'Profile photo',
 };
 
 const About = () => {
-  const [education, setEducation] = useState<EducationResponse[]>([]);
-  const [experience, setExperience] = useState<ExperienceResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const educationData = await apiService.getEducation();
-        const experienceData = await apiService.getExperience();
-        setEducation(educationData);
-        setExperience(experienceData);
+        const profileData = await apiService.getProfile();
+        setProfile(profileData);
       } catch (err) {
-        console.error("Failed to fetch about data:", err);
-        setError("Failed to load data. Please try again later.");
+        console.error('Failed to fetch profile data:', err);
       } finally {
         setLoading(false);
       }
@@ -80,183 +68,66 @@ const About = () => {
     fetchData();
   }, []);
 
-  if (loading) {
-    return <section id="about" className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-white to-blue-50">
-      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center text-gray-600">Loading about data...</div>
-      </div>
-    </section>;
-  }
-
-  if (error) {
-    return <section id="about" className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-white to-blue-50">
-      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center text-red-500">{error}</div>
-      </div>
-    </section>;
-  }
+  const intro = profile?.headline || copy.intro;
+  const body = profile?.bio || copy.body;
 
   return (
-    <section id="about" className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-white to-blue-50">
-      {/* Background Elements */}
-      <div className="absolute inset-0 w-full h-full opacity-30">
-        <div className="absolute inset-0 bg-grid-pattern-light"></div>
-      </div>
-      <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none"></div>
-      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-pink-500/10 rounded-full blur-[100px] pointer-events-none"></div>
-      
+    <section id="about" className="relative overflow-hidden bg-white py-24 md:py-32">
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div 
+        <motion.div
           initial="hidden"
-          animate="visible"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
           variants={containerVariants}
-          className="max-w-6xl mx-auto"
+          className="grid items-center gap-12 lg:grid-cols-[1fr_1fr]"
         >
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold font-heading mb-4">
-              <span className="bg-gradient-to-r from-cyan-500 to-pink-600 text-transparent bg-clip-text drop-shadow-[0_2px_8px_rgba(0,255,255,0.3)]">
-                {copy.title}
-              </span>
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              {copy.subtitle}
-            </p>
-          </motion.div>
-          
-          {/* Personal Info Card */}
-          <motion.div 
-            variants={itemVariants}
-            className="backdrop-blur-md bg-white/80 border border-cyan-300/30 rounded-2xl shadow-2xl mb-16 overflow-hidden"
-          >
-            <div className="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-4 gap-8 items-center">
-              {/* Image */}
-              <div className="lg:col-span-1 flex justify-center">
-                <div className="relative h-48 w-48 rounded-full overflow-hidden border-4 border-gradient-to-r from-cyan-400 via-blue-500 to-pink-500 shadow-[0_0_25px_rgba(0,255,255,0.4)]">
-                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-pink-500/10"></div>
-                  <Image
-                    src="/profile.jpg"
-                    alt={copy.profileAlt}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    priority
-                    className="object-cover"
-                  />
-                </div>
-              </div>
-              
-              {/* Bio */}
-              <div className="lg:col-span-3">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="text-cyan-600"><FaUserAlt /></div>
-                  <h3 className="text-xl font-semibold text-gray-800">{copy.summaryTitle}</h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  {copy.summaryBody}
-                </p>
-                <p className="text-gray-600">
-                  {copy.summaryBody2}
-                </p>
-                
-                {/* Quick Stats */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-                  {copy.stats.map((stat) => (
-                    <div
-                      key={stat.label}
-                      className={`bg-gradient-to-br ${stat.gradient} border ${stat.border} p-3 rounded-lg text-center shadow-sm`}
-                    >
-                      <div className={`${stat.text} font-semibold`}>{stat.value}</div>
-                      <div className={`text-xs ${stat.text.replace('600', '700')}`}>{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-          
-            {/* Main Content - Education and Experience */}
-            <motion.div 
-            variants={itemVariants} 
-            className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16"
+          {/* Left: Text content */}
+          <div className="space-y-6">
+            <motion.h2
+              variants={itemVariants}
+              className="text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl lg:text-5xl"
             >
-            {/* Education Section */}
-            <div className="h-full flex flex-col">
-              <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-r from-cyan-100 to-blue-100 border border-cyan-400/50 shadow-md">
-                <FaGraduationCap className="text-cyan-600" />
-              </div>
-              <h3 className="text-2xl font-semibold text-gray-800">{copy.educationTitle}</h3>
-              </div>
-              
-              <div className="backdrop-blur-md bg-white/80 border border-cyan-300/30 rounded-xl shadow-xl flex-1 overflow-hidden hover:shadow-[0_0_25px_rgba(0,200,255,0.2)] transition-all duration-300">
-              {education.map((edu) => (
-                <div 
-                key={edu.id} 
-                className="p-5 sm:p-6 border-b border-gray-100 last:border-0 hover:bg-cyan-50/50 transition-colors duration-200"
-                >
-                <div className="flex flex-wrap justify-between items-baseline gap-2 mb-2">
-                  <h4 className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-blue-600 text-transparent bg-clip-text">{edu.degree}</h4>
-                  <span className="text-sm font-medium text-cyan-600 whitespace-nowrap">{edu.period}</span>
-                </div>
-                <div className="flex flex-wrap justify-between items-baseline gap-2 mb-3">
-                  <div className="text-gray-600 text-sm sm:text-base">{edu.institution}, {edu.location}</div>
-                  {edu.gpa && <div className="text-sm font-medium text-cyan-600 bg-cyan-100/50 px-2 py-0.5 rounded-full">{edu.gpa} GPA</div>}
-                </div>
-                <p className="text-sm text-gray-500 mt-2 leading-relaxed">{edu.description}</p>
+              {copy.title}
+            </motion.h2>
+
+            <motion.p variants={itemVariants} className="text-gray-500 leading-relaxed">
+              {intro}
+            </motion.p>
+
+            <motion.p variants={itemVariants} className="text-gray-500 leading-relaxed">
+              {body}
+            </motion.p>
+
+            {/* Amenities grid */}
+            <motion.div variants={itemVariants} className="grid grid-cols-2 gap-x-8 gap-y-4 pt-4">
+              {amenities.map((item) => (
+                <div key={item.title} className="flex items-center gap-3 text-gray-700">
+                  <item.icon className="h-5 w-5 text-gray-400" />
+                  <span className="text-sm">{item.title}</span>
                 </div>
               ))}
-              </div>
-            </div>
-            
-            {/* Experience Section */}
-            <div className="h-full flex flex-col">
-              <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-r from-pink-100 to-purple-100 border border-pink-400/50 shadow-md">
-                <FaBriefcase className="text-pink-600" />
-              </div>
-              <h3 className="text-2xl font-semibold text-gray-800">{copy.experienceTitle}</h3>
-              </div>
-              
-              <div className="backdrop-blur-md bg-white/80 border border-pink-300/30 rounded-xl shadow-xl flex-1 overflow-hidden hover:shadow-[0_0_25px_rgba(219,39,119,0.2)] transition-all duration-300">
-              {experience.map((exp) => (
-                <div 
-                key={exp.id} 
-                className="p-5 sm:p-6 border-b border-gray-100 last:border-0 hover:bg-pink-50/50 transition-colors duration-200"
-                >
-                <div className="flex flex-wrap justify-between items-baseline gap-2 mb-2">
-                  <h4 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 text-transparent bg-clip-text">{exp.title}</h4>
-                  <span className="text-sm font-medium text-pink-600 whitespace-nowrap">{exp.period}</span>
-                </div>
-                <div className="flex items-center text-gray-600 text-sm sm:text-base mb-3">
-                  <span>{exp.company}</span>
-                  <span className="mx-2 text-gray-400">•</span>
-                  <span>{exp.location}</span>
-                </div>
-                <p className="text-sm text-gray-500 leading-relaxed">{exp.description}</p>
-                </div>
-              ))}
-              </div>
-            </div>
             </motion.div>
-          
-          
-          
-          {/* Technical Areas */}
-          <motion.div variants={itemVariants}>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-100 to-cyan-100 border border-blue-400/50 shadow-md">
-                <FaCode className="text-blue-600" />
+          </div>
+
+          {/* Right: Image with caption overlay */}
+          <motion.div variants={itemVariants} className="relative">
+            <div className="relative overflow-hidden rounded-[32px]">
+              <div className="relative aspect-[4/5] w-full">
+                <Image
+                  src="/hero-bg.jpg"
+                  alt={copy.profileAlt}
+                  fill
+                  className="object-cover"
+                />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-800">{copy.interestsTitle}</h3>
-            </div>
-            
-            <div className="backdrop-blur-md bg-white/80 border border-blue-300/30 rounded-xl p-6 shadow-xl">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {copy.interests.map((interest, i) => (
-                  <div key={i} className="flex items-center gap-3 group">
-                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-500 to-pink-600 group-hover:w-3 group-hover:h-3 transition-all duration-300"></div>
-                    <span className="text-gray-600 group-hover:text-cyan-600 transition-colors duration-300">{interest}</span>
-                  </div>
-                ))}
+              {/* Caption card */}
+              <div className="absolute bottom-6 left-6 right-6 rounded-2xl bg-white/90 p-4 backdrop-blur-sm">
+                <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                  {copy.imageCaption}
+                </div>
+                <div className="mt-1 text-sm font-medium text-gray-900">
+                  {copy.imageCaptionBody}
+                </div>
               </div>
             </div>
           </motion.div>

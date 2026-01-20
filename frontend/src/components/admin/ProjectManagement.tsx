@@ -7,26 +7,50 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { adminApi, ProjectBase, ProjectImageResponse, ProjectResponse } from '@/services/api';
 
+type ProjectImageDraft = {
+  id?: number;
+  url: string;
+  kind?: string;
+  caption?: string;
+  display_order?: number;
+};
+
+const toDraftImage = (img: ProjectImageResponse): ProjectImageDraft => ({
+  id: img.id,
+  url: img.url,
+  kind: img.kind ?? undefined,
+  caption: img.caption ?? undefined,
+  display_order: img.display_order ?? undefined,
+});
+
 const ProjectManagement = () => {
   const { projects, fetchProjects, createProject, updateProject, deleteProject } = useAdminStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<ProjectResponse | null>(null);
-  const [projectImages, setProjectImages] = useState<ProjectImageResponse[]>([]);
+  const [projectImages, setProjectImages] = useState<ProjectImageDraft[]>([]);
 
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
 
-  const handleSaveProject = async (projectData: ProjectBase, images: ProjectImageResponse[]) => {
+  const handleSaveProject = async (projectData: ProjectBase, images: ProjectImageDraft[]) => {
     try {
       if (selectedProject) {
         const updated = await updateProject(selectedProject.id, projectData);
 
-        const existingIds = new Set(projectImages.filter((img) => img.id).map((img) => img.id));
-        const nextIds = new Set(images.filter((img) => img.id).map((img) => img.id));
+        const existingIds = new Set(
+          projectImages
+            .filter((img): img is ProjectImageDraft & { id: number } => typeof img.id === 'number')
+            .map((img) => img.id)
+        );
+        const nextIds = new Set(
+          images
+            .filter((img): img is ProjectImageDraft & { id: number } => typeof img.id === 'number')
+            .map((img) => img.id)
+        );
 
         const toDelete = [...existingIds].filter((id) => !nextIds.has(id));
-        const toUpdate = images.filter((img) => img.id);
+        const toUpdate = images.filter((img): img is ProjectImageDraft & { id: number } => typeof img.id === 'number');
         const toCreate = images.filter((img) => !img.id);
 
         await Promise.all(
@@ -121,7 +145,10 @@ const ProjectManagement = () => {
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => {
                     setSelectedProject(project);
-                    adminApi.getProjectImages(project.id).then(setProjectImages).catch(() => setProjectImages([]));
+                    adminApi
+                      .getProjectImages(project.id)
+                      .then((images) => setProjectImages(images.map(toDraftImage)))
+                      .catch(() => setProjectImages([]));
                     setIsModalOpen(true);
                   }}>
                     <Edit className="h-4 w-4" />

@@ -1,219 +1,160 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, useReducedMotion } from 'framer-motion';
-import Particles from 'react-tsparticles';
-import { loadFull } from 'tsparticles';
-import type { Engine } from 'tsparticles-engine';
-import particlesOptions from '@/config/particlesOptions';
+import { motion } from 'framer-motion';
+import { ArrowRightIcon, ClockIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { apiService, ProfileResponse } from '@/services/api';
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.2,
-      delayChildren: 0.3,
+      staggerChildren: 0.15,
+      delayChildren: 0.2,
     },
   },
 };
 
 const itemVariants = {
-  hidden: { y: 24, opacity: 0 },
+  hidden: { y: 30, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
     transition: {
-      duration: 0.7,
+      duration: 0.8,
       ease: [0.6, 0.01, 0.05, 0.95],
     },
   },
 };
 
 const copy = {
-  name: 'Giga H. A. Adkhy',
-  role: 'Digital Visionary',
-  headline: 'Building the future at the intersection of AI & Blockchain.',
-  subhead: 'Information Engineering Student & Creative Technologist.',
-  ctaPrimary: 'View Projects',
-  ctaSecondary: 'Get In Touch',
-  location: 'Based in Yogyakarta, Indonesia',
-  availability: 'Open for freelance & collab',
-  heroAlt: 'Futuristic cyberpunk city',
-  avatarAlt: 'Avatar',
+  eyebrow: 'YOGYAKARTA',
+  headline: 'Building AI-Powered Products and Full-Stack Solutions.',
+  subhead: 'I\'m a creative technologist passionate about AI, blockchain, and modern web development — turning complex ideas into elegant, user-focused experiences.',
+  ctaPrimary: 'Let\'s Connect',
+  heroAlt: 'Modern interior workspace',
 };
 
+const heroStats = [
+  {
+    value: '12+',
+    label: 'Projects shipped. End-to-end builds from concept to production.',
+    icon: ClockIcon,
+  },
+  {
+    value: '3+',
+    label: 'Years building. Focused on AI, Web3, and product design.',
+    icon: ChartBarIcon,
+  },
+];
+
 const Hero = () => {
-  const reduceMotion = useReducedMotion();
-  const particlesInit = useCallback(async (engine: Engine) => {
-    if (!reduceMotion) {
-      await loadFull(engine);
-    }
-  }, [reduceMotion]);
+  const [profile, setProfile] = useState<ProfileResponse | null>(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const data = await apiService.getProfile();
+        setProfile(data);
+      } catch (error) {
+        console.error('Failed to load profile data:', error);
+      }
+    };
+
+    loadProfile();
+  }, []);
+
+  const heroName = profile?.full_name || 'Giga H. A. Adkhy';
+  const heroLocation = profile?.location || copy.eyebrow;
 
   return (
-    <section
-      id="hero"
-      className="relative flex items-center min-h-[92vh] overflow-hidden bg-background pt-24 pb-16"
-    >
-      {/* Background Image with overlay */}
-      <div className="absolute inset-0 z-0">
+    <section id="hero" className="relative min-h-screen overflow-hidden">
+      {/* Full-bleed background image */}
+      <div className="absolute inset-0">
         <Image
           src="/hero-bg.jpg"
           alt={copy.heroAlt}
           fill
           priority
-          className="object-cover w-full h-full opacity-80"
-          style={{ filter: 'blur(2px) brightness(0.7)' }}
+          className="object-cover"
         />
-        {/* Neon gradient overlays for cyberpunk effect */}
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/30 via-transparent to-pink-600/20 pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-cyan-400/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-pink-500/20 rounded-full blur-2xl" />
+        {/* Gradient overlays for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
       </div>
 
-      {!reduceMotion && (
-        <div className="absolute inset-0 z-[5]">
-          <Particles
-            id="hero-particles"
-            init={particlesInit}
-            options={particlesOptions}
-            className="h-full w-full"
-          />
-        </div>
-      )}
-
-      {/* Animated Neon Grid */}
-      <motion.svg
-        className="absolute inset-0 w-full h-full z-10 pointer-events-none"
-        viewBox="0 0 1440 800"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-        initial={{ opacity: 0.7 }}
-        animate={{ opacity: [0.7, 1, 0.7], y: [0, 10, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      >
-        {/* Vertical lines */}
-        {[...Array(18)].map((_, i) => (
-          <motion.line
-            key={`v-${i}`}
-            x1={80 * i}
-            y1="0"
-            x2={80 * i}
-            y2="800"
-            stroke={i % 2 === 0 ? "#00fff7" : "#ff00cc"}
-            strokeWidth="1"
-            strokeOpacity="0.13"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ delay: i * 0.05, duration: 1.2, repeat: Infinity, repeatType: "reverse" }}
-          />
-        ))}
-        {/* Horizontal lines */}
-        {[...Array(11)].map((_, i) => (
-          <motion.line
-            key={`h-${i}`}
-            x1="0"
-            y1={80 * i}
-            x2="1440"
-            y2={80 * i}
-            stroke={i % 2 === 0 ? "#00fff7" : "#ff00cc"}
-            strokeWidth="1"
-            strokeOpacity="0.13"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ delay: i * 0.07, duration: 1.2, repeat: Infinity, repeatType: "reverse" }}
-          />
-        ))}
-      </motion.svg>
-
       {/* Content */}
-      <div className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <motion.div
-          className="max-w-3xl text-left"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Glassmorphism Panel */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl p-6 sm:p-8 md:p-12 mb-8">
-            <motion.div variants={itemVariants} className="mb-4">
-              <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight font-heading">
-                <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 text-transparent bg-clip-text 
-                  drop-shadow-[0_2px_16px_rgba(0,255,255,0.3)] inline-block">
-                  {copy.name}
-                </span>
-              </h1>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1 }}
-              >
-                <motion.span 
-                  className="text-2xl sm:text-3xl md:text-5xl bg-gradient-to-r from-pink-400 via-purple-400 to-pink-300 
-                    text-transparent bg-clip-text inline-block relative"
-                  initial={{ width: 0 }}
-                  animate={{ width: "auto" }}
-                  transition={{ duration: 1.2, delay: 1.5 }}
-                >
-                  {copy.role}
-                </motion.span>
-                <motion.span 
-                  className="ml-1 text-2xl sm:text-3xl md:text-5xl text-white inline-block"
-                  animate={{ opacity: [0, 1, 0] }}
-                  transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.5 }}
-                >
-                  |
-                </motion.span>
-              </motion.div>
-            </motion.div>
-            <motion.p
-              className="text-base sm:text-lg md:text-2xl text-gray-200 mb-8 font-light"
-              variants={itemVariants}
-            >
-              {copy.headline}<br />
-              <span className="text-white/80">{copy.subhead}</span>
-            </motion.p>
-            <motion.div
-              className="flex flex-wrap gap-4"
-              variants={itemVariants}
-            >
-              <Link
-                href="#projects"
-                className="inline-block rounded-full bg-cyan-500/90 hover:bg-cyan-400 text-black font-semibold px-7 py-3 shadow-lg neon-glow-cyan transition-all duration-200"
-              >
-                {copy.ctaPrimary}
-              </Link>
-              <Link
-                href="#contact"
-                className="inline-block rounded-full border border-pink-400 text-pink-300 hover:bg-pink-500/20 font-semibold px-7 py-3 shadow-lg neon-glow-pink transition-all duration-200"
-              >
-                {copy.ctaSecondary}
-              </Link>
-            </motion.div>
-          </div>
-          {/* Subtle 3D avatar or logo */}
+      <div className="relative z-10 flex min-h-screen items-end pb-16 pt-32">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            className="flex items-center gap-4 mt-4"
-            variants={itemVariants}
+            className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
           >
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 via-pink-400 to-purple-500 border-4 border-white/20 shadow-lg flex items-center justify-center overflow-hidden">
-              <Image
-                src="/profile-2.jpg"
-                alt={copy.avatarAlt}
-                width={64}
-                height={64}
-                className="object-cover w-full h-full"
-              />
+            {/* Left column: Text content */}
+            <div className="space-y-6">
+              <motion.div variants={itemVariants}>
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-white/90 backdrop-blur-sm">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  {heroLocation}
+                </span>
+              </motion.div>
+
+              <motion.h1
+                variants={itemVariants}
+                className="text-4xl font-semibold leading-[1.1] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
+              >
+                {copy.headline}
+              </motion.h1>
+
+              <motion.p
+                variants={itemVariants}
+                className="max-w-xl text-base leading-relaxed text-white/80 sm:text-lg"
+              >
+                {copy.subhead}
+              </motion.p>
+
+              <motion.div variants={itemVariants}>
+                <Link
+                  href="#contact"
+                  className="group inline-flex items-center gap-3 rounded-full bg-white px-6 py-4 text-sm font-semibold text-gray-900 shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+                >
+                  {copy.ctaPrimary}
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-900 text-white transition-transform duration-300 group-hover:translate-x-1">
+                    <ArrowRightIcon className="h-4 w-4" />
+                  </span>
+                </Link>
+              </motion.div>
             </div>
-            <div>
-              <span className="block text-sm text-gray-300">{copy.location}</span>
-              <span className="block text-xs text-cyan-400/80">{copy.availability}</span>
-            </div>
+
+            {/* Right column: Stat cards */}
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col gap-4 lg:items-end"
+            >
+              {heroStats.map((stat) => (
+                <div
+                  key={stat.value}
+                  className="rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-md lg:max-w-xs"
+                >
+                  <div className="flex items-start justify-between">
+                    <span className="text-3xl font-semibold text-white sm:text-4xl">
+                      {stat.value}
+                    </span>
+                    <stat.icon className="h-5 w-5 text-white/60" />
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-white/70">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

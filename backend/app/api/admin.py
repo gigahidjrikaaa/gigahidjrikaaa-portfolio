@@ -4,6 +4,7 @@ from sqlalchemy import func, or_
 from typing import List, cast
 from datetime import datetime
 import logging
+from ..services.pdf_import_service import extract_text_from_pdf_bytes, parse_linkedin_resume_text
 from ..database import (
     get_db,
     Project,
@@ -802,12 +803,57 @@ async def update_profile(
         profile = Profile()
         db.add(profile)
 
-    for field, value in payload.model_dump(exclude_unset=True).items():
+    for field, value in payload.model_dump(exclude_unset=True, mode="json").items():
         setattr(profile, field, value)
 
     db.commit()
     db.refresh(profile)
     return profile
+
+
+@router.post("/profile/import-linkedin-pdf")
+async def import_profile_from_linkedin_pdf(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_user),
+):
+    # Validate upload
+    content_type = (file.content_type or "").lower()
+    if content_type not in {"application/pdf", "application/x-pdf"}:
+        raise HTTPException(status_code=415, detail="Only PDF files are supported")
+
+    max_bytes = 8 * 1024 * 1024  # 8MB
+    data = await file.read(max_bytes + 1)
+    if len(data) > max_bytes:
+        raise HTTPException(status_code=413, detail="PDF is too large")
+
+    # Basic magic-byte check to reduce accidental non-PDF uploads.
+    if not data.lstrip().startswith(b"%PDF"):
+        raise HTTPException(status_code=415, detail="Invalid PDF file")
+
+    text = extract_text_from_pdf_bytes(data, max_pages=3)
+    # If the PDF is scanned, text extraction returns empty or near-empty.
+    if len(text.strip()) < 40:
+        raise HTTPException(
+            status_code=422,
+            detail="The PDF appears to be scanned (no embedded text). OCR is required to import this file.",
+        )
+
+    candidate = parse_linkedin_resume_text(text)
+    # Return detected fields for the frontend to auto-fill.
+    return {
+        "profile": {
+            "full_name": candidate.full_name,
+            "headline": candidate.headline,
+            "location": candidate.location,
+            "bio": candidate.bio,
+            "resume_url": candidate.resume_url,
+        },
+        "meta": {
+            "pages_scanned": 3,
+            "text_length": len(text),
+        },
+    }
 
 # =============================================================================
 # SITE SETTINGS (singleton)
@@ -838,7 +884,7 @@ async def update_site_settings(
         settings_row = SiteSettings()
         db.add(settings_row)
 
-    for field, value in payload.model_dump(exclude_unset=True).items():
+    for field, value in payload.model_dump(exclude_unset=True, mode="json").items():
         setattr(settings_row, field, value)
 
     db.commit()
@@ -874,7 +920,7 @@ async def update_seo_settings(
         seo = SeoSettings()
         db.add(seo)
 
-    for field, value in payload.model_dump(exclude_unset=True).items():
+    for field, value in payload.model_dump(exclude_unset=True, mode="json").items():
         setattr(seo, field, value)
 
     db.commit()

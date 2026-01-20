@@ -33,10 +33,10 @@ const BlogComingSoon = () => {
   }, []);
 
   return (
-    <section id="blog" className="relative overflow-hidden bg-white py-16 sm:py-24">
+    <section id="blog" className="relative overflow-hidden bg-[#f7f7f5] py-16 sm:py-24">
       <div className="absolute inset-0">
-        <div className="absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-pink-500/10 blur-3xl" />
+        <div className="absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-200/50 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-pink-200/50 blur-3xl" />
       </div>
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
@@ -47,7 +47,7 @@ const BlogComingSoon = () => {
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">{copy.title}</h2>
+          <h2 className="text-3xl font-semibold text-gray-900 sm:text-4xl">{copy.title}</h2>
           <p className="mt-4 text-base text-gray-600 sm:text-lg">{copy.subtitle}</p>
         </motion.div>
 
@@ -60,9 +60,9 @@ const BlogComingSoon = () => {
               whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.5 }}
-              className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center"
+              className="rounded-3xl border border-dashed border-gray-300 bg-white p-8 text-center"
             >
-              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-500">
+              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
                 {copy.comingSoon}
               </div>
               <p className="mt-3 text-sm text-gray-500">{copy.empty}</p>
@@ -75,7 +75,7 @@ const BlogComingSoon = () => {
                 whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.3 }}
                 transition={{ duration: 0.5, delay: index * 0.05 }}
-                className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+                className="flex h-full flex-col overflow-hidden rounded-3xl border border-gray-200/70 bg-white shadow-[0_20px_40px_rgba(15,23,42,0.08)]"
               >
                 <div className="relative h-44 w-full bg-gray-100">
                   {post.cover_image_url ? (
@@ -83,7 +83,7 @@ const BlogComingSoon = () => {
                   ) : null}
                 </div>
                 <div className="flex flex-1 flex-col p-6">
-                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-500">
+                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
                     {post.status === "coming_soon" ? copy.comingSoon : post.status}
                   </div>
                   <h3 className="mt-2 text-lg font-semibold text-gray-900">{post.title}</h3>

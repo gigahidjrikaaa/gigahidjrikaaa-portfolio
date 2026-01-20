@@ -2,27 +2,28 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { FaBrain, FaCubes, FaRocket, FaPalette } from "react-icons/fa";
+import { PlayIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import { apiService, ServiceResponse } from "@/services/api";
 
 const copy = {
-  title: "Services",
-  subtitle: "Ways I can help you build, launch, and scale ambitious products.",
-  empty: "Services are being curated. Check back soon!",
+  eyebrow: "WHY CHOOSE",
+  title: "Why Work With Me",
+  subtitle:
+    "A polished overview of capabilities, process, and outcomes — designed to help stakeholders align fast.",
+  quote:
+    "The best projects happen when design, engineering, and strategy operate as one unified thread.",
+  reasons: [
+    "End-to-end product thinking",
+    "Clear, async-friendly communication",
+    "Deep technical depth across AI, web, and blockchain",
+    "Focus on measurable impact",
+    "Transparent timelines and deliverables",
+  ],
 };
-
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  brain: FaBrain,
-  cubes: FaCubes,
-  rocket: FaRocket,
-  palette: FaPalette,
-};
-
-const fallbackIcons = [FaBrain, FaRocket, FaCubes, FaPalette];
 
 const Services = () => {
   const [services, setServices] = useState<ServiceResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -40,63 +41,68 @@ const Services = () => {
     load();
   }, []);
 
-  const serviceItems = useMemo(() => {
-    if (services.length === 0) return [];
-    return services.map((service, index) => {
-      const Icon = service.icon ? iconMap[service.icon] : undefined;
-      const Fallback = fallbackIcons[index % fallbackIcons.length];
-      return { ...service, Icon: Icon ?? Fallback };
-    });
+  const reasons = useMemo(() => {
+    if (services.length > 0) {
+      return services.slice(0, 5).map((s) => s.title);
+    }
+    return copy.reasons;
   }, [services]);
 
   return (
-    <section id="services" className="relative overflow-hidden bg-[#0a0f1f] py-16 sm:py-24">
-      <div className="absolute inset-0">
-        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
-        <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-pink-500/10 blur-3xl" />
-      </div>
-
+    <section id="services" className="relative overflow-hidden bg-white py-24 md:py-32">
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          className="mx-auto max-w-3xl text-center"
           initial={reduceMotion ? false : { opacity: 0, y: 20 }}
           whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.6 }}
+          className="grid items-center gap-12 lg:grid-cols-2"
         >
-          <h2 className="text-3xl font-bold text-white sm:text-4xl">{copy.title}</h2>
-          <p className="mt-4 text-base text-gray-300 sm:text-lg">{copy.subtitle}</p>
-        </motion.div>
+          {/* Left: Video card */}
+          <div className="relative aspect-[4/3] overflow-hidden rounded-[32px] bg-gray-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/hero-bg.jpg"
+              alt="Video preview"
+              className="h-full w-full object-cover"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-black/10" />
+            {/* Play button */}
+            <button
+              type="button"
+              aria-label="Play video"
+              className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow-lg backdrop-blur-sm transition hover:scale-105"
+            >
+              <PlayIcon className="h-7 w-7" />
+            </button>
+          </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {loading ? (
-            <div className="text-sm text-gray-400">Loading...</div>
-          ) : serviceItems.length === 0 ? (
-            <div className="text-sm text-gray-400">{copy.empty}</div>
-          ) : (
-            serviceItems.map((service, index) => (
-              <motion.article
-                key={service.id}
-                initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-                whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.5, delay: index * 0.05 }}
-                className="group relative rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-cyan-200">
-                  <service.Icon className="h-5 w-5" aria-hidden="true" />
-                </div>
-                <h3 className="mt-6 text-lg font-semibold text-white">{service.title}</h3>
-                {service.subtitle ? (
-                  <p className="mt-2 text-sm text-cyan-200/80">{service.subtitle}</p>
-                ) : null}
-                {service.description ? (
-                  <p className="mt-3 text-sm text-gray-300">{service.description}</p>
-                ) : null}
-              </motion.article>
-            ))
-          )}
-        </div>
+          {/* Right: Text content */}
+          <div className="space-y-6">
+            <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
+              {copy.eyebrow}
+            </span>
+            <h2 className="text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
+              {copy.title}
+            </h2>
+            <p className="text-gray-500 leading-relaxed">{copy.subtitle}</p>
+
+            {/* Checklist */}
+            <ul className="space-y-3 pt-2">
+              {reasons.map((item) => (
+                <li key={item} className="flex items-start gap-3 text-gray-700">
+                  <CheckCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-gray-400" />
+                  <span className="text-sm">{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            {/* Quote */}
+            <p className="border-l-2 border-gray-200 pl-4 text-sm italic text-gray-500">
+              {copy.quote}
+            </p>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

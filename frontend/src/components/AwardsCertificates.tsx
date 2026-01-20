@@ -42,10 +42,10 @@ const AwardsCertificates = () => {
   }, []);
 
   return (
-    <section id="awards" className="relative overflow-hidden bg-white py-16 sm:py-24">
+    <section id="awards" className="relative overflow-hidden bg-[#f7f7f5] py-16 sm:py-24">
       <div className="absolute inset-0">
-        <div className="absolute -top-32 left-0 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-pink-500/10 blur-3xl" />
+        <div className="absolute -top-32 left-0 h-72 w-72 rounded-full bg-cyan-200/50 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-pink-200/50 blur-3xl" />
       </div>
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
@@ -56,12 +56,12 @@ const AwardsCertificates = () => {
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">{copy.title}</h2>
+          <h2 className="text-3xl font-semibold text-gray-900 sm:text-4xl">{copy.title}</h2>
           <p className="mt-4 text-base text-gray-600 sm:text-lg">{copy.subtitle}</p>
         </motion.div>
 
         <div className="mt-12 grid gap-8 lg:grid-cols-2">
-          <div className="rounded-2xl border border-gray-200/70 bg-white/80 p-6 shadow-sm">
+          <div className="rounded-3xl border border-gray-200/70 bg-white p-6 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
             <h3 className="text-xl font-semibold text-gray-900">{copy.awardsTitle}</h3>
             <div className="mt-6 space-y-4">
               {loading ? (
@@ -76,7 +76,7 @@ const AwardsCertificates = () => {
                     whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.4 }}
                     transition={{ duration: 0.4 }}
-                    className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                    className="flex flex-col gap-3 rounded-2xl border border-gray-200/70 bg-white p-4 shadow-sm"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
@@ -86,7 +86,7 @@ const AwardsCertificates = () => {
                         </div>
                       </div>
                       {award.image_url ? (
-                        <div className="relative h-12 w-12 overflow-hidden rounded-lg border border-gray-200">
+                        <div className="relative h-12 w-12 overflow-hidden rounded-lg border border-gray-200 bg-white">
                           <Image src={award.image_url} alt={award.title} fill className="object-cover" />
                         </div>
                       ) : null}
@@ -97,7 +97,7 @@ const AwardsCertificates = () => {
                         href={award.credential_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm font-medium text-cyan-600 hover:text-cyan-700"
+                        className="text-sm font-medium text-gray-900 hover:text-gray-700"
                       >
                         {copy.viewCredential}
                       </a>
@@ -108,7 +108,7 @@ const AwardsCertificates = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-gray-200/70 bg-white/80 p-6 shadow-sm">
+          <div className="rounded-3xl border border-gray-200/70 bg-white p-6 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
             <h3 className="text-xl font-semibold text-gray-900">{copy.certificatesTitle}</h3>
             <div className="mt-6 space-y-4">
               {loading ? (
@@ -123,7 +123,7 @@ const AwardsCertificates = () => {
                     whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.4 }}
                     transition={{ duration: 0.4 }}
-                    className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                    className="flex flex-col gap-3 rounded-2xl border border-gray-200/70 bg-white p-4 shadow-sm"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
@@ -133,7 +133,7 @@ const AwardsCertificates = () => {
                         </div>
                       </div>
                       {certificate.image_url ? (
-                        <div className="relative h-12 w-12 overflow-hidden rounded-lg border border-gray-200">
+                        <div className="relative h-12 w-12 overflow-hidden rounded-lg border border-gray-200 bg-white">
                           <Image src={certificate.image_url} alt={certificate.title} fill className="object-cover" />
                         </div>
                       ) : null}
@@ -144,7 +144,7 @@ const AwardsCertificates = () => {
                         href={certificate.credential_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm font-medium text-cyan-600 hover:text-cyan-700"
+                        className="text-sm font-medium text-gray-900 hover:text-gray-700"
                       >
                         {copy.viewCredential}
                       </a>

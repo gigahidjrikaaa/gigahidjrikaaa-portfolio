@@ -2,19 +2,18 @@
 
 import AdminShell from "@/components/admin/AdminShell";
 import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
+import ProfileManagement from "@/components/admin/ProfileManagement";
 import withAdminAuth from "@/hoc/withAdminAuth";
 
 const copy = {
   title: "Profile",
-  description: "Profile management is not yet wired to the backend. Add the API endpoints to enable edits.",
+  description: "Manage the public profile details used across the landing page.",
 };
 
 const ProfilePage = () => (
   <AdminShell>
     <AdminSectionHeader title={copy.title} description={copy.description} />
-    <div className="rounded-lg border border-dashed border-gray-200 p-6 text-sm text-gray-500">
-      {copy.description}
-    </div>
+    <ProfileManagement />
   </AdminShell>
 );
 

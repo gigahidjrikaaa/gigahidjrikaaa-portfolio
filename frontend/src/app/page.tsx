@@ -1,33 +1,51 @@
 "use client";
-// src/app/page.js
+// src/app/page.tsx
 import Hero from '@/components/Hero';
 import About from '@/components/About';
 import Highlights from '@/components/Highlights';
-import AwardsCertificates from '@/components/AwardsCertificates';
-import Projects from '@/components/Projects';
-import Skills from '@/components/Skills';
 import Experience from '@/components/Experience';
 import Education from '@/components/Education';
+import Skills from '@/components/Skills';
+import Projects from '@/components/Projects';
+import Awards from '@/components/Awards';
+import Certificates from '@/components/Certificates';
 import Services from '@/components/Services';
-import Testimonials from '@/components/Testimonials';
-import BlogComingSoon from '@/components/BlogComingSoon';
 import Contact from '@/components/Contact';
 
 export default function Home() {
   return (
     <>
-      {/* Using fragments <>...</> to return multiple sections */}
+      {/* Hero - Full-bleed intro */}
       <Hero />
+      
+      {/* About - Overview with capabilities */}
       <About />
+      
+      {/* Highlights - Location & collaboration stats */}
       <Highlights />
-      <AwardsCertificates />
-      <Projects />
-      <Skills />
+      
+      {/* Experience - Work history timeline */}
       <Experience />
+      
+      {/* Education - Academic background */}
       <Education />
+      
+      {/* Skills - Technical expertise */}
+      <Skills />
+      
+      {/* Projects - Portfolio showcase */}
+      <Projects />
+      
+      {/* Awards - Recognition (dark section) */}
+      <Awards />
+      
+      {/* Certificates - Credentials */}
+      <Certificates />
+      
+      {/* Services - Why work with me */}
       <Services />
-      <Testimonials />
-      <BlogComingSoon />
+      
+      {/* Contact - Get in touch */}
       <Contact />
     </>
   );

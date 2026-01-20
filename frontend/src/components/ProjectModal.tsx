@@ -36,9 +36,15 @@ type ProjectModalProps = {
 };
 
 const modalVariants = {
-  hidden: { opacity: 0, scale: 0.98, y: 40 },
-  visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.28 } },
-  exit: { opacity: 0, scale: 0.98, y: 40, transition: { duration: 0.18 } },
+  hidden: { opacity: 0, scale: 0.95, y: 20 },
+  visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] } },
+  exit: { opacity: 0, scale: 0.95, y: 20, transition: { duration: 0.2 } },
+};
+
+const overlayVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.2 } },
+  exit: { opacity: 0, transition: { duration: 0.15 } },
 };
 
 const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) => {
@@ -56,43 +62,119 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
     setActiveImage(images[0]?.url ?? fallback);
   }, [project]);
 
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && open) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
   if (!mounted) return null;
 
   return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-[2px]"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6"
           initial="hidden"
           animate="visible"
           exit="exit"
-          variants={modalVariants}
-          onClick={onClose}
         >
+          {/* Overlay */}
           <motion.div
-            className="relative bg-gradient-to-br from-[#0a192f] via-[#0f223a] to-[#1a0e2a] border border-cyan-400/30 rounded-3xl shadow-2xl max-w-4xl w-full max-h-5/6 h-full mx-4 p-0 overflow-hidden"
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 40, opacity: 0 }}
-            transition={{ duration: 0.28 }}
+            variants={overlayVariants}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={onClose}
+          />
+
+          <motion.div
+            variants={modalVariants}
+            className="relative w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl"
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
-            {/* Decorative Neon Glow */}
-            <div className="absolute -top-16 -left-16 w-56 h-56 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-16 -right-16 w-56 h-56 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
-            {/* Close Button */}
-            <button
-              className="absolute top-4 right-4 text-cyan-200 hover:text-pink-400 transition-colors text-2xl z-10 focus:outline-none focus:ring-2 focus:ring-pink-400"
-              onClick={onClose}
-              aria-label="Close"
-            >
-              <FaTimes />
-            </button>
+            {/* Header */}
+            <div className="relative bg-white px-6 sm:px-8 py-5 sm:py-6 text-gray-900 border-b border-gray-100">
+              <button
+                onClick={onClose}
+                className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-900"
+                aria-label="Close modal"
+              >
+                <FaTimes />
+              </button>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h2 className="text-xl sm:text-2xl font-bold">{project.title}</h2>
+                  {project.tagline && (
+                    <span className="text-sm text-gray-500">{project.tagline}</span>
+                  )}
+                </div>
+
+                {project.role && (
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                    <FaUserTie /> <span>{project.role}</span>
+                    {project.team_size && (
+                      <>
+                        <FaUsers className="ml-2" /> <span>Team of {project.team_size}</span>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  {project.github_url && (
+                    <a
+                      href={project.github_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-200"
+                    >
+                      <FaGithub /> GitHub
+                    </a>
+                  )}
+                  {project.live_url && (
+                    <a
+                      href={project.live_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-200"
+                    >
+                      <FaExternalLinkAlt /> Live
+                    </a>
+                  )}
+                  {project.case_study_url && (
+                    <a
+                      href={project.case_study_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-200"
+                    >
+                      Case Study
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Main Content */}
-            <div className="flex flex-col md:flex-row gap-6 p-6 md:p-8 flex-1 min-h-0">
-              {/* Left: Visual & Meta */}
+            <div className="flex flex-col md:flex-row gap-6 p-6 sm:p-8 max-h-[70vh] overflow-y-auto">
+              {/* Left: Visual */}
               <div className="flex flex-col items-center md:items-start md:w-1/3 flex-shrink-0 gap-3">
-                <div className="w-full max-w-xs rounded-2xl overflow-hidden border-2 border-cyan-400/40 shadow-lg bg-black/30">
+                <div className="w-full max-w-xs rounded-2xl overflow-hidden border border-gray-200 bg-gray-50">
                   <Image
                     src={activeImage || '/placeholder.png'}
                     width={320}
@@ -113,8 +195,8 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
                           onClick={() => setActiveImage(image.url)}
                           className={`h-12 w-12 overflow-hidden rounded-lg border ${
                             activeImage === image.url
-                              ? 'border-pink-400'
-                              : 'border-cyan-400/30'
+                              ? 'border-gray-900'
+                              : 'border-gray-200'
                           }`}
                           aria-label={image.caption ?? 'Project image'}
                         >
@@ -123,109 +205,61 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
                       ))}
                   </div>
                 )}
-                <h2 className="text-xl md:text-2xl font-bold text-white font-heading tracking-tight text-center md:text-left truncate w-full">
-                  {project.title}
-                </h2>
-                {project.tagline && (
-                  <span className="text-cyan-200 text-xs text-center md:text-left line-clamp-2">{project.tagline}</span>
-                )}
-                {project.role && (
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-cyan-300">
-                    <FaUserTie /> <span>{project.role}</span>
-                    {project.team_size && (
-                      <>
-                        <FaUsers className="ml-2" /> <span>Team of {project.team_size}</span>
-                      </>
-                    )}
-                  </div>
-                )}
-                {/* Links */}
-                <div className="flex gap-2 mt-2 flex-wrap justify-center md:justify-start">
-                  {project.github_url && (
-                    <a
-                      href={project.github_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 py-1.5 rounded-full border border-cyan-400 text-cyan-200 hover:bg-cyan-500/20 hover:text-cyan-100 transition-all text-xs font-semibold shadow"
-                    >
-                      <FaGithub className="mr-1" /> GitHub
-                    </a>
-                  )}
-                  {project.live_url && (
-                    <a
-                      href={project.live_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 py-1.5 rounded-full border border-pink-400 text-pink-200 hover:bg-pink-500/20 hover:text-pink-100 transition-all text-xs font-semibold shadow"
-                    >
-                      <FaExternalLinkAlt className="mr-1" /> Live
-                    </a>
-                  )}
-                  {project.case_study_url && (
-                    <a
-                      href={project.case_study_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 py-1.5 rounded-full border border-white/20 text-white hover:bg-white/10 transition-all text-xs font-semibold shadow"
-                    >
-                      Case Study
-                    </a>
-                  )}
-                </div>
               </div>
-              {/* Right: Scrollable Info */}
-              <div className="flex-1 min-w-0 flex flex-col gap-4 overflow-hidden">
-                {/* Description */}
-                <div className="overflow-y-auto max-h-24 md:max-h-28 pr-1">
-                  <p className="text-gray-200 text-sm leading-relaxed break-words text-center md:text-left">
-                    {project.description}
-                  </p>
+
+              {/* Right: Details */}
+              <div className="flex-1 min-w-0 flex flex-col gap-6">
+                <div>
+                  <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-500">Overview</h4>
+                  <p className="mt-2 text-sm leading-relaxed text-gray-600">{project.description}</p>
                 </div>
-                {/* Features */}
+
                 {project.features && project.features.length > 0 && (
-                  <div className="overflow-y-auto max-h-20 md:max-h-24 pr-1">
-                    <h4 className="text-cyan-300 font-semibold mb-1 text-xs uppercase tracking-wider">Key Features</h4>
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-cyan-200 text-xs">
+                  <div>
+                    <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-500">Key Features</h4>
+                    <ul className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-600">
                       {project.features.map((feature: string, i: number) => (
                         <li key={i} className="flex items-center gap-2">
-                          <FaCheckCircle className="text-cyan-400 min-w-[1em]" /> <span>{feature}</span>
+                          <FaCheckCircle className="text-gray-400" /> <span>{feature}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
-                {/* Tech Stack */}
-                <div className="overflow-y-auto max-h-12 md:max-h-16 pr-1">
-                  <h4 className="text-cyan-300 font-semibold mb-1 text-xs uppercase tracking-wider">Tech Stack</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {project.tech_stack?.map((tech: string, i: number) => (
-                      <span
-                        key={i}
-                        className="text-xs px-2 py-1 rounded bg-cyan-400/10 border border-cyan-400/20 text-cyan-200 font-mono"
-                      >
-                        {tech}
-                      </span>
-                    ))}
+
+                {project.tech_stack && project.tech_stack.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-500">Tech Stack</h4>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {project.tech_stack.map((tech: string, i: number) => (
+                        <span
+                          key={i}
+                          className="text-xs px-2 py-1 rounded bg-gray-100 border border-gray-200 text-gray-700 font-mono"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                {/* Challenges, Solutions, Impact */}
+                )}
+
                 {(project.challenges || project.solutions || project.impact) && (
-                  <div className="flex flex-col gap-2 mt-1 overflow-y-auto max-h-20 md:max-h-24 pr-1">
+                  <div className="grid gap-3">
                     {project.challenges && (
-                      <div className="text-xs text-pink-200 bg-pink-400/10 border border-pink-400/20 rounded px-3 py-2">
-                        <span className="font-semibold">Challenge:</span>
+                      <div className="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                        <span className="font-semibold text-gray-800">Challenge:</span>
                         <span className="ml-2">{project.challenges}</span>
                       </div>
                     )}
                     {project.solutions && (
-                      <div className="text-xs text-cyan-200 bg-cyan-400/10 border border-cyan-400/20 rounded px-3 py-2">
-                        <span className="font-semibold">Solution:</span>
+                      <div className="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                        <span className="font-semibold text-gray-800">Solution:</span>
                         <span className="ml-2">{project.solutions}</span>
                       </div>
                     )}
                     {project.impact && (
-                      <div className="text-xs text-green-200 bg-green-400/10 border border-green-400/20 rounded px-3 py-2">
-                        <span className="font-semibold">Impact:</span>
+                      <div className="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                        <span className="font-semibold text-gray-800">Impact:</span>
                         <span className="ml-2">{project.impact}</span>
                       </div>
                     )}
@@ -233,9 +267,15 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
                 )}
               </div>
             </div>
-            {/* Subtle Border */}
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute inset-0 border border-cyan-400/10 rounded-3xl pointer-events-none" />
+
+            {/* Footer */}
+            <div className="border-t border-gray-100 px-6 sm:px-8 py-4">
+              <button
+                onClick={onClose}
+                className="w-full rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
+              >
+                Close
+              </button>
             </div>
           </motion.div>
         </motion.div>

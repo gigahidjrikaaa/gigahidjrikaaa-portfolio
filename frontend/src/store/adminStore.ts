@@ -26,8 +26,8 @@ interface AdminState {
   error: string | null;
   
   fetchProjects: () => Promise<void>;
-  createProject: (project: ProjectBase) => Promise<void>;
-  updateProject: (id: number, project: ProjectUpdate) => Promise<void>;
+  createProject: (project: ProjectBase) => Promise<ProjectResponse>;
+  updateProject: (id: number, project: ProjectUpdate) => Promise<ProjectResponse>;
   deleteProject: (id: number) => Promise<void>;
 
   fetchExperience: () => Promise<void>;
@@ -79,6 +79,7 @@ export const useAdminStore = create<AdminState>((set) => ({
         projects: [...state.projects, newProject],
         loading: false,
       }));
+      return newProject;
     } catch (error) {
       set({ error: 'Failed to create project', loading: false });
       throw error; // Re-throw to allow component to handle
@@ -93,6 +94,7 @@ export const useAdminStore = create<AdminState>((set) => ({
         projects: state.projects.map((p) => (p.id === id ? updatedProject : p)),
         loading: false,
       }));
+      return updatedProject;
     } catch (error) {
       set({ error: 'Failed to update project', loading: false });
       throw error; // Re-throw to allow component to handle

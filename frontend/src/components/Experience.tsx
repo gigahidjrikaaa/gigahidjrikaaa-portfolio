@@ -1,27 +1,43 @@
+// src/components/Experience.tsx
 "use client";
-import { useEffect, useState } from 'react';
-import { apiService } from '@/services/api';
-import Image from 'next/image';
-import { motion, useReducedMotion } from 'framer-motion';
 
-interface ExperienceItem {
-  id: number;
-  title: string;
-  company: string;
-  period: string;
-  description: string;
-  company_logo_url?: string;
-}
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
+import { BriefcaseIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { apiService, ExperienceResponse } from '@/services/api';
+import ExperienceModal from './ExperienceModal';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.12, delayChildren: 0.2 },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 24, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const copy = {
+  eyebrow: 'CAREER',
+  title: 'Work Experience',
+  subtitle: 'Building impactful products across startups, agencies, and enterprise teams.',
+  loading: 'Loading experience...',
+  empty: 'Experience details coming soon.',
+};
 
 const Experience = () => {
-  const [experience, setExperience] = useState<ExperienceItem[]>([]);
+  const [experience, setExperience] = useState<ExperienceResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const reduceMotion = useReducedMotion();
-
-  const copy = {
-    title: 'Work Experience',
-    loading: 'Loading...',
-  };
+  const [selectedExperience, setSelectedExperience] = useState<ExperienceResponse | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,56 +53,119 @@ const Experience = () => {
     fetchData();
   }, []);
 
-  // Always render the section, data will populate when available
-  return (
-    <section id="experience" className="py-16 sm:py-24 bg-white">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.h2
-          className="text-3xl font-bold text-center mb-10 text-gray-900"
-          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-          whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
-        >
-          {copy.title}
-        </motion.h2>
+  const handleExperienceClick = (item: ExperienceResponse) => {
+    setSelectedExperience(item);
+    setIsModalOpen(true);
+  };
 
-        {loading ? (
-          <div className="text-center text-gray-500">{copy.loading}</div>
-        ) : (
-          <div className="grid gap-6 lg:grid-cols-2">
-            {experience.map((item) => (
-              <motion.article
-                key={item.id}
-                initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-                whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.5 }}
-                className="p-6 rounded-2xl border border-gray-200 bg-white shadow-sm"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  {item.company_logo_url ? (
-                    <div className="relative h-12 w-12 overflow-hidden rounded-full border border-gray-200 bg-white">
-                      <Image
-                        src={item.company_logo_url}
-                        alt={item.company}
-                        fill
-                        className="object-contain"
-                      />
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedExperience(null);
+  };
+
+  return (
+    <section id="experience" className="relative overflow-hidden bg-white py-24 md:py-32">
+      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={containerVariants}
+        >
+          {/* Header */}
+          <motion.div variants={itemVariants} className="mb-16 max-w-2xl">
+            <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
+              {copy.eyebrow}
+            </span>
+            <h2 className="mt-2 text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
+              {copy.title}
+            </h2>
+            <p className="mt-4 text-gray-500 leading-relaxed">{copy.subtitle}</p>
+          </motion.div>
+
+          {loading ? (
+            <div className="text-center text-gray-500">{copy.loading}</div>
+          ) : experience.length > 0 ? (
+            <div className="relative">
+              {/* Timeline line */}
+              <div className="absolute left-6 top-0 hidden h-full w-px bg-gray-200 md:block" />
+
+              <div className="space-y-8">
+                {experience.map((item) => (
+                  <motion.article
+                    key={item.id}
+                    variants={itemVariants}
+                    className="group relative grid gap-6 md:grid-cols-[auto_1fr] md:gap-8"
+                  >
+                    {/* Timeline dot */}
+                    <div className="hidden md:flex md:flex-col md:items-center">
+                      <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm">
+                        {item.company_logo_url ? (
+                          <Image
+                            src={item.company_logo_url}
+                            alt={item.company}
+                            width={32}
+                            height={32}
+                            className="rounded-full object-contain"
+                          />
+                        ) : (
+                          <BriefcaseIcon className="h-5 w-5 text-gray-400" />
+                        )}
+                      </div>
                     </div>
-                  ) : null}
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900">{item.title}</h3>
-                    <p className="text-sm sm:text-base text-gray-600">{item.company}</p>
-                  </div>
-                </div>
-                <p className="mt-3 text-sm text-gray-500">{item.period}</p>
-                <p className="mt-3 text-sm sm:text-base text-gray-700 leading-relaxed">{item.description}</p>
-              </motion.article>
-            ))}
-          </div>
-        )}
+
+                    {/* Card */}
+                    <div 
+                      className="cursor-pointer rounded-[28px] border border-gray-200/60 bg-gray-50/50 p-6 transition-all hover:shadow-lg hover:border-gray-300 md:p-8"
+                      onClick={() => handleExperienceClick(item)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && handleExperienceClick(item)}
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 sm:text-xl">
+                            {item.title}
+                          </h3>
+                          <p className="mt-1 text-sm font-medium text-gray-700">{item.company}</p>
+                        </div>
+                        {item.is_current && (
+                          <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                            Current
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <MapPinIcon className="h-4 w-4" />
+                          {item.location}
+                        </span>
+                        <span className="rounded-full bg-gray-100 px-3 py-1">{item.period}</span>
+                      </div>
+
+                      <p className="mt-4 text-sm leading-relaxed text-gray-600">
+                        {item.description}
+                      </p>
+                    </div>
+                  </motion.article>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center text-gray-500">{copy.empty}</div>
+          )}
+        </motion.div>
       </div>
+
+      {/* Experience Modal */}
+      {selectedExperience && (
+        <ExperienceModal
+          open={isModalOpen}
+          onClose={handleCloseModal}
+          experience={selectedExperience}
+        />
+      )}
     </section>
   );
 };

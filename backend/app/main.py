@@ -10,7 +10,7 @@ from .config import settings
 from .init_db import init_db
 import uvicorn
 
-from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog
+from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog, profile
 
 
 @asynccontextmanager
@@ -96,6 +96,7 @@ app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["a
 app.include_router(experience.router, prefix=f"{settings.API_V1_STR}/experience", tags=["experience"])
 app.include_router(education.router, prefix=f"{settings.API_V1_STR}/education", tags=["education"])
 app.include_router(skills.router, prefix=f"{settings.API_V1_STR}/skills", tags=["skills"])
+app.include_router(profile.router, prefix=f"{settings.API_V1_STR}/profile", tags=["profile"])
 app.include_router(awards.router, prefix=f"{settings.API_V1_STR}/awards", tags=["awards"])
 app.include_router(certificates.router, prefix=f"{settings.API_V1_STR}/certificates", tags=["certificates"])
 app.include_router(services.router, prefix=f"{settings.API_V1_STR}/services", tags=["services"])

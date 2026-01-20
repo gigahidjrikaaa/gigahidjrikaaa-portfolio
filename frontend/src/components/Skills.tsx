@@ -1,26 +1,46 @@
+// src/components/Skills.tsx
 "use client";
-import { useEffect, useState } from 'react';
-import { apiService } from '@/services/api';
-import Image from 'next/image';
-import { motion, useReducedMotion } from 'framer-motion';
 
-interface SkillItem {
-  id: number;
-  name: string;
-  category: string;
-  proficiency: number;
-  display_order: number;
-  icon_url?: string;
-}
+import { useEffect, useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { apiService, SkillResponse } from '@/services/api';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.2 },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const barVariants = {
+  hidden: { scaleX: 0 },
+  visible: (proficiency: number) => ({
+    scaleX: proficiency / 100,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 },
+  }),
+};
+
+const copy = {
+  eyebrow: 'EXPERTISE',
+  title: 'Skills & Technologies',
+  subtitle: 'A curated toolkit spanning languages, frameworks, tools, and methodologies.',
+  loading: 'Loading skills...',
+  empty: 'Skills coming soon.',
+};
 
 const Skills = () => {
-  const [skills, setSkills] = useState<SkillItem[]>([]);
-  const reduceMotion = useReducedMotion();
-
-  const copy = {
-    title: 'Skills & Expertise',
-    subtitle: 'A snapshot of the technologies, tools, and concepts I work with regularly.',
-  };
+  const [skills, setSkills] = useState<SkillResponse[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,67 +49,82 @@ const Skills = () => {
         setSkills(data);
       } catch (error) {
         console.error('Failed to fetch skills', error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
   }, []);
 
   // Group skills by category
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) {
-      acc[skill.category] = [];
-    }
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, SkillItem[]>);
+  const skillsByCategory = useMemo(() => {
+    return skills.reduce((acc, skill) => {
+      const cat = skill.category || 'Other';
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(skill);
+      return acc;
+    }, {} as Record<string, SkillResponse[]>);
+  }, [skills]);
 
-  // Always render the section, data will populate when available
+  const categories = Object.keys(skillsByCategory);
+
   return (
-    <section id="skills" className="py-16 sm:py-24 bg-gray-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="skills" className="relative overflow-hidden bg-white py-24 md:py-32">
+      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          className="text-center mb-12"
-          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-          whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={containerVariants}
         >
-          <h2 className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl mb-4 font-heading">
-            {copy.title}
-          </h2>
-          <p className="text-base sm:text-lg text-text-secondary max-w-2xl mx-auto">
-            {copy.subtitle}
-          </p>
-        </motion.div>
+          {/* Header */}
+          <motion.div variants={itemVariants} className="mb-16 max-w-2xl">
+            <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
+              {copy.eyebrow}
+            </span>
+            <h2 className="mt-2 text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
+              {copy.title}
+            </h2>
+            <p className="mt-4 text-gray-500 leading-relaxed">{copy.subtitle}</p>
+          </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {Object.entries(skillsByCategory).map(([categoryName, categorySkills]) => (
-            <motion.div
-              key={categoryName}
-              initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-              whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.5 }}
-              className="bg-white/90 p-6 rounded-xl shadow-sm border border-gray-200/70"
-            >
-              <h3 className="text-lg font-semibold font-heading text-primary mb-4">{categoryName}</h3>
-              <ul className="space-y-2">
-                {categorySkills.map((skill) => (
-                  <li key={skill.id} className="flex items-center text-text-secondary">
-                    {skill.icon_url ? (
-                      <span className="relative mr-2 h-5 w-5 flex-shrink-0 overflow-hidden rounded bg-white">
-                        <Image src={skill.icon_url} alt={skill.name} fill className="object-contain" />
-                      </span>
-                    ) : (
-                      <svg className="w-4 h-4 mr-2 text-accent flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                    )}
-                    <span>{skill.name}</span>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          ))}
-        </div>
+          {loading ? (
+            <div className="text-center text-gray-500">{copy.loading}</div>
+          ) : categories.length > 0 ? (
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {categories.map((category) => (
+                <motion.div
+                  key={category}
+                  variants={itemVariants}
+                  className="rounded-[28px] border border-gray-200/60 bg-gray-50/50 p-6"
+                >
+                  <h3 className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
+                    {category}
+                  </h3>
+                  <div className="space-y-5">
+                    {skillsByCategory[category].map((skill) => (
+                      <div key={skill.id}>
+                        <div className="mb-2 flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-900">{skill.name}</span>
+                          <span className="text-xs text-gray-500">{skill.proficiency}%</span>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+                          <motion.div
+                            className="h-full origin-left rounded-full bg-gray-900"
+                            variants={barVariants}
+                            custom={skill.proficiency}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500">{copy.empty}</div>
+          )}
+        </motion.div>
       </div>
     </section>
   );
