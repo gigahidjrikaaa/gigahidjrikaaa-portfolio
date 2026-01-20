@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import SkillForm from './SkillForm';
 import { useAdminStore } from '@/store/adminStore';
 import { Button } from '@/components/ui/button';
@@ -63,7 +64,14 @@ const SkillManagement = () => {
               <div key={skill.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
                 <div className="flex items-center gap-3">
                   {skill.icon_url ? (
-                    <img src={skill.icon_url} alt={skill.name} className="h-8 w-8 rounded object-contain bg-white" />
+                    <Image
+                      src={skill.icon_url}
+                      alt={skill.name}
+                      width={32}
+                      height={32}
+                      unoptimized
+                      className="h-8 w-8 rounded object-contain bg-white"
+                    />
                   ) : null}
                   <h3 className="font-semibold text-gray-800">{skill.name} ({skill.category})</h3>
                 </div>

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import Image from 'next/image';
 import { ProjectBase, ProjectResponse } from '@/services/api';
 import { openMediaLibrary } from '@/lib/cloudinaryWidget';
 
@@ -240,7 +241,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               Pick from Cloudinary
             </Button>
             {formData.image_url ? (
-              <img src={formData.image_url} alt="Project" className="mt-2 h-24 w-full rounded-md object-cover" />
+              <Image
+                src={formData.image_url}
+                alt="Project"
+                width={640}
+                height={240}
+                unoptimized
+                className="mt-2 h-24 w-full rounded-md object-cover"
+              />
             ) : null}
           </div>
           <div>
@@ -250,7 +258,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               Pick from Cloudinary
             </Button>
             {formData.thumbnail_url ? (
-              <img src={formData.thumbnail_url} alt="Thumbnail" className="mt-2 h-24 w-full rounded-md object-cover" />
+              <Image
+                src={formData.thumbnail_url}
+                alt="Thumbnail"
+                width={640}
+                height={240}
+                unoptimized
+                className="mt-2 h-24 w-full rounded-md object-cover"
+              />
             ) : null}
           </div>
           <div>
@@ -260,7 +275,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               Pick from Cloudinary
             </Button>
             {formData.ui_image_url ? (
-              <img src={formData.ui_image_url} alt="UI preview" className="mt-2 h-24 w-full rounded-md object-cover" />
+              <Image
+                src={formData.ui_image_url}
+                alt="UI preview"
+                width={640}
+                height={240}
+                unoptimized
+                className="mt-2 h-24 w-full rounded-md object-cover"
+              />
             ) : null}
           </div>
           <div className="md:col-span-2">
@@ -294,7 +316,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
                         required
                       />
                       {image.url ? (
-                        <img src={image.url} alt={image.caption ?? 'Project image'} className="mt-2 h-20 w-full rounded-md object-cover" />
+                        <Image
+                          src={image.url}
+                          alt={image.caption ?? 'Project image'}
+                          width={480}
+                          height={160}
+                          unoptimized
+                          className="mt-2 h-20 w-full rounded-md object-cover"
+                        />
                       ) : null}
                     </div>
                     <div>

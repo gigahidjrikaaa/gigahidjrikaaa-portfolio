@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import ExperienceForm from './ExperienceForm';
 import { useAdminStore } from '@/store/adminStore';
 import { Button } from '@/components/ui/button';
@@ -63,7 +64,14 @@ const ExperienceManagement = () => {
               <div key={exp.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
                 <div className="flex items-center gap-3">
                   {exp.company_logo_url ? (
-                    <img src={exp.company_logo_url} alt={exp.company} className="h-10 w-10 rounded-full object-contain bg-white" />
+                    <Image
+                      src={exp.company_logo_url}
+                      alt={exp.company}
+                      width={40}
+                      height={40}
+                      unoptimized
+                      className="h-10 w-10 rounded-full object-contain bg-white"
+                    />
                   ) : null}
                   <h3 className="font-semibold text-gray-800">{exp.title} at {exp.company}</h3>
                 </div>

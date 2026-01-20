@@ -85,7 +85,7 @@ const CertificateModal: React.FC<CertificateModalProps> = ({ open, onClose, cert
           {/* Modal */}
           <motion.div
             variants={modalVariants}
-            className="relative w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+            className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -121,7 +121,7 @@ const CertificateModal: React.FC<CertificateModalProps> = ({ open, onClose, cert
             </div>
 
             {/* Certificate Image */}
-            <div className="relative aspect-[16/10] w-full bg-gray-50">
+            <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full bg-gray-50">
               {certificate.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -131,13 +131,13 @@ const CertificateModal: React.FC<CertificateModalProps> = ({ open, onClose, cert
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
-                  <DocumentCheckIcon className="h-24 w-24 text-emerald-300" />
+                  <DocumentCheckIcon className="h-20 w-20 text-gray-300" />
                 </div>
               )}
             </div>
 
             {/* Content */}
-            <div className="px-6 sm:px-8 py-6">
+            <div className="px-6 sm:px-8 py-6 overflow-y-auto max-h-[45vh]">
               {certificate.description && (
                 <div className="rounded-2xl bg-gray-50 p-6">
                   <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">

@@ -67,7 +67,6 @@ const Hero = () => {
     loadProfile();
   }, []);
 
-  const heroName = profile?.full_name || 'Giga H. A. Adkhy';
   const heroLocation = profile?.location || copy.eyebrow;
 
   return (

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import ProjectForm from './ProjectForm';
 import { useAdminStore } from '@/store/adminStore';
 import { Button } from '@/components/ui/button';
@@ -134,9 +135,12 @@ const ProjectManagement = () => {
               <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
                 <div className="flex items-center gap-3">
                   {project.thumbnail_url || project.image_url ? (
-                    <img
+                    <Image
                       src={project.thumbnail_url || project.image_url || '/placeholder.png'}
                       alt={project.title}
+                      width={56}
+                      height={40}
+                      unoptimized
                       className="h-10 w-14 rounded-md object-cover"
                     />
                   ) : null}
