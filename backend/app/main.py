@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from collections import deque
 from time import monotonic
 from typing import Deque, Dict, Tuple
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -108,4 +109,5 @@ async def root():
     return {"message": "Portfolio Backend API"}
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
