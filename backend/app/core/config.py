@@ -34,6 +34,8 @@ class Settings(BaseSettings):
             "https://localhost:3000",
             "http://localhost:3001",  # For admin dashboard
             "http://localhost:3002",  # For frontend development
+            "https://www.gigahidjrikaaa.my.id",
+            "https://gigahidjrikaaa.my.id",
         ]
     )
 
