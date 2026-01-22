@@ -6,6 +6,7 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from starlette.responses import JSONResponse
 from .config import settings
 from .init_db import init_db
@@ -23,8 +24,30 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    docs_url=None,
+    redoc_url=None,
     lifespan=lifespan,
 )
+
+
+def _get_scalar_html(openapi_url: str) -> str:
+    return f"""<!doctype html>
+<html>
+    <head>
+        <title>{settings.PROJECT_NAME} — API Reference</title>
+        <meta charset=\"utf-8\" />
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+    </head>
+    <body>
+        <div id=\"app\"></div>
+        <script src=\"https://cdn.jsdelivr.net/npm/@scalar/api-reference\"></script>
+        <script>
+            Scalar.createApiReference('#app', {{
+                url: '{openapi_url}',
+            }})
+        </script>
+    </body>
+</html>"""
 
 
 def _get_client_ip(headers: dict, fallback: str | None) -> str:
@@ -103,6 +126,11 @@ app.include_router(certificates.router, prefix=f"{settings.API_V1_STR}/certifica
 app.include_router(services.router, prefix=f"{settings.API_V1_STR}/services", tags=["services"])
 app.include_router(blog.router, prefix=f"{settings.API_V1_STR}/blog", tags=["blog"])
 app.include_router(contact.router, prefix=f"{settings.API_V1_STR}/contact", tags=["contact"])
+
+
+@app.get("/docs", include_in_schema=False)
+async def scalar_docs():
+    return HTMLResponse(_get_scalar_html(app.openapi_url))
 
 @app.get("/")
 async def root():

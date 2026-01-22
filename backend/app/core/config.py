@@ -1,3 +1,4 @@
+import json
 from typing import List
 
 from pydantic import Field, field_validator
@@ -89,6 +90,27 @@ class Settings(BaseSettings):
         if len(secret) < 32:
             raise ValueError("SECRET_KEY must be at least 32 characters in non-development environments")
         return secret
+
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
+    def _assemble_cors_origins(cls, value):
+        if value is None:
+            return value
+        if isinstance(value, str):
+            stripped = value.strip()
+            if not stripped:
+                return []
+            if stripped.startswith("["):
+                try:
+                    parsed = json.loads(stripped)
+                    if isinstance(parsed, list):
+                        return [str(origin).strip() for origin in parsed if str(origin).strip()]
+                except json.JSONDecodeError:
+                    pass
+            return [origin.strip() for origin in stripped.split(",") if origin.strip()]
+        if isinstance(value, (list, tuple, set)):
+            return [str(origin).strip() for origin in value if str(origin).strip()]
+        return value
 
     @field_validator("ADMIN_PASSWORD")
     @classmethod
