@@ -53,6 +53,11 @@ class Project(Base):
     ui_image_url = Column(String, nullable=True)
     is_featured = Column(Boolean, default=False)
     display_order = Column(Integer, default=0)
+    metrics_users = Column(String, nullable=True)
+    metrics_performance = Column(String, nullable=True)
+    metrics_impact = Column(String, nullable=True)
+    solo_contributions = Column(Text, nullable=True)
+    tech_decisions = Column(Text, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -185,6 +190,7 @@ class BlogPost(Base):
     title = Column(String, nullable=False)
     slug = Column(String, unique=True, index=True)
     excerpt = Column(Text, nullable=True)
+    content = Column(Text, nullable=True)
     cover_image_url = Column(String, nullable=True)
     status = Column(String, default="draft")  # draft | published | coming_soon
     published_at = Column(DateTime, nullable=True)
@@ -264,3 +270,20 @@ class ProjectImage(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     project = relationship("Project", back_populates="images")
+
+
+class Testimonial(Base):
+    __tablename__ = "testimonials"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    role = Column(String, nullable=False)
+    company = Column(String, nullable=True)
+    avatar_url = Column(String, nullable=True)
+    content = Column(Text, nullable=False)
+    rating = Column(Integer, nullable=True)
+    project_relation = Column(String, nullable=True)
+    linkedin_url = Column(String, nullable=True)
+    is_featured = Column(Boolean, default=True)
+    display_order = Column(Integer, default=0)
+    created_at = Column(DateTime, server_default=func.now())

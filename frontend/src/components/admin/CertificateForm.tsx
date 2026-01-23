@@ -1,9 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import AdminModal from "@/components/admin/AdminModal";
+import { useToast } from "@/components/ui/toast";
 import { CertificateBase, CertificateResponse } from "@/services/api";
 
 const copy = {
@@ -32,6 +35,7 @@ interface CertificateFormProps {
 }
 
 const CertificateForm: React.FC<CertificateFormProps> = ({ certificate, onSave, onCancel }) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState<CertificateBase>({
     title: "",
     issuer: "",
@@ -68,16 +72,24 @@ const CertificateForm: React.FC<CertificateFormProps> = ({ certificate, onSave, 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.title) {
+      toast({
+        title: "Missing required fields",
+        description: "Title is required to save a certificate.",
+        variant: "error",
+      });
+      return;
+    }
     onSave(formData);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white p-8 shadow-lg">
-        <h2 className="mb-6 text-2xl font-bold text-gray-800">
-          {certificate ? copy.editTitle : copy.addTitle}
-        </h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
+    <AdminModal
+      title={certificate ? copy.editTitle : copy.addTitle}
+      description="Add the credential URL for verification when possible."
+      onClose={onCancel}
+    >
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
           <div>
             <Label htmlFor="title" className="text-gray-700">{copy.fields.title}</Label>
             <Input id="title" value={formData.title} onChange={handleChange} required className="mt-1" />
@@ -88,7 +100,7 @@ const CertificateForm: React.FC<CertificateFormProps> = ({ certificate, onSave, 
           </div>
           <div>
             <Label htmlFor="issue_date" className="text-gray-700">{copy.fields.issueDate}</Label>
-            <Input id="issue_date" value={formData.issue_date || ""} onChange={handleChange} className="mt-1" />
+            <Input id="issue_date" type="date" value={formData.issue_date || ""} onChange={handleChange} className="mt-1" />
           </div>
           <div>
             <Label htmlFor="credential_id" className="text-gray-700">{copy.fields.credentialId}</Label>
@@ -101,23 +113,33 @@ const CertificateForm: React.FC<CertificateFormProps> = ({ certificate, onSave, 
           <div>
             <Label htmlFor="image_url" className="text-gray-700">{copy.fields.imageUrl}</Label>
             <Input id="image_url" value={formData.image_url || ""} onChange={handleChange} className="mt-1" />
+            {formData.image_url ? (
+              <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                <Image
+                  src={formData.image_url}
+                  alt="Certificate preview"
+                  width={60}
+                  height={60}
+                  unoptimized
+                  className="h-14 w-14 rounded-md object-cover"
+                />
+                <div>
+                  <p className="text-xs font-semibold text-gray-700">Image preview</p>
+                  <p className="text-xs text-gray-500">Use clear, readable images.</p>
+                </div>
+              </div>
+            ) : null}
           </div>
           <div>
             <Label htmlFor="description" className="text-gray-700">{copy.fields.description}</Label>
             <Textarea id="description" value={formData.description || ""} onChange={handleChange} rows={4} className="mt-1" />
           </div>
-          <div>
-            <Label htmlFor="display_order" className="text-gray-700">{copy.fields.displayOrder}</Label>
-            <Input id="display_order" type="number" value={formData.display_order} onChange={handleChange} required className="mt-1" />
-          </div>
-
           <div className="mt-6 flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={onCancel}>{copy.actions.cancel}</Button>
             <Button type="submit">{copy.actions.save}</Button>
           </div>
         </form>
-      </div>
-    </div>
+    </AdminModal>
   );
 };
 

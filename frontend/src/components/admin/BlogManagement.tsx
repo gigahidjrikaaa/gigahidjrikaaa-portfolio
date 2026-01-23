@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2 } from "lucide-react";
+import Tooltip from "@/components/ui/tooltip";
+import { useToast } from "@/components/ui/toast";
 import { adminApi, BlogPostBase, BlogPostResponse } from "@/services/api";
 import BlogPostForm from "./BlogPostForm";
 
@@ -17,6 +19,7 @@ const BlogManagement = () => {
   const [posts, setPosts] = useState<BlogPostResponse[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selected, setSelected] = useState<BlogPostResponse | null>(null);
+  const { toast } = useToast();
 
   const fetchPosts = async () => {
     const data = await adminApi.getBlogPosts();
@@ -32,15 +35,29 @@ const BlogManagement = () => {
       if (selected) {
         const updated = await adminApi.updateBlogPost(selected.id, payload);
         setPosts((prev) => prev.map((item) => (item.id === selected.id ? updated : item)));
+        toast({
+          title: "Post updated",
+          description: "Blog post saved successfully.",
+          variant: "success",
+        });
       } else {
         const created = await adminApi.createBlogPost(payload);
         setPosts((prev) => [...prev, created]);
+        toast({
+          title: "Post added",
+          description: "New blog post created.",
+          variant: "success",
+        });
       }
       setIsModalOpen(false);
       setSelected(null);
     } catch (error) {
       console.error("Failed to save blog post", error);
-      alert("Failed to save blog post. Please try again.");
+      toast({
+        title: "Unable to save post",
+        description: "Please review the fields and try again.",
+        variant: "error",
+      });
     }
   };
 
@@ -49,9 +66,18 @@ const BlogManagement = () => {
     try {
       await adminApi.deleteBlogPost(id);
       setPosts((prev) => prev.filter((item) => item.id !== id));
+      toast({
+        title: "Post deleted",
+        description: "The blog post has been removed.",
+        variant: "success",
+      });
     } catch (error) {
       console.error("Failed to delete blog post", error);
-      alert("Failed to delete blog post. Please try again.");
+      toast({
+        title: "Unable to delete post",
+        description: "Please try again in a moment.",
+        variant: "error",
+      });
     }
   };
 
@@ -81,19 +107,23 @@ const BlogManagement = () => {
                   <p className="text-sm text-gray-500">{post.slug} • {post.status}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelected(post);
-                      setIsModalOpen(true);
-                    }}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(post.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <Tooltip content="Edit">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelected(post);
+                        setIsModalOpen(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip content="Delete">
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(post.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </Tooltip>
                 </div>
               </div>
             ))}

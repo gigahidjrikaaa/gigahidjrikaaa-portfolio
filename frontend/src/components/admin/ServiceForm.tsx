@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import AdminModal from "@/components/admin/AdminModal";
+import { useToast } from "@/components/ui/toast";
 import { ServiceBase, ServiceResponse } from "@/services/api";
 
 const copy = {
@@ -31,6 +33,7 @@ interface ServiceFormProps {
 }
 
 const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSave, onCancel }) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState<ServiceBase>({
     title: "",
     subtitle: "",
@@ -70,16 +73,24 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSave, onCancel }) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.title) {
+      toast({
+        title: "Missing required fields",
+        description: "Title is required to save a service.",
+        variant: "error",
+      });
+      return;
+    }
     onSave(formData);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white p-8 shadow-lg">
-        <h2 className="mb-6 text-2xl font-bold text-gray-800">
-          {service ? copy.editTitle : copy.addTitle}
-        </h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
+    <AdminModal
+      title={service ? copy.editTitle : copy.addTitle}
+      description="Keep services concise and highlight the value."
+      onClose={onCancel}
+    >
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
           <div>
             <Label htmlFor="title" className="text-gray-700">{copy.fields.title}</Label>
             <Input id="title" value={formData.title} onChange={handleChange} required className="mt-1" />
@@ -100,18 +111,13 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSave, onCancel }) 
             <Checkbox id="is_featured" checked={formData.is_featured} onCheckedChange={(value) => handleCheckboxChange(Boolean(value))} />
             <Label htmlFor="is_featured" className="text-gray-700">{copy.fields.featured}</Label>
           </div>
-          <div>
-            <Label htmlFor="display_order" className="text-gray-700">{copy.fields.displayOrder}</Label>
-            <Input id="display_order" type="number" value={formData.display_order} onChange={handleChange} required className="mt-1" />
-          </div>
 
           <div className="mt-6 flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={onCancel}>{copy.actions.cancel}</Button>
             <Button type="submit">{copy.actions.save}</Button>
           </div>
         </form>
-      </div>
-    </div>
+    </AdminModal>
   );
 };
 

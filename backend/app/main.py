@@ -12,7 +12,7 @@ from .config import settings
 from .init_db import init_db
 import uvicorn
 
-from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog, profile
+from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog, profile, testimonials
 
 
 @asynccontextmanager
@@ -126,6 +126,7 @@ app.include_router(certificates.router, prefix=f"{settings.API_V1_STR}/certifica
 app.include_router(services.router, prefix=f"{settings.API_V1_STR}/services", tags=["services"])
 app.include_router(blog.router, prefix=f"{settings.API_V1_STR}/blog", tags=["blog"])
 app.include_router(contact.router, prefix=f"{settings.API_V1_STR}/contact", tags=["contact"])
+app.include_router(testimonials.router, prefix=f"{settings.API_V1_STR}/testimonials", tags=["testimonials"])
 
 
 @app.get("/docs", include_in_schema=False)

@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import Image from 'next/image';
+import AdminModal from '@/components/admin/AdminModal';
+import { useToast } from '@/components/ui/toast';
 import { ProjectBase, ProjectResponse } from '@/services/api';
 import { openMediaLibrary } from '@/lib/cloudinaryWidget';
 
@@ -37,6 +39,7 @@ const roleOptions = [
 
 const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave, onCancel }) => {
   const teamSizeOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20];
+  const { toast } = useToast();
   const [formData, setFormData] = useState<ProjectBase>({
     title: '',
     tagline: '',
@@ -124,6 +127,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.title || !formData.tagline || !formData.description || !formData.github_url || !formData.role) {
+      toast({
+        title: 'Missing required fields',
+        description: 'Please complete the required project details before saving.',
+        variant: 'error',
+      });
+      return;
+    }
     const normalizedImages = projectImages.map((image, index) => ({
       ...image,
       display_order: image.display_order ?? index,
@@ -217,10 +228,12 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-8 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">{project ? 'Edit Project' : 'Add New Project'}</h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+    <AdminModal
+      title={project ? 'Edit Project' : 'Add New Project'}
+      description="Prioritize clarity and keep the key links up to date."
+      onClose={onCancel}
+    >
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <div>
             <Label htmlFor="title" className="text-gray-700">Title</Label>
             <Input id="title" value={formData.title} onChange={handleChange} required className="mt-1" />
@@ -431,10 +444,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               </div>
             )}
           </div>
-          <div>
-            <Label htmlFor="display_order" className="text-gray-700">Display Order</Label>
-            <Input id="display_order" type="number" value={formData.display_order} onChange={handleChange} required className="mt-1" />
-          </div>
           <div className="flex items-center space-x-2 md:col-span-2">
             <Checkbox id="is_featured" checked={formData.is_featured} onCheckedChange={handleCheckboxChange} />
             <Label htmlFor="is_featured" className="text-gray-700">Featured Project</Label>
@@ -445,8 +454,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
             <Button type="submit">Save Project</Button>
           </div>
         </form>
-      </div>
-    </div>
+    </AdminModal>
   );
 };
 

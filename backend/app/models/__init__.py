@@ -11,6 +11,7 @@ from .models import (
 	SiteSettings,
 	Skill,
 	Technology,
+	Testimonial,
 	User,
 	project_features,
 	project_tech_stack,
@@ -30,6 +31,7 @@ __all__ = [
 	"SiteSettings",
 	"SeoSettings",
 	"MediaAsset",
+	"Testimonial",
 	"project_tech_stack",
 	"project_features",
 ]

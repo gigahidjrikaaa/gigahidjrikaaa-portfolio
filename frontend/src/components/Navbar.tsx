@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Bars3Icon, XMarkIcon, PhoneIcon, CameraIcon, ArrowUpRightIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext'; // Import the useAuth hook
 
@@ -10,6 +11,11 @@ const Navbar = () => {
   // State to manage mobile menu visibility
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAuthenticated, isLoading } = useAuth(); // Get auth state
+  const pathname = usePathname();
+
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
 
   // Function to toggle mobile menu
   const toggleMobileMenu = () => {
@@ -51,7 +57,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="sticky top-0 z-50" aria-label={copy.navLabel}>
+    <nav className="fixed inset-x-0 top-0 z-50" aria-label={copy.navLabel}>
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative mt-4 flex items-center justify-between rounded-[28px] border border-white/40 bg-white/80 px-4 py-3 shadow-[0_20px_50px_rgba(15,23,42,0.12)] backdrop-blur-xl">
           {/* Logo */}

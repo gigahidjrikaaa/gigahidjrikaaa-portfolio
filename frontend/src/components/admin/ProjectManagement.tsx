@@ -5,7 +5,9 @@ import ProjectForm from './ProjectForm';
 import { useAdminStore } from '@/store/adminStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, GripVertical } from 'lucide-react';
+import Tooltip from '@/components/ui/tooltip';
+import { useToast } from '@/components/ui/toast';
 import { adminApi, ProjectBase, ProjectImageResponse, ProjectResponse } from '@/services/api';
 
 type ProjectImageDraft = {
@@ -26,13 +28,20 @@ const toDraftImage = (img: ProjectImageResponse): ProjectImageDraft => ({
 
 const ProjectManagement = () => {
   const { projects, fetchProjects, createProject, updateProject, deleteProject } = useAdminStore();
+  const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<ProjectResponse | null>(null);
   const [projectImages, setProjectImages] = useState<ProjectImageDraft[]>([]);
+  const [orderedProjects, setOrderedProjects] = useState<ProjectResponse[]>([]);
+  const [draggedId, setDraggedId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
+
+  useEffect(() => {
+    setOrderedProjects(projects);
+  }, [projects]);
 
   const handleSaveProject = async (projectData: ProjectBase, images: ProjectImageDraft[]) => {
     try {
@@ -82,8 +91,16 @@ const ProjectManagement = () => {
 
         setProjectImages([]);
         setSelectedProject(updated);
+        toast({
+          title: 'Project updated',
+          description: 'Your project details were saved successfully.',
+          variant: 'success',
+        });
       } else {
-        const created = await createProject(projectData);
+        const created = await createProject({
+          ...projectData,
+          display_order: orderedProjects.length,
+        });
         await Promise.all(
           images.map((img) =>
             adminApi.createProjectImage(created.id, {
@@ -94,12 +111,21 @@ const ProjectManagement = () => {
             })
           )
         );
+        toast({
+          title: 'Project created',
+          description: 'New project added to your portfolio.',
+          variant: 'success',
+        });
       }
       setIsModalOpen(false);
       setSelectedProject(null);
     } catch (error) {
       console.error('Failed to save project:', error);
-      alert('Failed to save project. Please try again.');
+      toast({
+        title: 'Unable to save project',
+        description: 'Please review the fields and try again.',
+        variant: 'error',
+      });
     }
   };
 
@@ -107,11 +133,53 @@ const ProjectManagement = () => {
     if (confirm('Are you sure you want to delete this project?')) {
       try {
         await deleteProject(id);
+        toast({
+          title: 'Project deleted',
+          description: 'The project has been removed.',
+          variant: 'success',
+        });
       } catch (error) {
         console.error('Failed to delete project:', error);
-        alert('Failed to delete project. Please try again.');
+        toast({
+          title: 'Unable to delete project',
+          description: 'Please try again in a moment.',
+          variant: 'error',
+        });
       }
     }
+  };
+
+  const persistOrder = async (nextItems: ProjectResponse[]) => {
+    setOrderedProjects(nextItems);
+    try {
+      await Promise.all(
+        nextItems.map((item, index) => updateProject(item.id, { display_order: index }))
+      );
+      toast({
+        title: 'Project order updated',
+        description: 'Display order has been saved.',
+        variant: 'success',
+      });
+    } catch (error) {
+      console.error('Failed to reorder projects', error);
+      toast({
+        title: 'Unable to reorder projects',
+        description: 'Please try again.',
+        variant: 'error',
+      });
+    }
+  };
+
+  const handleDrop = (targetId: number) => {
+    if (draggedId === null || draggedId === targetId) return;
+    const currentIndex = orderedProjects.findIndex((item) => item.id === draggedId);
+    const targetIndex = orderedProjects.findIndex((item) => item.id === targetId);
+    if (currentIndex === -1 || targetIndex === -1) return;
+    const next = [...orderedProjects];
+    const [moved] = next.splice(currentIndex, 1);
+    next.splice(targetIndex, 0, moved);
+    persistOrder(next).catch(() => null);
+    setDraggedId(null);
   };
 
   return (
@@ -127,13 +195,25 @@ const ProjectManagement = () => {
         </Button>
       </CardHeader>
       <CardContent>
-        {projects.length === 0 ? (
+        {orderedProjects.length === 0 ? (
           <p className="text-center text-gray-500">No projects found. Add one to get started!</p>
         ) : (
           <div className="space-y-4">
-            {projects.map((project) => (
-              <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+            {orderedProjects.map((project) => (
+              <div
+                key={project.id}
+                className="flex items-center justify-between gap-4 p-4 border rounded-lg bg-gray-50"
+                draggable
+                onDragStart={() => setDraggedId(project.id)}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={() => handleDrop(project.id)}
+              >
                 <div className="flex items-center gap-3">
+                  <Tooltip content="Drag to reorder">
+                    <span className="cursor-grab text-slate-400">
+                      <GripVertical className="h-4 w-4" />
+                    </span>
+                  </Tooltip>
                   {project.thumbnail_url || project.image_url ? (
                     <Image
                       src={project.thumbnail_url || project.image_url || '/placeholder.png'}
@@ -147,19 +227,27 @@ const ProjectManagement = () => {
                   <h3 className="font-semibold text-gray-800">{project.title}</h3>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => {
-                    setSelectedProject(project);
-                    adminApi
-                      .getProjectImages(project.id)
-                      .then((images) => setProjectImages(images.map(toDraftImage)))
-                      .catch(() => setProjectImages([]));
-                    setIsModalOpen(true);
-                  }}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDeleteProject(project.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <Tooltip content="Edit">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedProject(project);
+                        adminApi
+                          .getProjectImages(project.id)
+                          .then((images) => setProjectImages(images.map(toDraftImage)))
+                          .catch(() => setProjectImages([]));
+                        setIsModalOpen(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip content="Delete">
+                    <Button variant="destructive" size="sm" onClick={() => handleDeleteProject(project.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </Tooltip>
                 </div>
               </div>
             ))}

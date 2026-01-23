@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = Field(default="")
     ALGORITHM: str = Field(default="HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30)
+    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=14)
 
     # Admin credentials (optional; if provided, must be complete)
     ADMIN_USERNAME: str = Field(default="")

@@ -1,8 +1,11 @@
 "use client";
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import AdminModal from '@/components/admin/AdminModal';
+import { useToast } from '@/components/ui/toast';
 import { SkillBase, SkillResponse } from '@/services/api';
 
 interface SkillFormProps {
@@ -23,6 +26,7 @@ const categoryOptions = [
 ];
 
 const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
+  const { toast } = useToast();
   const proficiencyOptions = [
     { value: 1, label: 'Beginner' },
     { value: 2, label: 'Intermediate' },
@@ -80,14 +84,24 @@ const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name || !formData.category || !formData.proficiency) {
+      toast({
+        title: 'Missing required fields',
+        description: 'Please complete name, category, and skill level.',
+        variant: 'error',
+      });
+      return;
+    }
     onSave(formData);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-8 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">{skill ? 'Edit Skill' : 'Add New Skill'}</h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
+    <AdminModal
+      title={skill ? 'Edit Skill' : 'Add New Skill'}
+      description="Use clear skill names and consistent categories."
+      onClose={onCancel}
+    >
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
           <div>
             <Label htmlFor="name" className="text-gray-700">Name</Label>
             <Input id="name" value={formData.name} onChange={handleChange} required className="mt-1" />
@@ -135,19 +149,30 @@ const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
           <div>
             <Label htmlFor="icon_url" className="text-gray-700">Icon URL (Optional)</Label>
             <Input id="icon_url" value={formData.icon_url || ''} onChange={handleChange} className="mt-1" />
-          </div>
-          <div>
-            <Label htmlFor="display_order" className="text-gray-700">Display Order</Label>
-            <Input id="display_order" type="number" value={formData.display_order} onChange={handleChange} required className="mt-1" />
+            {formData.icon_url ? (
+              <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                <Image
+                  src={formData.icon_url}
+                  alt="Skill icon preview"
+                  width={36}
+                  height={36}
+                  unoptimized
+                  className="h-10 w-10 rounded-md object-contain bg-white"
+                />
+                <div>
+                  <p className="text-xs font-semibold text-gray-700">Icon preview</p>
+                  <p className="text-xs text-gray-500">Square icons look best.</p>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="flex justify-end gap-4 mt-6">
             <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
             <Button type="submit">Save Skill</Button>
           </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </AdminModal>
   );
 };
 

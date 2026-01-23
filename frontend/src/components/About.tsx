@@ -2,7 +2,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
   FaBrain,
@@ -45,9 +44,10 @@ const copy = {
   intro:
     'A creative technologist passionate about building innovative digital products — from AI-powered applications to blockchain solutions and modern web experiences.',
   body: 'I bring a versatile skill set that spans the entire product development lifecycle. Whether it\'s crafting intuitive user interfaces, architecting scalable backends, or integrating cutting-edge AI, I focus on delivering solutions that make a real impact.',
-  imageCaption: 'MY WORKSPACE',
-  imageCaptionBody: 'Where ideas become reality',
-  profileAlt: 'Profile photo',
+  videoCaption: 'MY WORKSPACE',
+  videoCaptionBody: 'Where ideas become reality',
+  videoSrc: '/about-me-video.mp4', // Replace with your video URL or path
+  videoPoster: '/hero-bg.jpg', // Fallback poster image
 };
 
 const About = () => {
@@ -109,24 +109,27 @@ const About = () => {
             </motion.div>
           </div>
 
-          {/* Right: Image with caption overlay */}
+          {/* Right: Video with caption overlay */}
           <motion.div variants={itemVariants} className="relative">
             <div className="relative overflow-hidden rounded-[32px]">
               <div className="relative aspect-[4/5] w-full">
-                <Image
-                  src="/hero-bg.jpg"
-                  alt={copy.profileAlt}
-                  fill
-                  className="object-cover"
-                />
+                <video
+                  className="h-full w-full object-cover"
+                  poster={copy.videoPoster}
+                  controls
+                  preload="metadata"
+                >
+                  <source src={copy.videoSrc} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               </div>
               {/* Caption card */}
               <div className="absolute bottom-6 left-6 right-6 rounded-2xl bg-white/90 p-4 backdrop-blur-sm">
                 <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-                  {copy.imageCaption}
+                  {copy.videoCaption}
                 </div>
                 <div className="mt-1 text-sm font-medium text-gray-900">
-                  {copy.imageCaptionBody}
+                  {copy.videoCaptionBody}
                 </div>
               </div>
             </div>

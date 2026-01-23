@@ -1,10 +1,13 @@
 "use client";
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import AdminModal from '@/components/admin/AdminModal';
+import { useToast } from '@/components/ui/toast';
 import { ExperienceBase, ExperienceResponse } from '@/services/api';
 
 interface ExperienceFormProps {
@@ -25,6 +28,7 @@ const titleOptions = [
 ];
 
 const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onCancel }) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState<ExperienceBase>({
     title: '',
     company: '',
@@ -119,14 +123,24 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.title || !formData.company || !formData.location || !formData.period || !formData.description) {
+      toast({
+        title: 'Missing required fields',
+        description: 'Please complete all required fields before saving.',
+        variant: 'error',
+      });
+      return;
+    }
     onSave(formData);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-8 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">{experience ? 'Edit Experience' : 'Add New Experience'}</h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
+    <AdminModal
+      title={experience ? 'Edit Experience' : 'Add New Experience'}
+      description="Keep experience entries concise and ordered by relevance."
+      onClose={onCancel}
+    >
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
           <div>
             <Label htmlFor="title" className="text-gray-700">Title</Label>
             <select
@@ -205,10 +219,22 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
               onChange={handleChange}
               className="mt-1"
             />
-          </div>
-          <div>
-            <Label htmlFor="display_order" className="text-gray-700">Display Order</Label>
-            <Input id="display_order" type="number" value={formData.display_order} onChange={handleChange} required className="mt-1" />
+            {formData.company_logo_url ? (
+              <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                <Image
+                  src={formData.company_logo_url}
+                  alt="Company logo preview"
+                  width={48}
+                  height={48}
+                  unoptimized
+                  className="h-12 w-12 rounded-md object-contain bg-white"
+                />
+                <div>
+                  <p className="text-xs font-semibold text-gray-700">Logo preview</p>
+                  <p className="text-xs text-gray-500">Check aspect ratio and clarity.</p>
+                </div>
+              </div>
+            ) : null}
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox id="is_current" checked={formData.is_current} onCheckedChange={handleCheckboxChange} />
@@ -219,9 +245,8 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
             <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
             <Button type="submit">Save Experience</Button>
           </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </AdminModal>
   );
 };
 

@@ -20,6 +20,11 @@ class ProjectBase(BaseModel):
     ui_image_url: Optional[str] = None
     is_featured: bool = False
     display_order: int = 0
+    metrics_users: Optional[str] = None
+    metrics_performance: Optional[str] = None
+    metrics_impact: Optional[str] = None
+    solo_contributions: Optional[str] = None
+    tech_decisions: Optional[str] = None
 
 class ProjectCreate(ProjectBase):
     pass
@@ -42,6 +47,11 @@ class ProjectUpdate(BaseModel):
     ui_image_url: Optional[str] = None
     is_featured: Optional[bool] = None
     display_order: Optional[int] = None
+    metrics_users: Optional[str] = None
+    metrics_performance: Optional[str] = None
+    metrics_impact: Optional[str] = None
+    solo_contributions: Optional[str] = None
+    tech_decisions: Optional[str] = None
 
 class ProjectResponse(ProjectBase):
     id: int
@@ -265,6 +275,7 @@ class BlogPostBase(BaseModel):
     title: str
     slug: str
     excerpt: Optional[str] = None
+    content: Optional[str] = None
     cover_image_url: Optional[str] = None
     status: str = "draft"
 
@@ -277,6 +288,7 @@ class BlogPostUpdate(BaseModel):
     title: Optional[str] = None
     slug: Optional[str] = None
     excerpt: Optional[str] = None
+    content: Optional[str] = None
     cover_image_url: Optional[str] = None
     status: Optional[str] = None
 
@@ -462,6 +474,45 @@ class ProjectImageUpdate(BaseModel):
 class ProjectImageResponse(ProjectImageBase):
     id: int
     project_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Testimonials schemas
+class TestimonialBase(BaseModel):
+    name: str
+    role: str
+    company: Optional[str] = None
+    avatar_url: Optional[str] = None
+    content: str
+    rating: Optional[int] = Field(None, ge=1, le=5, description="Rating from 1-5")
+    project_relation: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    is_featured: bool = True
+    display_order: int = 0
+
+
+class TestimonialCreate(TestimonialBase):
+    pass
+
+
+class TestimonialUpdate(BaseModel):
+    name: Optional[str] = None
+    role: Optional[str] = None
+    company: Optional[str] = None
+    avatar_url: Optional[str] = None
+    content: Optional[str] = None
+    rating: Optional[int] = Field(None, ge=1, le=5)
+    project_relation: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    is_featured: Optional[bool] = None
+    display_order: Optional[int] = None
+
+
+class TestimonialResponse(TestimonialBase):
+    id: int
     created_at: datetime
 
     class Config:

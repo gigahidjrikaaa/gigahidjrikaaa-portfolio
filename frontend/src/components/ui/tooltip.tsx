@@ -1,0 +1,28 @@
+"use client";
+
+import { ReactElement, ReactNode, cloneElement, useId } from "react";
+
+interface TooltipProps {
+  content: string;
+  children: ReactElement;
+}
+
+const Tooltip = ({ content, children }: TooltipProps) => {
+  const tooltipId = useId();
+  return (
+    <span className="group relative inline-flex" aria-describedby={tooltipId}>
+      {cloneElement(children, {
+        "aria-label": children.props["aria-label"] || content,
+      })}
+      <span
+        id={tooltipId}
+        role="tooltip"
+        className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
+      >
+        {content}
+      </span>
+    </span>
+  );
+};
+
+export default Tooltip;

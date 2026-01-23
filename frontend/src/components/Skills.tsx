@@ -52,6 +52,10 @@ const copy = {
   subtitle: 'A curated toolkit spanning languages, frameworks, tools, and methodologies.',
   loading: 'Loading skills...',
   empty: 'Skills coming soon.',
+  codingChallenges: {
+    title: 'Coding Challenge Progress',
+    subtitle: 'Tracking problem-solving skills across competitive platforms',
+  },
 };
 
 const Skills = () => {
@@ -153,6 +157,130 @@ const Skills = () => {
           ) : (
             <div className="text-center text-gray-500">{copy.empty}</div>
           )}
+
+          {/* Coding Challenges Section */}
+          <motion.div
+            variants={itemVariants}
+            className="mt-16 rounded-[28px] border border-gray-200/60 bg-gradient-to-br from-gray-50/50 to-white p-8"
+          >
+            <div className="mb-8">
+              <h3 className="text-2xl font-semibold text-gray-900">
+                {copy.codingChallenges.title}
+              </h3>
+              <p className="mt-2 text-sm text-gray-500">{copy.codingChallenges.subtitle}</p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* LeetCode */}
+              <div className="rounded-xl border border-gray-200 bg-white p-6">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100">
+                    <span className="text-xl font-bold text-orange-600">LC</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">LeetCode</h4>
+                    <a
+                      href="https://leetcode.com/your-username"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      View Profile →
+                    </a>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <div className="mb-1 flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Easy</span>
+                      <span className="font-medium text-gray-900">50 / 730</span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                      <div className="h-full rounded-full bg-green-500" style={{ width: '6.85%' }} />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="mb-1 flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Medium</span>
+                      <span className="font-medium text-gray-900">30 / 1520</span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                      <div className="h-full rounded-full bg-yellow-500" style={{ width: '1.97%' }} />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="mb-1 flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Hard</span>
+                      <span className="font-medium text-gray-900">5 / 650</span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                      <div className="h-full rounded-full bg-red-500" style={{ width: '0.77%' }} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-lg bg-gray-50 p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Total Solved</span>
+                    <span className="text-lg font-bold text-gray-900">85</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* HackerRank */}
+              <div className="rounded-xl border border-gray-200 bg-white p-6">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
+                    <span className="text-xl font-bold text-green-600">HR</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">HackerRank</h4>
+                    <a
+                      href="https://www.hackerrank.com/your-username"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      View Profile →
+                    </a>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+                    <span className="text-sm font-medium text-gray-600">Problem Solving</span>
+                    <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-800">
+                      5★ Gold
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+                    <span className="text-sm font-medium text-gray-600">Python</span>
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
+                      5★ Gold
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+                    <span className="text-sm font-medium text-gray-600">SQL</span>
+                    <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-800">
+                      4★ Silver
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-lg bg-gray-50 p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Total Stars</span>
+                    <span className="text-lg font-bold text-gray-900">14</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>

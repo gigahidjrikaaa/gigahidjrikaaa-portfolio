@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import { AuthProvider } from "@/contexts/AuthContext"; // Import the provider
+import AppProviders from "@/app/providers";
 
 export const metadata: Metadata = {
   title: 'Giga Hidjrika - Blockchain Dev & Software Engineer',
@@ -17,13 +17,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="flex flex-col min-h-screen">
-        <AuthProvider> {/* Wrap components with the provider */}
+        <AppProviders>
           <Navbar />
           <main className="flex-grow" id="main-content">
             {children}
           </main>
           <Footer />
-        </AuthProvider>
+        </AppProviders>
       </body>
     </html>
   );

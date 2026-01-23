@@ -28,6 +28,7 @@ from .models.models import (
     SiteSettings,
     Skill,
     Service,
+    Testimonial,
     Technology,
     User,
     project_features,

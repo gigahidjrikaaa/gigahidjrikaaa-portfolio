@@ -169,6 +169,7 @@ export interface BlogPostBase {
   title: string;
   slug: string;
   excerpt?: string;
+  content?: string;
   cover_image_url?: string;
   status: string;
 }
@@ -300,20 +301,42 @@ class ApiService {
     return headers;
   }
 
-  protected async request<T>(endpoint: string, options: RequestInit = {}, includeJson: boolean = true): Promise<T> {
+  protected async request<T>(
+    endpoint: string,
+    options: RequestInit = {},
+    includeJson: boolean = true,
+    allowRefresh: boolean = true
+  ): Promise<T> {
     const method = (options.method || 'GET').toString();
-    let response: Response;
-    try {
-      response = await fetch(`${NEXT_PUBLIC_API_BASE_URL}${endpoint}`, {
-        ...options,
-        credentials: 'include',
-        headers: {
-          ...this.getAuthHeaders(endpoint, method, includeJson),
-          ...options.headers
-        }
-      });
-    } catch {
-      throw new Error("Unable to reach the API. Please ensure the backend is running and try again.");
+    const executeRequest = async () => {
+      try {
+        return await fetch(`${NEXT_PUBLIC_API_BASE_URL}${endpoint}`, {
+          ...options,
+          credentials: 'include',
+          headers: {
+            ...this.getAuthHeaders(endpoint, method, includeJson),
+            ...options.headers
+          }
+        });
+      } catch {
+        throw new Error("Unable to reach the API. Please ensure the backend is running and try again.");
+      }
+    };
+
+    let response = await executeRequest();
+
+    const shouldSkipRefresh = endpoint.startsWith('/auth/login')
+      || endpoint === '/auth/refresh'
+      || endpoint === '/auth/logout';
+
+    if (!response.ok && allowRefresh && !shouldSkipRefresh && (response.status === 401 || response.status === 403)) {
+      try {
+        await this.refreshToken();
+      } catch {
+        throw new ApiError(`API Error: ${response.statusText}`, response.status);
+      }
+
+      response = await executeRequest();
     }
 
     if (!response.ok) {
@@ -329,6 +352,12 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify({ username, password })
     });
+  }
+
+  async refreshToken(): Promise<Token> {
+    return this.request<Token>('/auth/refresh', {
+      method: 'POST',
+    }, true, false);
   }
 
   async logout(): Promise<{ success: boolean }> {

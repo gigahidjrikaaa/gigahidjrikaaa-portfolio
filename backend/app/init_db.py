@@ -221,12 +221,14 @@ def init_db(*, seed_data: bool = False) -> None:
                         title="Building Human-Centered AI Assistants",
                         slug="human-centered-ai-assistants",
                         excerpt="Lessons learned from deploying AI experiences that balance empathy, safety, and performance.",
+                        content="<p>Coming soon.</p>",
                         status="coming_soon",
                     ),
                     BlogPost(
                         title="Designing Trust in Blockchain Systems",
                         slug="designing-trust-blockchain",
                         excerpt="A deep dive into governance, transparency, and secure-by-design smart contracts.",
+                        content="<p>Coming soon.</p>",
                         status="coming_soon",
                     ),
                 ]
