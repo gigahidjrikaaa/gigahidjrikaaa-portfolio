@@ -276,7 +276,17 @@ class BlogPostBase(BaseModel):
     slug: str
     excerpt: Optional[str] = None
     content: Optional[str] = None
+    category: Optional[str] = None
+    tags: Optional[str] = None
     cover_image_url: Optional[str] = None
+    og_image_url: Optional[str] = None
+    seo_title: Optional[str] = None
+    seo_description: Optional[str] = None
+    seo_keywords: Optional[str] = None
+    reading_time_minutes: Optional[int] = None
+    view_count: Optional[int] = None
+    like_count: Optional[int] = None
+    is_featured: Optional[bool] = False
     status: str = "draft"
 
 
@@ -289,7 +299,17 @@ class BlogPostUpdate(BaseModel):
     slug: Optional[str] = None
     excerpt: Optional[str] = None
     content: Optional[str] = None
+    category: Optional[str] = None
+    tags: Optional[str] = None
     cover_image_url: Optional[str] = None
+    og_image_url: Optional[str] = None
+    seo_title: Optional[str] = None
+    seo_description: Optional[str] = None
+    seo_keywords: Optional[str] = None
+    reading_time_minutes: Optional[int] = None
+    view_count: Optional[int] = None
+    like_count: Optional[int] = None
+    is_featured: Optional[bool] = None
     status: Optional[str] = None
 
 
@@ -301,6 +321,18 @@ class BlogPostResponse(BlogPostBase):
 
     class Config:
         from_attributes = True
+
+
+class BlogPostListResponse(BaseModel):
+    items: List[BlogPostResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+    categories: List[str] = []
+    popular: List[BlogPostResponse] = []
+    latest: List[BlogPostResponse] = []
+    featured: List[BlogPostResponse] = []
 
 # Auth schemas
 class UserLogin(BaseModel):

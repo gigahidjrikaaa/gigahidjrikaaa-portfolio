@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func, or_
 from typing import List, cast
 from datetime import datetime
+import math
+import re
+import bleach
 import logging
 from ..services.pdf_import_service import extract_text_from_pdf_bytes, parse_linkedin_resume_text
 from ..database import (
@@ -629,13 +632,55 @@ def _apply_blog_status(post: BlogPost) -> None:
         setattr(post, "published_at", None)
 
 
+def _calculate_reading_time(content: str | None) -> int | None:
+    if not content:
+        return None
+    text = re.sub(r"<[^>]+>", " ", content)
+    words = [w for w in text.split() if w.strip()]
+    if not words:
+        return None
+    return max(1, math.ceil(len(words) / 200))
+
+
+def _sanitize_blog_content(content: str | None) -> str | None:
+    if not content:
+        return content
+    allowed_tags = [
+        "p",
+        "br",
+        "strong",
+        "em",
+        "u",
+        "a",
+        "img",
+        "ul",
+        "ol",
+        "li",
+        "blockquote",
+        "code",
+        "pre",
+        "h1",
+        "h2",
+        "h3",
+        "hr",
+    ]
+    allowed_attrs = {
+        "a": ["href", "title", "rel", "target"],
+        "img": ["src", "alt", "title"],
+    }
+    return bleach.clean(content, tags=allowed_tags, attributes=allowed_attrs, strip=True)
+
+
 @router.post("/blog", response_model=BlogPostResponse)
 async def create_blog_post(
     payload: BlogPostCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user),
 ):
-    post = BlogPost(**payload.model_dump())
+    payload_data = payload.model_dump()
+    payload_data["content"] = _sanitize_blog_content(payload_data.get("content"))
+    post = BlogPost(**payload_data)
+    post.reading_time_minutes = _calculate_reading_time(post.content)
     _apply_blog_status(post)
     db.add(post)
     db.commit()
@@ -674,8 +719,15 @@ async def update_blog_post(
     if not post:
         raise HTTPException(status_code=404, detail="Blog post not found")
 
-    for field, value in payload.model_dump(exclude_unset=True).items():
+    update_data = payload.model_dump(exclude_unset=True)
+    if "content" in update_data:
+        update_data["content"] = _sanitize_blog_content(update_data.get("content"))
+
+    for field, value in update_data.items():
         setattr(post, field, value)
+
+    if "content" in update_data:
+        post.reading_time_minutes = _calculate_reading_time(post.content)
 
     _apply_blog_status(post)
     db.commit()

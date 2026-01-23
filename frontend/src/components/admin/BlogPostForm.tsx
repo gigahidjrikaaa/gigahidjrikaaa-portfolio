@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import AdminModal from "@/components/admin/AdminModal";
 import { useToast } from "@/components/ui/toast";
 import { adminApi, BlogPostBase, BlogPostResponse } from "@/services/api";
@@ -27,9 +28,20 @@ const copy = {
     slug: "Slug",
     excerpt: "Excerpt",
     content: "Content",
+    category: "Category",
+    tags: "Tags",
     coverImage: "Cover Image",
     coverImageHint: "Upload a wide image (1200x630 recommended) or paste a URL.",
+    ogImage: "Open Graph Image",
+    seoTitle: "SEO Title",
+    seoDescription: "SEO Description",
+    seoKeywords: "SEO Keywords",
+    featured: "Feature this post",
     status: "Status",
+    metrics: "Post Metrics",
+    readingTime: "Reading time (auto)",
+    views: "Views",
+    likes: "Likes",
   },
   actions: {
     cancel: "Cancel",
@@ -42,6 +54,8 @@ const copy = {
     slugRequired: "Slug is required.",
     slugFormat: "Use lowercase letters, numbers, and dashes only.",
     contentRequired: "Content is required to publish a post.",
+    seoTitleMax: "SEO title should be 60 characters or fewer.",
+    seoDescriptionMax: "SEO description should be 160 characters or fewer.",
   },
   statusOptions: [
     { value: "draft", label: "Draft" },
@@ -67,7 +81,17 @@ const blogPostSchema = z
       .regex(slugRegex, copy.validation.slugFormat),
     excerpt: z.string().optional(),
     content: z.string().optional(),
+    category: z.string().optional(),
+    tags: z.string().optional(),
     cover_image_url: z.string().url().optional().or(z.literal("")),
+    og_image_url: z.string().url().optional().or(z.literal("")),
+    seo_title: z.string().max(60, copy.validation.seoTitleMax).optional(),
+    seo_description: z.string().max(160, copy.validation.seoDescriptionMax).optional(),
+    seo_keywords: z.string().optional(),
+    reading_time_minutes: z.number().optional(),
+    view_count: z.number().optional(),
+    like_count: z.number().optional(),
+    is_featured: z.boolean().optional(),
     status: z.enum(["draft", "coming_soon", "published"]),
   })
   .refine(
@@ -83,6 +107,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
   const { toast } = useToast();
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isUploadingInline, setIsUploadingInline] = useState(false);
+  const [isSlugEdited, setIsSlugEdited] = useState(false);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const inlineImageInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -100,7 +125,17 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
       slug: "",
       excerpt: "",
       content: "",
+      category: "",
+      tags: "",
       cover_image_url: "",
+      og_image_url: "",
+      seo_title: "",
+      seo_description: "",
+      seo_keywords: "",
+      reading_time_minutes: undefined,
+      view_count: 0,
+      like_count: 0,
+      is_featured: false,
       status: "draft",
     },
   });
@@ -112,13 +147,40 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
         slug: post.slug || "",
         excerpt: post.excerpt || "",
         content: post.content || "",
+        category: post.category || "",
+        tags: post.tags || "",
         cover_image_url: post.cover_image_url || "",
+        og_image_url: post.og_image_url || "",
+        seo_title: post.seo_title || "",
+        seo_description: post.seo_description || "",
+        seo_keywords: post.seo_keywords || "",
+        reading_time_minutes: post.reading_time_minutes || undefined,
+        view_count: post.view_count ?? 0,
+        like_count: post.like_count ?? 0,
+        is_featured: post.is_featured ?? false,
         status: post.status || "draft",
       });
+      setIsSlugEdited(true);
+    } else {
+      setIsSlugEdited(false);
     }
   }, [post, reset]);
 
   const coverImageUrl = watch("cover_image_url");
+  const titleValue = watch("title");
+
+  const slugify = (value: string) =>
+    value
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+
+  useEffect(() => {
+    if (!titleValue || isSlugEdited) return;
+    setValue("slug", slugify(titleValue), { shouldValidate: true });
+  }, [titleValue, isSlugEdited, setValue]);
 
   const editor = useEditor({
     extensions: [
@@ -184,7 +246,14 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
       ...data,
       excerpt: data.excerpt || undefined,
       content: data.content || undefined,
+      category: data.category || undefined,
+      tags: data.tags || undefined,
       cover_image_url: data.cover_image_url || undefined,
+      og_image_url: data.og_image_url || undefined,
+      seo_title: data.seo_title || undefined,
+      seo_description: data.seo_description || undefined,
+      seo_keywords: data.seo_keywords || undefined,
+      is_featured: data.is_featured ?? false,
     });
   };
 
@@ -208,13 +277,40 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
           </div>
           <div>
             <Label htmlFor="slug" className="text-gray-700">{copy.fields.slug}</Label>
-            <Input id="slug" {...register("slug")} required className="mt-1" />
+            <Input
+              id="slug"
+              {...register("slug", {
+                onChange: () => setIsSlugEdited(true),
+              })}
+              required
+              className="mt-1"
+            />
             {errors.slug && <p className="mt-1 text-xs text-red-600">{errors.slug.message}</p>}
             <p className="mt-1 text-xs text-gray-500">Use kebab-case, e.g. <span className="font-medium">my-new-post</span>.</p>
           </div>
           <div>
             <Label htmlFor="excerpt" className="text-gray-700">{copy.fields.excerpt}</Label>
             <Textarea id="excerpt" {...register("excerpt")} rows={4} className="mt-1" />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-gray-800">{copy.fields.featured}</p>
+              <p className="text-xs text-gray-500">Featured posts appear at the top of the blog.</p>
+            </div>
+            <Switch
+              checked={!!watch("is_featured")}
+              onCheckedChange={(value) => setValue("is_featured", value, { shouldValidate: true })}
+            />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <Label htmlFor="category" className="text-gray-700">{copy.fields.category}</Label>
+              <Input id="category" {...register("category")} className="mt-1" placeholder="e.g. AI, Blockchain" />
+            </div>
+            <div>
+              <Label htmlFor="tags" className="text-gray-700">{copy.fields.tags}</Label>
+              <Input id="tags" {...register("tags")} className="mt-1" placeholder="ai, product, design" />
+            </div>
           </div>
           <div>
             <Label htmlFor="cover_image_url" className="text-gray-700">{copy.fields.coverImage}</Label>
@@ -265,6 +361,13 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
             ) : null}
             {errors.cover_image_url && (
               <p className="mt-1 text-xs text-red-600">{errors.cover_image_url.message}</p>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="og_image_url" className="text-gray-700">{copy.fields.ogImage}</Label>
+            <Input id="og_image_url" {...register("og_image_url")} className="mt-1" placeholder="https://..." />
+            {errors.og_image_url && (
+              <p className="mt-1 text-xs text-red-600">{errors.og_image_url.message}</p>
             )}
           </div>
           <div>
@@ -354,6 +457,63 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
               <p className="mt-2 text-xs text-gray-500">Uploading image...</p>
             ) : null}
             {errors.content && <p className="mt-1 text-xs text-red-600">{errors.content.message}</p>}
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <div className="mb-3 text-sm font-semibold text-gray-700">SEO</div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <Label htmlFor="seo_title" className="text-gray-700">{copy.fields.seoTitle}</Label>
+                <Input id="seo_title" {...register("seo_title")} className="mt-1" placeholder="Max 60 chars" />
+                {errors.seo_title && <p className="mt-1 text-xs text-red-600">{errors.seo_title.message}</p>}
+              </div>
+              <div>
+                <Label htmlFor="seo_keywords" className="text-gray-700">{copy.fields.seoKeywords}</Label>
+                <Input id="seo_keywords" {...register("seo_keywords")} className="mt-1" placeholder="keyword1, keyword2" />
+              </div>
+              <div className="md:col-span-2">
+                <Label htmlFor="seo_description" className="text-gray-700">{copy.fields.seoDescription}</Label>
+                <Textarea id="seo_description" {...register("seo_description")} rows={3} className="mt-1" placeholder="Max 160 chars" />
+                {errors.seo_description && (
+                  <p className="mt-1 text-xs text-red-600">{errors.seo_description.message}</p>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white p-4">
+            <div className="mb-3 text-sm font-semibold text-gray-700">{copy.fields.metrics}</div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div>
+                <Label htmlFor="reading_time_minutes" className="text-gray-700">{copy.fields.readingTime}</Label>
+                <Input
+                  id="reading_time_minutes"
+                  type="number"
+                  {...register("reading_time_minutes", { valueAsNumber: true })}
+                  className="mt-1"
+                  disabled
+                />
+              </div>
+              <div>
+                <Label htmlFor="view_count" className="text-gray-700">{copy.fields.views}</Label>
+                <Input
+                  id="view_count"
+                  type="number"
+                  {...register("view_count", { valueAsNumber: true })}
+                  className="mt-1"
+                  disabled
+                />
+              </div>
+              <div>
+                <Label htmlFor="like_count" className="text-gray-700">{copy.fields.likes}</Label>
+                <Input
+                  id="like_count"
+                  type="number"
+                  {...register("like_count", { valueAsNumber: true })}
+                  className="mt-1"
+                  disabled
+                />
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-gray-500">Reading time will auto-calculate when content changes.</p>
           </div>
           <div>
             <Label htmlFor="status" className="text-gray-700">{copy.fields.status}</Label>

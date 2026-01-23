@@ -105,6 +105,18 @@ const BlogManagement = () => {
                 <div>
                   <h3 className="font-semibold text-gray-800">{post.title}</h3>
                   <p className="text-sm text-gray-500">{post.slug} • {post.status}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {post.is_featured ? (
+                      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                        Featured
+                      </span>
+                    ) : null}
+                    {post.category ? (
+                      <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">
+                        {post.category}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Tooltip content="Edit">

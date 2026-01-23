@@ -222,6 +222,9 @@ def init_db(*, seed_data: bool = False) -> None:
                         slug="human-centered-ai-assistants",
                         excerpt="Lessons learned from deploying AI experiences that balance empathy, safety, and performance.",
                         content="<p>Coming soon.</p>",
+                        category="AI",
+                        tags="ai,product,design",
+                        is_featured=True,
                         status="coming_soon",
                     ),
                     BlogPost(
@@ -229,6 +232,8 @@ def init_db(*, seed_data: bool = False) -> None:
                         slug="designing-trust-blockchain",
                         excerpt="A deep dive into governance, transparency, and secure-by-design smart contracts.",
                         content="<p>Coming soon.</p>",
+                        category="Blockchain",
+                        tags="blockchain,governance,security",
                         status="coming_soon",
                     ),
                 ]

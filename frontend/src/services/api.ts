@@ -170,7 +170,17 @@ export interface BlogPostBase {
   slug: string;
   excerpt?: string;
   content?: string;
+  category?: string;
+  tags?: string;
   cover_image_url?: string;
+  og_image_url?: string;
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
+  reading_time_minutes?: number;
+  view_count?: number;
+  like_count?: number;
+  is_featured?: boolean;
   status: string;
 }
 
@@ -181,6 +191,18 @@ export interface BlogPostResponse extends BlogPostBase {
   published_at?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface BlogPostListResponse {
+  items: BlogPostResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  categories: string[];
+  popular: BlogPostResponse[];
+  latest: BlogPostResponse[];
+  featured: BlogPostResponse[];
 }
 
 export interface ProfileBase {
@@ -433,6 +455,36 @@ class ApiService {
   // Blog
   async getBlogPosts(): Promise<BlogPostResponse[]> {
     return this.request<BlogPostResponse[]>('/blog');
+  }
+
+  async getBlogPostsPaged(params?: { page?: number; page_size?: number; category?: string; q?: string }): Promise<BlogPostListResponse> {
+    const search = new URLSearchParams();
+    if (params?.page) search.set('page', params.page.toString());
+    if (params?.page_size) search.set('page_size', params.page_size.toString());
+    if (params?.category) search.set('category', params.category);
+    if (params?.q) search.set('q', params.q);
+    const suffix = search.toString();
+    return this.request<BlogPostListResponse>(`/blog/paged${suffix ? `?${suffix}` : ''}`);
+  }
+
+  async getBlogPostBySlug(slug: string): Promise<BlogPostResponse> {
+    return this.request<BlogPostResponse>(`/blog/${slug}`);
+  }
+
+  async trackBlogView(slug: string): Promise<{ message: string; view_count: number }> {
+    return this.request<{ message: string; view_count: number }>(`/blog/${slug}/view`, {
+      method: 'POST'
+    });
+  }
+
+  async trackBlogLike(slug: string): Promise<{ message: string; like_count: number }> {
+    return this.request<{ message: string; like_count: number }>(`/blog/${slug}/like`, {
+      method: 'POST'
+    });
+  }
+
+  async getRelatedBlogPosts(slug: string): Promise<BlogPostResponse[]> {
+    return this.request<BlogPostResponse[]>(`/blog/related?slug=${encodeURIComponent(slug)}`);
   }
 }
 

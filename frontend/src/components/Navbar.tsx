@@ -31,6 +31,7 @@ const Navbar = () => {
       experience: 'Experience',
       projects: 'Projects',
       skills: 'Skills',
+      blog: 'Blog',
       contact: 'Contact',
       admin: 'Admin',
     },
@@ -47,6 +48,7 @@ const Navbar = () => {
     { name: copy.links.experience, href: '#experience' },
     { name: copy.links.projects, href: '#projects' },
     { name: copy.links.skills, href: '#skills' },
+    { name: copy.links.blog, href: '/blog' },
     { name: copy.links.contact, href: '#contact' },
   ];
 

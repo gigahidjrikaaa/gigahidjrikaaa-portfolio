@@ -25,5 +25,5 @@ module.exports = {
         // Define custom spacing, keyframes for animations etc. here
       },
     },
-    plugins: [],
+    plugins: [require('@tailwindcss/typography')],
   }
