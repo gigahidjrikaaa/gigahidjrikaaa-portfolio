@@ -57,7 +57,6 @@ export default function RootLayout({
       <body className="flex flex-col min-h-screen">
         <script
           type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <AppProviders>

@@ -92,16 +92,30 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSave, onCancel }) 
     >
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
           <div>
-            <Label htmlFor="title" className="text-gray-700">{copy.fields.title}</Label>
-            <Input id="title" value={formData.title} onChange={handleChange} required className="mt-1" />
+            <Label htmlFor="title" className="text-gray-700">{copy.fields.title} *</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={handleChange}
+              required
+              className="mt-1"
+              placeholder="e.g., Product Strategy"
+            />
           </div>
           <div>
             <Label htmlFor="subtitle" className="text-gray-700">{copy.fields.subtitle}</Label>
-            <Input id="subtitle" value={formData.subtitle || ""} onChange={handleChange} className="mt-1" />
+            <Input id="subtitle" value={formData.subtitle || ""} onChange={handleChange} className="mt-1" placeholder="Short supporting line" />
           </div>
           <div>
             <Label htmlFor="description" className="text-gray-700">{copy.fields.description}</Label>
-            <Textarea id="description" value={formData.description || ""} onChange={handleChange} rows={4} className="mt-1" />
+            <Textarea
+              id="description"
+              value={formData.description || ""}
+              onChange={handleChange}
+              rows={4}
+              className="mt-1"
+              placeholder="Describe the value delivered"
+            />
           </div>
           <div>
             <Label htmlFor="icon" className="text-gray-700">{copy.fields.icon}</Label>

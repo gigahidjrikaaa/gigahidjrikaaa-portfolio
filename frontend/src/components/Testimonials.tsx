@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { FaQuoteLeft } from "react-icons/fa";
 import { StarIcon } from '@heroicons/react/24/solid';
+import LoadingAnimation from '@/components/ui/LoadingAnimation';
 
 interface TestimonialItem {
   id: number;
@@ -77,7 +78,9 @@ const Testimonials = () => {
         </motion.div>
 
         {loading ? (
-          <div className="mt-12 text-center text-gray-500">{copy.loading}</div>
+          <div className="mt-12">
+            <LoadingAnimation label={copy.loading} />
+          </div>
         ) : testimonials.length > 0 ? (
           <div className="mt-12 grid gap-6 lg:grid-cols-3">
             {testimonials.map((item, index) => (

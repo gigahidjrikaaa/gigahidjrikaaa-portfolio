@@ -76,7 +76,6 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <script
           type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <div className="mb-8 flex flex-wrap items-center gap-4 text-sm text-gray-500">

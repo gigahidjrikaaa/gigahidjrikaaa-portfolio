@@ -5,7 +5,11 @@ import { FaSun, FaMoon } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 const ThemeToggle = () => {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, isMounted } = useTheme();
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <motion.button

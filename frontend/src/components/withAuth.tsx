@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiService } from '@/services/api';
+import LoadingAnimation from '@/components/ui/LoadingAnimation';
 
 const withAuth = <P extends object>(WrappedComponent: React.ComponentType<P>) => {
   const AuthComponent = (props: P) => {
@@ -30,7 +31,7 @@ const withAuth = <P extends object>(WrappedComponent: React.ComponentType<P>) =>
     }, [router]);
 
     if (isLoading) {
-      return <div>Loading...</div>; // Or a spinner component
+      return <LoadingAnimation label="Checking access…" size="sm" />;
     }
 
     if (!isAdmin) {

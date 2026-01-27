@@ -12,6 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { adminApi, DashboardStats } from "@/services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import LoadingAnimation from "@/components/ui/LoadingAnimation";
 
 const copy = {
   title: "Dashboard",
@@ -40,6 +41,12 @@ const copy = {
   manageCertificates: "Certificates",
   manageServices: "Services",
   manageBlog: "Blog",
+  integrations: "Integrations",
+  integrationsSubtitle: "Monitor connected media sources for image uploads.",
+  cloudinary: "Cloudinary",
+  googleDrive: "Google Drive",
+  notConnected: "Not connected",
+  connected: "Connected",
 };
 
 const StatCard = ({
@@ -85,7 +92,7 @@ const AdminOverview = () => {
   }, []);
 
   if (loading) {
-    return <p className="text-sm text-slate-500">{copy.loading}</p>;
+    return <LoadingAnimation label={copy.loading} />;
   }
 
   if (error || !stats) {
@@ -95,6 +102,19 @@ const AdminOverview = () => {
   const featuredRatio = stats.total_projects
     ? Math.round((stats.featured_projects / stats.total_projects) * 100)
     : 0;
+
+  const cloudinaryConnected = Boolean(
+    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME &&
+      process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY
+  );
+  const cloudinaryUploadConnected = Boolean(
+    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME &&
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+  );
+  const googleDriveConnected = Boolean(
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID &&
+      process.env.NEXT_PUBLIC_GOOGLE_API_KEY
+  );
 
   return (
     <div className="space-y-8">
@@ -190,6 +210,45 @@ const AdminOverview = () => {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border-slate-200">
+        <CardHeader>
+          <CardTitle className="text-base text-slate-900">{copy.integrations}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-slate-500">{copy.integrationsSubtitle}</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-700">{copy.cloudinary}</p>
+                <p className="text-xs text-slate-500">Media Library + Uploads</p>
+              </div>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  cloudinaryConnected && cloudinaryUploadConnected
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-amber-100 text-amber-700"
+                }`}
+              >
+                {cloudinaryConnected && cloudinaryUploadConnected ? copy.connected : copy.notConnected}
+              </span>
+            </div>
+            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-700">{copy.googleDrive}</p>
+                <p className="text-xs text-slate-500">Google Drive Picker</p>
+              </div>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  googleDriveConnected ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                }`}
+              >
+                {googleDriveConnected ? copy.connected : copy.notConnected}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

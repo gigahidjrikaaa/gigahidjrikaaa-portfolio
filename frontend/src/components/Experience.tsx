@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { BriefcaseIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { apiService, ExperienceResponse } from '@/services/api';
+import LoadingAnimation from '@/components/ui/LoadingAnimation';
 import ExperienceModal from './ExperienceModal';
 
 const containerVariants = {
@@ -84,7 +85,7 @@ const Experience = () => {
           </motion.div>
 
           {loading ? (
-            <div className="text-center text-gray-500">{copy.loading}</div>
+            <LoadingAnimation label={copy.loading} />
           ) : experience.length > 0 ? (
             <div className="relative">
               {/* Timeline line */}

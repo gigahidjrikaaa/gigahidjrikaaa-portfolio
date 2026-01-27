@@ -5,6 +5,7 @@ import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import { apiService } from '@/services/api';
 import ProjectModal from './ProjectModal';
 import TechStackExplorer from './TechStackExplorer';
+import LoadingAnimation from '@/components/ui/LoadingAnimation';
 
 interface ProjectItem {
   id: number;
@@ -116,7 +117,7 @@ const Projects = () => {
         </motion.div>
 
         {loading ? (
-          <div className="text-center text-gray-500">{copy.loading}</div>
+          <LoadingAnimation label={copy.loading} />
         ) : projects.length > 0 ? (
           <>
             {/* Tech Stack Explorer */}

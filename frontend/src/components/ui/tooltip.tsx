@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactElement, ReactNode, cloneElement, useId } from "react";
+import { ReactElement, cloneElement, useId } from "react";
 
 interface TooltipProps {
   content: string;

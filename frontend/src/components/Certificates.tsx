@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { DocumentCheckIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { apiService, CertificateResponse } from '@/services/api';
+import LoadingAnimation from '@/components/ui/LoadingAnimation';
 import CertificateModal from './CertificateModal';
 
 const containerVariants = {
@@ -84,7 +85,7 @@ const Certificates = () => {
           </motion.div>
 
           {loading ? (
-            <div className="text-center text-gray-500">{copy.loading}</div>
+            <LoadingAnimation label={copy.loading} />
           ) : certificates.length > 0 ? (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {certificates.map((cert) => (

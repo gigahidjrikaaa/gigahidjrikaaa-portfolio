@@ -103,11 +103,11 @@ const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
     >
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
           <div>
-            <Label htmlFor="name" className="text-gray-700">Name</Label>
-            <Input id="name" value={formData.name} onChange={handleChange} required className="mt-1" />
+            <Label htmlFor="name" className="text-gray-700">Name *</Label>
+            <Input id="name" value={formData.name} onChange={handleChange} required className="mt-1" placeholder="e.g., React" />
           </div>
           <div>
-            <Label htmlFor="category" className="text-gray-700">Category</Label>
+            <Label htmlFor="category" className="text-gray-700">Category *</Label>
             <select
               id="category"
               value={categoryPreset || 'Other'}
@@ -124,14 +124,14 @@ const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
                 id="category_custom"
                 value={categoryCustom}
                 onChange={(e) => handleCategoryCustomChange(e.target.value)}
-                placeholder="Enter category"
+                placeholder="e.g., Observability"
                 className="mt-2"
                 required
               />
             )}
           </div>
           <div>
-            <Label htmlFor="proficiency" className="text-gray-700">Skill Level</Label>
+            <Label htmlFor="proficiency" className="text-gray-700">Skill Level *</Label>
             <select
               id="proficiency"
               value={formData.proficiency || ''}
@@ -148,7 +148,7 @@ const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
           </div>
           <div>
             <Label htmlFor="icon_url" className="text-gray-700">Icon URL (Optional)</Label>
-            <Input id="icon_url" value={formData.icon_url || ''} onChange={handleChange} className="mt-1" />
+            <Input id="icon_url" value={formData.icon_url || ''} onChange={handleChange} className="mt-1" placeholder="https://..." />
             {formData.icon_url ? (
               <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
                 <Image

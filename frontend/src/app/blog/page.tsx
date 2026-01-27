@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { apiService, BlogPostListResponse } from "@/services/api";
+import { apiService } from "@/services/api";
 import BlogCard from "@/components/BlogCard";
 import Link from "next/link";
 

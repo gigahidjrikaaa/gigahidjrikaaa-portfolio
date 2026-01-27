@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { TrophyIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { apiService, AwardResponse } from '@/services/api';
 import AwardModal from './AwardModal';
+import LoadingAnimation from '@/components/ui/LoadingAnimation';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -90,7 +91,7 @@ const Awards = () => {
           </motion.div>
 
           {loading ? (
-            <div className="text-center text-gray-400">{copy.loading}</div>
+              <LoadingAnimation label={copy.loading} />
           ) : awards.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {awards.map((award) => (

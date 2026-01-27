@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { AcademicCapIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { apiService, EducationResponse } from '@/services/api';
+import LoadingAnimation from '@/components/ui/LoadingAnimation';
 import EducationModal from './EducationModal';
 
 const containerVariants = {
@@ -84,7 +85,7 @@ const Education = () => {
           </motion.div>
 
           {loading ? (
-            <div className="text-center text-gray-500">{copy.loading}</div>
+            <LoadingAnimation label={copy.loading} />
           ) : education.length > 0 ? (
             <div className="mx-auto max-w-4xl space-y-6">
               {education.map((item) => (

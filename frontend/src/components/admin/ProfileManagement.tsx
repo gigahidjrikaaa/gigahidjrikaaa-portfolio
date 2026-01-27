@@ -27,6 +27,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import LoadingAnimation from "@/components/ui/LoadingAnimation";
 
 const copy = {
   title: "Profile details",
@@ -345,7 +346,7 @@ const ProfileManagement = () => {
 
         <CardContent className="grid gap-6">
           {loading ? (
-            <p className="text-sm text-muted-foreground">{copy.loading}</p>
+            <LoadingAnimation label={copy.loading} size="sm" />
           ) : (
             <Tabs defaultValue="quick" className="gap-4">
               <TabsList className="w-full">

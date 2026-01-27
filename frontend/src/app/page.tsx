@@ -6,6 +6,7 @@ import Highlights from '@/components/Highlights';
 import Experience from '@/components/Experience';
 import Education from '@/components/Education';
 import Skills from '@/components/Skills';
+import ArticlesPreview from '@/components/ArticlesPreview';
 import Projects from '@/components/Projects';
 import Awards from '@/components/Awards';
 import Certificates from '@/components/Certificates';
@@ -32,6 +33,9 @@ export default function Home() {
       
       {/* Skills - Technical expertise */}
       <Skills />
+
+      {/* Articles - Blog previews */}
+      <ArticlesPreview />
       
       {/* Projects - Portfolio showcase */}
       <Projects />

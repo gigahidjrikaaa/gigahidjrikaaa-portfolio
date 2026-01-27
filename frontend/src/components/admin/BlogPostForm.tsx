@@ -19,6 +19,8 @@ import { Switch } from "@/components/ui/switch";
 import AdminModal from "@/components/admin/AdminModal";
 import { useToast } from "@/components/ui/toast";
 import { adminApi, BlogPostBase, BlogPostResponse } from "@/services/api";
+import { openGoogleDrivePicker } from "@/lib/googleDrivePicker";
+import { openMediaLibrary } from "@/lib/cloudinaryWidget";
 
 const copy = {
   addTitle: "Add Blog Post",
@@ -167,6 +169,12 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
   }, [post, reset]);
 
   const coverImageUrl = watch("cover_image_url");
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "";
+  const cloudApiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || "";
+  const canOpenCloudinaryLibrary = Boolean(cloudName && cloudApiKey);
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+  const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY || "";
+  const canOpenGoogleDrive = Boolean(googleClientId && googleApiKey);
   const titleValue = watch("title");
 
   const slugify = (value: string) =>
@@ -221,6 +229,52 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
     }
   };
 
+  const openGooglePicker = (onSelect: (url: string) => void) => {
+    if (!canOpenGoogleDrive) {
+      toast({
+        title: "Google Drive not connected",
+        description: "Set NEXT_PUBLIC_GOOGLE_CLIENT_ID and NEXT_PUBLIC_GOOGLE_API_KEY.",
+        variant: "error",
+      });
+      return;
+    }
+    void openGoogleDrivePicker({
+      clientId: googleClientId,
+      apiKey: googleApiKey,
+      onPick: onSelect,
+      onError: (message) =>
+        toast({
+          title: "Google Drive error",
+          description: message,
+          variant: "error",
+        }),
+    });
+  };
+
+  const openCloudinaryPicker = async (onSelect: (url: string) => void) => {
+    if (!canOpenCloudinaryLibrary) {
+      toast({
+        title: "Cloudinary not connected",
+        description: "Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_API_KEY.",
+        variant: "error",
+      });
+      return;
+    }
+    await openMediaLibrary(
+      {
+        cloud_name: cloudName,
+        api_key: cloudApiKey,
+        multiple: false,
+      },
+      (assets) => {
+        const asset = assets?.[0];
+        if (asset?.secure_url || asset?.url) {
+          onSelect(asset.secure_url || asset.url || "");
+        }
+      }
+    );
+  };
+
   const handleInlineImageUpload = async (file: File) => {
     try {
       setIsUploadingInline(true);
@@ -271,12 +325,12 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
     >
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-x-6 gap-y-4">
           <div>
-            <Label htmlFor="title" className="text-gray-700">{copy.fields.title}</Label>
-            <Input id="title" {...register("title")} required className="mt-1" />
+            <Label htmlFor="title" className="text-gray-700">{copy.fields.title} *</Label>
+            <Input id="title" {...register("title")} required className="mt-1" placeholder="e.g., Designing Trust in Web3" />
             {errors.title && <p className="mt-1 text-xs text-red-600">{errors.title.message}</p>}
           </div>
           <div>
-            <Label htmlFor="slug" className="text-gray-700">{copy.fields.slug}</Label>
+            <Label htmlFor="slug" className="text-gray-700">{copy.fields.slug} *</Label>
             <Input
               id="slug"
               {...register("slug", {
@@ -284,13 +338,14 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
               })}
               required
               className="mt-1"
+              placeholder="e.g., designing-trust-web3"
             />
             {errors.slug && <p className="mt-1 text-xs text-red-600">{errors.slug.message}</p>}
             <p className="mt-1 text-xs text-gray-500">Use kebab-case, e.g. <span className="font-medium">my-new-post</span>.</p>
           </div>
           <div>
             <Label htmlFor="excerpt" className="text-gray-700">{copy.fields.excerpt}</Label>
-            <Textarea id="excerpt" {...register("excerpt")} rows={4} className="mt-1" />
+            <Textarea id="excerpt" {...register("excerpt")} rows={4} className="mt-1" placeholder="Short summary shown on cards" />
           </div>
           <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
             <div>
@@ -340,6 +395,20 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
                 >
                   {isUploadingCover ? copy.actions.uploading : copy.actions.upload}
                 </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => openCloudinaryPicker((url) => setValue("cover_image_url", url, { shouldValidate: true }))}
+                >
+                  Pick from Cloudinary
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => openGooglePicker((url) => setValue("cover_image_url", url, { shouldValidate: true }))}
+                >
+                  Pick from Google Drive
+                </Button>
               </div>
               <p className="text-xs text-gray-500">{copy.fields.coverImageHint}</p>
             </div>
@@ -365,7 +434,23 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
           </div>
           <div>
             <Label htmlFor="og_image_url" className="text-gray-700">{copy.fields.ogImage}</Label>
-            <Input id="og_image_url" {...register("og_image_url")} className="mt-1" placeholder="https://..." />
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+              <Input id="og_image_url" {...register("og_image_url")} className="flex-1" placeholder="https://..." />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => openCloudinaryPicker((url) => setValue("og_image_url", url, { shouldValidate: true }))}
+              >
+                Pick from Cloudinary
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => openGooglePicker((url) => setValue("og_image_url", url, { shouldValidate: true }))}
+              >
+                Pick from Google Drive
+              </Button>
+            </div>
             {errors.og_image_url && (
               <p className="mt-1 text-xs text-red-600">{errors.og_image_url.message}</p>
             )}
@@ -448,6 +533,20 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
                 >
                   Image
                 </button>
+                <button
+                  type="button"
+                  className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
+                  onClick={() => openCloudinaryPicker((url) => editor?.chain().focus().setImage({ src: url }).run())}
+                >
+                  Cloudinary
+                </button>
+                <button
+                  type="button"
+                  className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
+                  onClick={() => openGooglePicker((url) => editor?.chain().focus().setImage({ src: url }).run())}
+                >
+                  Google Drive
+                </button>
               </div>
               <div className="min-h-[220px] px-3 py-2">
                 <EditorContent editor={editor} />
@@ -516,7 +615,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
             <p className="mt-2 text-xs text-gray-500">Reading time will auto-calculate when content changes.</p>
           </div>
           <div>
-            <Label htmlFor="status" className="text-gray-700">{copy.fields.status}</Label>
+            <Label htmlFor="status" className="text-gray-700">{copy.fields.status} *</Label>
             <select
               id="status"
               {...register("status")}

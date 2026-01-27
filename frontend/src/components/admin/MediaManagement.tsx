@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { openMediaLibrary, openUploadWidget } from "@/lib/cloudinaryWidget";
+import LoadingAnimation from "@/components/ui/LoadingAnimation";
 
 const copy = {
   title: "Media Library",
@@ -357,7 +358,7 @@ const MediaManagement = () => {
         </div>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
         {loading ? (
-          <p className="text-sm text-gray-500">Loading…</p>
+          <LoadingAnimation label="Loading media…" size="sm" />
         ) : assets.length === 0 ? (
           <p className="text-sm text-gray-500">{copy.empty}</p>
         ) : (

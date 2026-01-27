@@ -91,12 +91,19 @@ const CertificateForm: React.FC<CertificateFormProps> = ({ certificate, onSave, 
     >
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
           <div>
-            <Label htmlFor="title" className="text-gray-700">{copy.fields.title}</Label>
-            <Input id="title" value={formData.title} onChange={handleChange} required className="mt-1" />
+            <Label htmlFor="title" className="text-gray-700">{copy.fields.title} *</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={handleChange}
+              required
+              className="mt-1"
+              placeholder="e.g., AWS Solutions Architect"
+            />
           </div>
           <div>
             <Label htmlFor="issuer" className="text-gray-700">{copy.fields.issuer}</Label>
-            <Input id="issuer" value={formData.issuer || ""} onChange={handleChange} className="mt-1" />
+            <Input id="issuer" value={formData.issuer || ""} onChange={handleChange} className="mt-1" placeholder="e.g., Amazon" />
           </div>
           <div>
             <Label htmlFor="issue_date" className="text-gray-700">{copy.fields.issueDate}</Label>
@@ -104,15 +111,15 @@ const CertificateForm: React.FC<CertificateFormProps> = ({ certificate, onSave, 
           </div>
           <div>
             <Label htmlFor="credential_id" className="text-gray-700">{copy.fields.credentialId}</Label>
-            <Input id="credential_id" value={formData.credential_id || ""} onChange={handleChange} className="mt-1" />
+            <Input id="credential_id" value={formData.credential_id || ""} onChange={handleChange} className="mt-1" placeholder="e.g., ABCD-1234" />
           </div>
           <div>
             <Label htmlFor="credential_url" className="text-gray-700">{copy.fields.credentialUrl}</Label>
-            <Input id="credential_url" value={formData.credential_url || ""} onChange={handleChange} className="mt-1" />
+            <Input id="credential_url" value={formData.credential_url || ""} onChange={handleChange} className="mt-1" placeholder="https://..." />
           </div>
           <div>
             <Label htmlFor="image_url" className="text-gray-700">{copy.fields.imageUrl}</Label>
-            <Input id="image_url" value={formData.image_url || ""} onChange={handleChange} className="mt-1" />
+            <Input id="image_url" value={formData.image_url || ""} onChange={handleChange} className="mt-1" placeholder="https://..." />
             {formData.image_url ? (
               <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
                 <Image
@@ -132,7 +139,14 @@ const CertificateForm: React.FC<CertificateFormProps> = ({ certificate, onSave, 
           </div>
           <div>
             <Label htmlFor="description" className="text-gray-700">{copy.fields.description}</Label>
-            <Textarea id="description" value={formData.description || ""} onChange={handleChange} rows={4} className="mt-1" />
+            <Textarea
+              id="description"
+              value={formData.description || ""}
+              onChange={handleChange}
+              rows={4}
+              className="mt-1"
+              placeholder="Highlight learning outcomes"
+            />
           </div>
           <div className="mt-6 flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={onCancel}>{copy.actions.cancel}</Button>

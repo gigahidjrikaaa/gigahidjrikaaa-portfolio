@@ -10,6 +10,7 @@ import AdminModal from '@/components/admin/AdminModal';
 import { useToast } from '@/components/ui/toast';
 import { ProjectBase, ProjectResponse } from '@/services/api';
 import { openMediaLibrary } from '@/lib/cloudinaryWidget';
+import { openGoogleDrivePicker } from '@/lib/googleDrivePicker';
 
 type ProjectImageDraft = {
   id?: number;
@@ -64,6 +65,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "";
   const cloudApiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || "";
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+  const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY || "";
 
   useEffect(() => {
     if (project) {
@@ -120,6 +123,28 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
     }
   };
 
+  const openGooglePicker = (onSelect: (url: string) => void) => {
+    if (!googleClientId || !googleApiKey) {
+      toast({
+        title: "Google Drive not connected",
+        description: "Set NEXT_PUBLIC_GOOGLE_CLIENT_ID and NEXT_PUBLIC_GOOGLE_API_KEY.",
+        variant: "error",
+      });
+      return;
+    }
+    void openGoogleDrivePicker({
+      clientId: googleClientId,
+      apiKey: googleApiKey,
+      onPick: onSelect,
+      onError: (message) =>
+        toast({
+          title: "Google Drive error",
+          description: message,
+          variant: "error",
+        }),
+    });
+  };
+
   const handleRoleCustomChange = (value: string) => {
     setRoleCustom(value);
     setFormData((prev) => ({ ...prev, role: value }));
@@ -127,7 +152,17 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || !formData.tagline || !formData.description || !formData.github_url || !formData.role) {
+    if (
+      !formData.title ||
+      !formData.tagline ||
+      !formData.description ||
+      !formData.github_url ||
+      !formData.role ||
+      !formData.team_size ||
+      !formData.challenges ||
+      !formData.solutions ||
+      !formData.impact
+    ) {
       toast({
         title: 'Missing required fields',
         description: 'Please complete the required project details before saving.',
@@ -235,31 +270,75 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
     >
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <div>
-            <Label htmlFor="title" className="text-gray-700">Title</Label>
-            <Input id="title" value={formData.title} onChange={handleChange} required className="mt-1" />
+            <Label htmlFor="title" className="text-gray-700">Title *</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={handleChange}
+              required
+              className="mt-1"
+              placeholder="e.g., AI Portfolio Builder"
+            />
           </div>
           <div>
-            <Label htmlFor="tagline" className="text-gray-700">Tagline</Label>
-            <Input id="tagline" value={formData.tagline} onChange={handleChange} required className="mt-1" />
+            <Label htmlFor="tagline" className="text-gray-700">Tagline *</Label>
+            <Input
+              id="tagline"
+              value={formData.tagline}
+              onChange={handleChange}
+              required
+              className="mt-1"
+              placeholder="One-line summary of the project"
+            />
           </div>
           <div className="md:col-span-2">
-            <Label htmlFor="description" className="text-gray-700">Description</Label>
-            <Textarea id="description" value={formData.description} onChange={handleChange} required rows={4} className="mt-1" />
+            <Label htmlFor="description" className="text-gray-700">Description *</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={handleChange}
+              required
+              rows={4}
+              className="mt-1"
+              placeholder="Describe the project goals, scope, and outcome"
+            />
           </div>
           <div>
-            <Label htmlFor="github_url" className="text-gray-700">GitHub URL</Label>
-            <Input id="github_url" type="url" value={formData.github_url} onChange={handleChange} required className="mt-1" />
+            <Label htmlFor="github_url" className="text-gray-700">GitHub URL *</Label>
+            <Input
+              id="github_url"
+              type="url"
+              value={formData.github_url}
+              onChange={handleChange}
+              required
+              className="mt-1"
+              placeholder="https://github.com/username/repo"
+            />
           </div>
           <div>
             <Label htmlFor="live_url" className="text-gray-700">Live URL (Optional)</Label>
-            <Input id="live_url" type="url" value={formData.live_url || ''} onChange={handleChange} className="mt-1" />
+            <Input
+              id="live_url"
+              type="url"
+              value={formData.live_url || ''}
+              onChange={handleChange}
+              className="mt-1"
+              placeholder="https://project-demo.com"
+            />
           </div>
           <div>
             <Label htmlFor="case_study_url" className="text-gray-700">Case Study URL (Optional)</Label>
-            <Input id="case_study_url" type="url" value={formData.case_study_url || ''} onChange={handleChange} className="mt-1" />
+            <Input
+              id="case_study_url"
+              type="url"
+              value={formData.case_study_url || ''}
+              onChange={handleChange}
+              className="mt-1"
+              placeholder="https://yourdomain.com/case-study"
+            />
           </div>
           <div>
-            <Label htmlFor="role" className="text-gray-700">Role</Label>
+            <Label htmlFor="role" className="text-gray-700">Role *</Label>
             <select
               id="role"
               value={rolePreset || 'Other'}
@@ -276,14 +355,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
                 id="role_custom"
                 value={roleCustom}
                 onChange={(e) => handleRoleCustomChange(e.target.value)}
-                placeholder="Enter role"
+                placeholder="e.g., Full-Stack Developer"
                 className="mt-2"
                 required
               />
             )}
           </div>
           <div>
-            <Label htmlFor="team_size" className="text-gray-700">Team Size</Label>
+            <Label htmlFor="team_size" className="text-gray-700">Team Size *</Label>
             <select
               id="team_size"
               value={formData.team_size}
@@ -298,23 +377,56 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
             </select>
           </div>
           <div className="md:col-span-2">
-            <Label htmlFor="challenges" className="text-gray-700">Challenges</Label>
-            <Textarea id="challenges" value={formData.challenges} onChange={handleChange} required rows={3} className="mt-1" />
+            <Label htmlFor="challenges" className="text-gray-700">Challenges *</Label>
+            <Textarea
+              id="challenges"
+              value={formData.challenges}
+              onChange={handleChange}
+              required
+              rows={3}
+              className="mt-1"
+              placeholder="Key technical or product challenges"
+            />
           </div>
           <div className="md:col-span-2">
-            <Label htmlFor="solutions" className="text-gray-700">Solutions</Label>
-            <Textarea id="solutions" value={formData.solutions} onChange={handleChange} required rows={3} className="mt-1" />
+            <Label htmlFor="solutions" className="text-gray-700">Solutions *</Label>
+            <Textarea
+              id="solutions"
+              value={formData.solutions}
+              onChange={handleChange}
+              required
+              rows={3}
+              className="mt-1"
+              placeholder="How you solved them"
+            />
           </div>
           <div className="md:col-span-2">
-            <Label htmlFor="impact" className="text-gray-700">Impact</Label>
-            <Textarea id="impact" value={formData.impact} onChange={handleChange} required rows={3} className="mt-1" />
+            <Label htmlFor="impact" className="text-gray-700">Impact *</Label>
+            <Textarea
+              id="impact"
+              value={formData.impact}
+              onChange={handleChange}
+              required
+              rows={3}
+              className="mt-1"
+              placeholder="Quantify outcomes (users, revenue, performance)"
+            />
           </div>
           <div>
             <Label htmlFor="image_url" className="text-gray-700">Image URL (Optional)</Label>
-            <Input id="image_url" value={formData.image_url || ''} onChange={handleChange} className="mt-1" />
+            <Input
+              id="image_url"
+              value={formData.image_url || ''}
+              onChange={handleChange}
+              className="mt-1"
+              placeholder="https://..."
+            />
             {/* Future: Add actual image upload functionality here */}
             <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => openMediaPicker((url) => setFormData((prev) => ({ ...prev, image_url: url })))}>
               Pick from Cloudinary
+            </Button>
+            <Button type="button" variant="outline" size="sm" className="mt-2 ml-2" onClick={() => openGooglePicker((url) => setFormData((prev) => ({ ...prev, image_url: url })))}>
+              Pick from Google Drive
             </Button>
             {formData.image_url ? (
               <Image
@@ -329,9 +441,18 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
           </div>
           <div>
             <Label htmlFor="thumbnail_url" className="text-gray-700">Thumbnail URL (Optional)</Label>
-            <Input id="thumbnail_url" value={formData.thumbnail_url || ''} onChange={handleChange} className="mt-1" />
+            <Input
+              id="thumbnail_url"
+              value={formData.thumbnail_url || ''}
+              onChange={handleChange}
+              className="mt-1"
+              placeholder="https://..."
+            />
             <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => openMediaPicker((url) => setFormData((prev) => ({ ...prev, thumbnail_url: url })))}>
               Pick from Cloudinary
+            </Button>
+            <Button type="button" variant="outline" size="sm" className="mt-2 ml-2" onClick={() => openGooglePicker((url) => setFormData((prev) => ({ ...prev, thumbnail_url: url })))}>
+              Pick from Google Drive
             </Button>
             {formData.thumbnail_url ? (
               <Image
@@ -346,9 +467,18 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
           </div>
           <div>
             <Label htmlFor="ui_image_url" className="text-gray-700">UI Image URL (Optional)</Label>
-            <Input id="ui_image_url" value={formData.ui_image_url || ''} onChange={handleChange} className="mt-1" />
+            <Input
+              id="ui_image_url"
+              value={formData.ui_image_url || ''}
+              onChange={handleChange}
+              className="mt-1"
+              placeholder="https://..."
+            />
             <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => openMediaPicker((url) => setFormData((prev) => ({ ...prev, ui_image_url: url })))}>
               Pick from Cloudinary
+            </Button>
+            <Button type="button" variant="outline" size="sm" className="mt-2 ml-2" onClick={() => openGooglePicker((url) => setFormData((prev) => ({ ...prev, ui_image_url: url })))}>
+              Pick from Google Drive
             </Button>
             {formData.ui_image_url ? (
               <Image
@@ -367,6 +497,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={addImage}>Add Image</Button>
                 <Button type="button" variant="outline" onClick={openGalleryPicker}>Pick from Cloudinary</Button>
+                <Button type="button" variant="outline" onClick={() => openGooglePicker((url) => {
+                  setProjectImages((prev) => [...prev, { url, kind: 'gallery', caption: '', display_order: prev.length }]);
+                })}>Pick from Google Drive</Button>
               </div>
             </div>
             {projectImages.length === 0 ? (
@@ -389,6 +522,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
                         value={image.url}
                         onChange={(e) => updateImageField(index, 'url', e.target.value)}
                         className="mt-1"
+                        placeholder="https://..."
                         required
                       />
                       {image.url ? (

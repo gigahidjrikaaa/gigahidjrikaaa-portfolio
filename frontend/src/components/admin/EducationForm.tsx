@@ -143,7 +143,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
     >
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
           <div>
-            <Label htmlFor="degree" className="text-gray-700">Degree</Label>
+            <Label htmlFor="degree" className="text-gray-700">Degree *</Label>
             <select
               id="degree"
               value={degreePreset || 'Other'}
@@ -160,22 +160,36 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
                 id="degree_custom"
                 value={degreeCustom}
                 onChange={(e) => handleDegreeCustomChange(e.target.value)}
-                placeholder="Enter degree"
+                placeholder="e.g., B.Sc. Computer Science"
                 className="mt-2"
                 required
               />
             )}
           </div>
           <div>
-            <Label htmlFor="institution" className="text-gray-700">Institution</Label>
-            <Input id="institution" value={formData.institution} onChange={handleChange} required className="mt-1" />
+            <Label htmlFor="institution" className="text-gray-700">Institution *</Label>
+            <Input
+              id="institution"
+              value={formData.institution}
+              onChange={handleChange}
+              required
+              className="mt-1"
+              placeholder="e.g., University of Indonesia"
+            />
           </div>
           <div>
-            <Label htmlFor="location" className="text-gray-700">Location</Label>
-            <Input id="location" value={formData.location} onChange={handleChange} required className="mt-1" />
+            <Label htmlFor="location" className="text-gray-700">Location *</Label>
+            <Input
+              id="location"
+              value={formData.location}
+              onChange={handleChange}
+              required
+              className="mt-1"
+              placeholder="e.g., Bandung, Indonesia"
+            />
           </div>
           <div className="grid grid-cols-1 gap-3">
-            <Label className="text-gray-700">Period</Label>
+            <Label className="text-gray-700">Period *</Label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="start_month" className="text-xs text-gray-500">Start Month</Label>
@@ -209,12 +223,20 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
             />
           </div>
           <div>
-            <Label htmlFor="description" className="text-gray-700">Description</Label>
-            <Textarea id="description" value={formData.description} onChange={handleChange} required rows={4} className="mt-1" />
+            <Label htmlFor="description" className="text-gray-700">Description *</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={handleChange}
+              required
+              rows={4}
+              className="mt-1"
+              placeholder="Highlights, focus area, or notable achievements"
+            />
           </div>
           <div>
             <Label htmlFor="gpa" className="text-gray-700">GPA (Optional)</Label>
-            <Input id="gpa" value={formData.gpa || ''} onChange={handleChange} className="mt-1" />
+            <Input id="gpa" value={formData.gpa || ''} onChange={handleChange} className="mt-1" placeholder="e.g., 3.8/4.0" />
           </div>
           <div>
             <Label htmlFor="institution_logo_url" className="text-gray-700">Institution Logo URL (Optional)</Label>
@@ -223,6 +245,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
               value={formData.institution_logo_url || ''}
               onChange={handleChange}
               className="mt-1"
+              placeholder="https://..."
             />
             {formData.institution_logo_url ? (
               <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">

@@ -142,7 +142,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
     >
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-6 gap-y-4">
           <div>
-            <Label htmlFor="title" className="text-gray-700">Title</Label>
+            <Label htmlFor="title" className="text-gray-700">Title *</Label>
             <select
               id="title"
               value={titlePreset || 'Other'}
@@ -159,22 +159,36 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
                 id="title_custom"
                 value={titleCustom}
                 onChange={(e) => handleTitleCustomChange(e.target.value)}
-                placeholder="Enter title"
+                placeholder="e.g., Senior Backend Engineer"
                 className="mt-2"
                 required
               />
             )}
           </div>
           <div>
-            <Label htmlFor="company" className="text-gray-700">Company</Label>
-            <Input id="company" value={formData.company} onChange={handleChange} required className="mt-1" />
+            <Label htmlFor="company" className="text-gray-700">Company *</Label>
+            <Input
+              id="company"
+              value={formData.company}
+              onChange={handleChange}
+              required
+              className="mt-1"
+              placeholder="e.g., Stripe"
+            />
           </div>
           <div>
-            <Label htmlFor="location" className="text-gray-700">Location</Label>
-            <Input id="location" value={formData.location} onChange={handleChange} required className="mt-1" />
+            <Label htmlFor="location" className="text-gray-700">Location *</Label>
+            <Input
+              id="location"
+              value={formData.location}
+              onChange={handleChange}
+              required
+              className="mt-1"
+              placeholder="e.g., Remote · Jakarta"
+            />
           </div>
           <div className="grid grid-cols-1 gap-3">
-            <Label className="text-gray-700">Period</Label>
+            <Label className="text-gray-700">Period *</Label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="start_month" className="text-xs text-gray-500">Start Month</Label>
@@ -208,8 +222,16 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
             />
           </div>
           <div>
-            <Label htmlFor="description" className="text-gray-700">Description</Label>
-            <Textarea id="description" value={formData.description} onChange={handleChange} required rows={4} className="mt-1" />
+            <Label htmlFor="description" className="text-gray-700">Description *</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={handleChange}
+              required
+              rows={4}
+              className="mt-1"
+              placeholder="Summarize scope, impact, and achievements"
+            />
           </div>
           <div>
             <Label htmlFor="company_logo_url" className="text-gray-700">Company Logo URL (Optional)</Label>
@@ -218,6 +240,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
               value={formData.company_logo_url || ''}
               onChange={handleChange}
               className="mt-1"
+              placeholder="https://..."
             />
             {formData.company_logo_url ? (
               <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">

@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { apiService, SkillResponse } from '@/services/api';
+import LoadingAnimation from '@/components/ui/LoadingAnimation';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -55,6 +56,22 @@ const copy = {
   codingChallenges: {
     title: 'Coding Challenge Progress',
     subtitle: 'Tracking problem-solving skills across competitive platforms',
+    leetcode: 'LeetCode',
+    hackerrank: 'HackerRank',
+    widgetNote: 'If the widget does not load, open the profile in a new tab.',
+  },
+};
+
+const widgets = {
+  leetcode: {
+    profileUrl: 'https://leetcode.com/u/gigahidjrikaaa/',
+    // Repo-backed card example: https://github.com/KnlnKS/leetcode-stats
+    cardUrl: 'https://leetcode-stats-six.vercel.app/?username=gigahidjrikaaa&theme=light',
+  },
+  hackerrank: {
+    profileUrl: 'https://www.hackerrank.com/profile/gigahidjrikaaa',
+    // Repo-backed badges SVG: https://github.com/VenkataRamanaRao5/hackerrank
+    badgesSvgUrl: 'https://hackerrank-badges.vercel.app/gigahidjrikaaa',
   },
 };
 
@@ -109,7 +126,7 @@ const Skills = () => {
           </motion.div>
 
           {loading ? (
-            <div className="text-center text-gray-500">{copy.loading}</div>
+            <LoadingAnimation label={copy.loading} />
           ) : categories.length > 0 ? (
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {categories.map((category) => (
@@ -178,9 +195,9 @@ const Skills = () => {
                     <span className="text-xl font-bold text-orange-600">LC</span>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">LeetCode</h4>
+                    <h4 className="font-semibold text-gray-900">{copy.codingChallenges.leetcode}</h4>
                     <a
-                      href="https://leetcode.com/your-username"
+                      href={widgets.leetcode.profileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-blue-600 hover:underline"
@@ -189,45 +206,17 @@ const Skills = () => {
                     </a>
                   </div>
                 </div>
-                
-                <div className="space-y-3">
-                  <div>
-                    <div className="mb-1 flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Easy</span>
-                      <span className="font-medium text-gray-900">50 / 730</span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                      <div className="h-full rounded-full bg-green-500" style={{ width: '6.85%' }} />
-                    </div>
+                  <div className="w-full overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={widgets.leetcode.cardUrl}
+                      alt="LeetCode stats card"
+                      loading="lazy"
+                      className="h-auto w-full"
+                      referrerPolicy="no-referrer"
+                    />
                   </div>
-                  
-                  <div>
-                    <div className="mb-1 flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Medium</span>
-                      <span className="font-medium text-gray-900">30 / 1520</span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                      <div className="h-full rounded-full bg-yellow-500" style={{ width: '1.97%' }} />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="mb-1 flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Hard</span>
-                      <span className="font-medium text-gray-900">5 / 650</span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                      <div className="h-full rounded-full bg-red-500" style={{ width: '0.77%' }} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 rounded-lg bg-gray-50 p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-600">Total Solved</span>
-                    <span className="text-lg font-bold text-gray-900">85</span>
-                  </div>
-                </div>
+                <p className="mt-3 text-xs text-gray-500">{copy.codingChallenges.widgetNote}</p>
               </div>
 
               {/* HackerRank */}
@@ -237,9 +226,9 @@ const Skills = () => {
                     <span className="text-xl font-bold text-green-600">HR</span>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">HackerRank</h4>
+                    <h4 className="font-semibold text-gray-900">{copy.codingChallenges.hackerrank}</h4>
                     <a
-                      href="https://www.hackerrank.com/your-username"
+                      href={widgets.hackerrank.profileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-blue-600 hover:underline"
@@ -248,36 +237,17 @@ const Skills = () => {
                     </a>
                   </div>
                 </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
-                    <span className="text-sm font-medium text-gray-600">Problem Solving</span>
-                    <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-800">
-                      5★ Gold
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
-                    <span className="text-sm font-medium text-gray-600">Python</span>
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
-                      5★ Gold
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
-                    <span className="text-sm font-medium text-gray-600">SQL</span>
-                    <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-800">
-                      4★ Silver
-                    </span>
-                  </div>
+                <div className="w-full overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={widgets.hackerrank.badgesSvgUrl}
+                    alt="HackerRank badges"
+                    loading="lazy"
+                    className="h-auto w-full"
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
-
-                <div className="mt-4 rounded-lg bg-gray-50 p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-600">Total Stars</span>
-                    <span className="text-lg font-bold text-gray-900">14</span>
-                  </div>
-                </div>
+                <p className="mt-3 text-xs text-gray-500">{copy.codingChallenges.widgetNote}</p>
               </div>
             </div>
           </motion.div>
