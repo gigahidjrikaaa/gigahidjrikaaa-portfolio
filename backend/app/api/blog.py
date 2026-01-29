@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
-from typing import List
+from typing import List, cast
 from .. import schemas
 from ..database import get_db, BlogPost
 
@@ -85,15 +85,15 @@ def read_blog_posts_paged(
     )
 
     return schemas.BlogPostListResponse(
-        items=items,
+        items=cast(List[schemas.BlogPostResponse], items),
         total=total,
         page=page,
         page_size=page_size,
         total_pages=total_pages,
         categories=categories,
-        popular=popular,
-        latest=latest,
-        featured=featured,
+        popular=cast(List[schemas.BlogPostResponse], popular),
+        latest=cast(List[schemas.BlogPostResponse], latest),
+        featured=cast(List[schemas.BlogPostResponse], featured),
     )
 
 
@@ -116,10 +116,12 @@ def read_related_posts(
         BlogPost.slug != slug,
     )
 
-    if current.category:
-        related_query = related_query.filter(BlogPost.category.ilike(current.category))
-    elif current.tags:
-        tags = [t.strip() for t in (current.tags or "").split(",") if t.strip()]
+    current_category = cast(str | None, current.category)
+    current_tags = cast(str | None, current.tags)
+    if current_category:
+        related_query = related_query.filter(BlogPost.category.ilike(current_category))
+    elif current_tags:
+        tags = [t.strip() for t in (current_tags or "").split(",") if t.strip()]
         if tags:
             tag_filters = [BlogPost.tags.ilike(f"%{tag}%") for tag in tags]
             related_query = related_query.filter(or_(*tag_filters))
@@ -155,7 +157,8 @@ def track_blog_view(slug: str, db: Session = Depends(get_db)):
     )
     if not post:
         raise HTTPException(status_code=404, detail="Blog post not found")
-    post.view_count = (post.view_count or 0) + 1
+    view_count = (cast(int | None, post.view_count) or 0) + 1
+    setattr(post, "view_count", view_count)
     db.commit()
     return {"message": "view tracked", "view_count": post.view_count}
 
@@ -170,6 +173,7 @@ def track_blog_like(slug: str, db: Session = Depends(get_db)):
     )
     if not post:
         raise HTTPException(status_code=404, detail="Blog post not found")
-    post.like_count = (post.like_count or 0) + 1
+    like_count = (cast(int | None, post.like_count) or 0) + 1
+    setattr(post, "like_count", like_count)
     db.commit()
     return {"message": "like tracked", "like_count": post.like_count}

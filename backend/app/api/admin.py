@@ -663,12 +663,24 @@ def _sanitize_blog_content(content: str | None) -> str | None:
         "h2",
         "h3",
         "hr",
+        "iframe",
     ]
     allowed_attrs = {
         "a": ["href", "title", "rel", "target"],
         "img": ["src", "alt", "title"],
+        "iframe": ["src", "width", "height", "title", "frameborder", "allow", "allowfullscreen"],
     }
-    return bleach.clean(content, tags=allowed_tags, attributes=allowed_attrs, strip=True)
+    cleaned = bleach.clean(content, tags=allowed_tags, attributes=allowed_attrs, strip=True)
+    def _strip_non_youtube_iframes(html: str) -> str:
+        pattern = re.compile(r"<iframe[^>]+src=\"([^\"]+)\"[^>]*></iframe>", re.IGNORECASE)
+        def _replace(match: re.Match[str]) -> str:
+            src = match.group(1)
+            if "youtube.com/embed/" in src or "youtu.be/" in src:
+                return match.group(0)
+            return ""
+        return pattern.sub(_replace, html)
+
+    return _strip_non_youtube_iframes(cleaned)
 
 
 @router.post("/blog", response_model=BlogPostResponse)
@@ -680,7 +692,8 @@ async def create_blog_post(
     payload_data = payload.model_dump()
     payload_data["content"] = _sanitize_blog_content(payload_data.get("content"))
     post = BlogPost(**payload_data)
-    post.reading_time_minutes = _calculate_reading_time(post.content)
+    reading_time = _calculate_reading_time(cast(str | None, post.content))
+    setattr(post, "reading_time_minutes", reading_time)
     _apply_blog_status(post)
     db.add(post)
     db.commit()
@@ -727,7 +740,8 @@ async def update_blog_post(
         setattr(post, field, value)
 
     if "content" in update_data:
-        post.reading_time_minutes = _calculate_reading_time(post.content)
+        reading_time = _calculate_reading_time(cast(str | None, post.content))
+        setattr(post, "reading_time_minutes", reading_time)
 
     _apply_blog_status(post)
     db.commit()
@@ -1159,9 +1173,11 @@ async def delete_media_asset(
     if not asset:
         raise HTTPException(status_code=404, detail="Media asset not found")
 
-    if asset.provider == "cloudinary" and asset.public_id:
+    provider = cast(str | None, asset.provider)
+    public_id = cast(str | None, asset.public_id)
+    if provider == "cloudinary" and public_id:
         try:
-            await delete_image(asset.public_id)
+            await delete_image(public_id)
         except Exception as exc:  # noqa: BLE001
             logger.exception("Cloudinary delete failed")
             raise HTTPException(status_code=502, detail="Failed to delete remote asset.") from exc
@@ -1181,7 +1197,7 @@ async def bulk_delete_media_assets(
     failed_ids: list[int] = []
 
     assets = db.query(MediaAsset).filter(MediaAsset.id.in_(payload.ids)).all()
-    assets_by_id = {asset.id: asset for asset in assets}
+    assets_by_id = {cast(int, asset.id): asset for asset in assets}
 
     for asset_id in payload.ids:
         asset = assets_by_id.get(asset_id)
@@ -1189,9 +1205,11 @@ async def bulk_delete_media_assets(
             failed_ids.append(asset_id)
             continue
 
-        if asset.provider == "cloudinary" and asset.public_id:
+        provider = cast(str | None, asset.provider)
+        public_id = cast(str | None, asset.public_id)
+        if provider == "cloudinary" and public_id:
             try:
-                await delete_image(asset.public_id)
+                await delete_image(public_id)
             except Exception:  # noqa: BLE001
                 logger.exception("Cloudinary delete failed for asset %s", asset_id)
                 failed_ids.append(asset_id)

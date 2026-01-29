@@ -41,6 +41,7 @@ const copy = {
   manageCertificates: "Certificates",
   manageServices: "Services",
   manageBlog: "Blog",
+  profile: "Profile",
   integrations: "Integrations",
   integrationsSubtitle: "Monitor connected media sources for image uploads.",
   cloudinary: "Cloudinary",

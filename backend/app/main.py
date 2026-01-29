@@ -131,7 +131,8 @@ app.include_router(testimonials.router, prefix=f"{settings.API_V1_STR}/testimoni
 
 @app.get("/docs", include_in_schema=False)
 async def scalar_docs():
-    return HTMLResponse(_get_scalar_html(app.openapi_url))
+    openapi_url = app.openapi_url or "/openapi.json"
+    return HTMLResponse(_get_scalar_html(openapi_url))
 
 @app.get("/")
 async def root():

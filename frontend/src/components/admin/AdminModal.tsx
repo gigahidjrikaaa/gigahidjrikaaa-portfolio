@@ -9,9 +9,10 @@ interface AdminModalProps {
   description?: string;
   children: ReactNode;
   onClose: () => void;
+  maxWidthClass?: string;
 }
 
-const AdminModal = ({ title, description, children, onClose }: AdminModalProps) => {
+const AdminModal = ({ title, description, children, onClose, maxWidthClass }: AdminModalProps) => {
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -30,7 +31,7 @@ const AdminModal = ({ title, description, children, onClose }: AdminModalProps) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-8 shadow-2xl">
+      <div className={`relative w-full ${maxWidthClass || "max-w-4xl"} max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-8 shadow-2xl`}>
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Form</p>

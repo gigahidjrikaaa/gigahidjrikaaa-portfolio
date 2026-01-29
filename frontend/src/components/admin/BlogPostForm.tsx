@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -11,6 +11,7 @@ import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import ImageExtension from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
+import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,8 @@ import { useToast } from "@/components/ui/toast";
 import { adminApi, BlogPostBase, BlogPostResponse } from "@/services/api";
 import { openGoogleDrivePicker } from "@/lib/googleDrivePicker";
 import { openMediaLibrary } from "@/lib/cloudinaryWidget";
+import Tooltip from "@/components/ui/tooltip";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
 const copy = {
   addTitle: "Add Blog Post",
@@ -51,6 +54,28 @@ const copy = {
     upload: "Upload",
     uploading: "Uploading...",
   },
+  hints: {
+    title: "Use a clear, benefit-driven headline with your main keyword.",
+    slug: "Short, lowercase, and descriptive (auto-generated from title).",
+    excerpt: "1–2 sentences that summarize the value of the post.",
+    category: "Choose 1–3 high-level themes for discovery.",
+    tags: "Add 3–6 specific keywords. Use ; to separate tags.",
+    coverImage: "1200×630 works best for cards and social previews.",
+    ogImage: "If empty, the cover image will be used for sharing.",
+    content: "Use headings, bullets, and short paragraphs for readability.",
+    seoTitle: "Aim for 50–60 characters with the primary keyword.",
+    seoDescription: "150–160 characters, include a clear benefit or CTA.",
+    seoKeywords: "Optional. Use 3–6 keywords separated by ;.",
+    featured: "Highlight a flagship post on the blog landing page.",
+    status: "Drafts are private. Published posts show on the site.",
+  },
+  preview: {
+    title: "Live preview",
+    subtitle: "See how the post will look on the public blog page.",
+    contentPlaceholder: "Start writing to see the content preview.",
+    excerptPlaceholder: "Add an excerpt to preview the summary.",
+    titlePlaceholder: "Untitled article",
+  },
   validation: {
     titleRequired: "Title is required.",
     slugRequired: "Slug is required.",
@@ -65,6 +90,33 @@ const copy = {
     { value: "published", label: "Published" },
   ],
 };
+
+const FieldLabel = ({
+  htmlFor,
+  label,
+  tooltip,
+}: {
+  htmlFor: string;
+  label: string;
+  tooltip?: string;
+}) => (
+  <div className="flex items-center gap-2">
+    <Label htmlFor={htmlFor} className="text-gray-700">
+      {label}
+    </Label>
+    {tooltip ? (
+      <Tooltip content={tooltip}>
+        <button
+          type="button"
+          className="text-gray-400 hover:text-gray-600"
+          aria-label={`${label} help`}
+        >
+          <InformationCircleIcon className="h-4 w-4" />
+        </button>
+      </Tooltip>
+    ) : null}
+  </div>
+);
 
 interface BlogPostFormProps {
   post?: BlogPostResponse | null;
@@ -110,6 +162,12 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isUploadingInline, setIsUploadingInline] = useState(false);
   const [isSlugEdited, setIsSlugEdited] = useState(false);
+  const [categorySuggestions, setCategorySuggestions] = useState<string[]>([]);
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
+  const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [autosaveId, setAutosaveId] = useState<number | null>(post?.id ?? null);
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isCreatingDraftRef = useRef(false);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const inlineImageInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -163,12 +221,35 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
         status: post.status || "draft",
       });
       setIsSlugEdited(true);
+      setAutosaveId(post.id);
     } else {
       setIsSlugEdited(false);
+      setAutosaveId(null);
     }
   }, [post, reset]);
 
   const coverImageUrl = watch("cover_image_url");
+  const ogImageUrl = watch("og_image_url");
+  const categoryValue = watch("category") || "";
+  const tagsValue = watch("tags") || "";
+  const slugValue = watch("slug") || "";
+  const excerptValue = watch("excerpt") || "";
+  const statusValue = watch("status");
+  const seoTitleValue = watch("seo_title") || "";
+  const seoDescriptionValue = watch("seo_description") || "";
+  const seoKeywordsValue = watch("seo_keywords") || "";
+  const isFeaturedValue = !!watch("is_featured");
+  const previewTitle = watch("title") || copy.preview.titlePlaceholder;
+  const previewExcerpt = watch("excerpt");
+  const previewCategories = (watch("category") || "")
+    .split(/[;,]/)
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+  const previewTags = (watch("tags") || "")
+    .split(/[;,]/)
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+  const previewContent = watch("content") || "";
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "";
   const cloudApiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || "";
   const canOpenCloudinaryLibrary = Boolean(cloudName && cloudApiKey);
@@ -176,6 +257,44 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
   const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY || "";
   const canOpenGoogleDrive = Boolean(googleClientId && googleApiKey);
   const titleValue = watch("title");
+
+  const draftKey = useMemo(() => {
+    if (post?.id) return `blog-draft-${post.id}`;
+    return "blog-draft-new";
+  }, [post?.id]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (post) return;
+    const raw = window.localStorage.getItem(draftKey);
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as { payload?: BlogPostBase };
+      if (!parsed.payload) return;
+      const hasExistingInput = Boolean(titleValue || slugValue || previewContent);
+      if (hasExistingInput) return;
+      reset({
+        title: parsed.payload.title || "",
+        slug: parsed.payload.slug || "",
+        excerpt: parsed.payload.excerpt || "",
+        content: parsed.payload.content || "",
+        category: parsed.payload.category || "",
+        tags: parsed.payload.tags || "",
+        cover_image_url: parsed.payload.cover_image_url || "",
+        og_image_url: parsed.payload.og_image_url || "",
+        seo_title: parsed.payload.seo_title || "",
+        seo_description: parsed.payload.seo_description || "",
+        seo_keywords: parsed.payload.seo_keywords || "",
+        is_featured: parsed.payload.is_featured ?? false,
+        status: parsed.payload.status || "draft",
+        reading_time_minutes: parsed.payload.reading_time_minutes || undefined,
+        view_count: parsed.payload.view_count ?? 0,
+        like_count: parsed.payload.like_count ?? 0,
+      });
+    } catch (error) {
+      console.error("Failed to restore draft", error);
+    }
+  }, [draftKey, post, reset, slugValue, titleValue, previewContent]);
 
   const slugify = (value: string) =>
     value
@@ -185,17 +304,208 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
       .replace(/\s+/g, "-")
       .replace(/-+/g, "-");
 
+  const parseDelimited = (value: string) =>
+    value
+      .split(/[;,]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+  const currentTags = useMemo(() => parseDelimited(tagsValue), [tagsValue]);
+  const currentCategories = useMemo(() => parseDelimited(categoryValue), [categoryValue]);
+
+  const updateTags = (nextTags: string[]) => {
+    setValue("tags", nextTags.join("; "), { shouldValidate: true, shouldDirty: true });
+  };
+
+  const updateCategories = (nextCategories: string[]) => {
+    setValue("category", nextCategories.join("; "), { shouldValidate: true, shouldDirty: true });
+  };
+
+  const handleAddTag = (tag: string) => {
+    if (currentTags.some((item) => item.toLowerCase() === tag.toLowerCase())) return;
+    updateTags([...currentTags, tag]);
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    updateTags(currentTags.filter((item) => item.toLowerCase() !== tag.toLowerCase()));
+  };
+
+  const handleAddCategory = (value: string) => {
+    if (currentCategories.some((item) => item.toLowerCase() === value.toLowerCase())) return;
+    updateCategories([...currentCategories, value]);
+  };
+
+  const handleRemoveCategory = (value: string) => {
+    updateCategories(currentCategories.filter((item) => item.toLowerCase() !== value.toLowerCase()));
+  };
+
   useEffect(() => {
     if (!titleValue || isSlugEdited) return;
     setValue("slug", slugify(titleValue), { shouldValidate: true });
   }, [titleValue, isSlugEdited, setValue]);
 
+  useEffect(() => {
+    let cancelled = false;
+    adminApi
+      .getBlogPosts()
+      .then((posts) => {
+        if (cancelled) return;
+        const categories = Array.from(
+          new Set(
+            posts
+              .flatMap((item) => (item.category || "").split(/[;,]/))
+              .map((item) => item.trim())
+              .filter(Boolean)
+          )
+        ).sort((a, b) => a.localeCompare(b));
+
+        const tags = Array.from(
+          new Set(
+            posts
+              .flatMap((item) => (item.tags || "").split(/[;,]/))
+              .map((item) => item.trim())
+              .filter(Boolean)
+          )
+        ).sort((a, b) => a.localeCompare(b));
+
+        setCategorySuggestions(categories);
+        setTagSuggestions(tags);
+      })
+      .catch((error) => console.error("Failed to fetch blog taxonomy", error));
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const payload: BlogPostBase = {
+      title: titleValue || "",
+      slug: slugValue || "",
+      excerpt: excerptValue || undefined,
+      content: previewContent || undefined,
+      category: categoryValue || undefined,
+      tags: tagsValue || undefined,
+      cover_image_url: coverImageUrl || undefined,
+      og_image_url: ogImageUrl || undefined,
+      seo_title: seoTitleValue || undefined,
+      seo_description: seoDescriptionValue || undefined,
+      seo_keywords: seoKeywordsValue || undefined,
+      reading_time_minutes: undefined,
+      view_count: undefined,
+      like_count: undefined,
+      is_featured: isFeaturedValue,
+      status: statusValue || "draft",
+    };
+
+    const hasAnyInput = Boolean(
+      payload.title ||
+        payload.slug ||
+        payload.excerpt ||
+        payload.content ||
+        payload.category ||
+        payload.tags ||
+        payload.cover_image_url ||
+        payload.og_image_url ||
+        payload.seo_title ||
+        payload.seo_description ||
+        payload.seo_keywords
+    );
+
+    if (!hasAnyInput) return;
+
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+    }
+
+    autosaveTimerRef.current = setTimeout(async () => {
+      try {
+        window.localStorage.setItem(
+          draftKey,
+          JSON.stringify({ payload, savedAt: new Date().toISOString() })
+        );
+      } catch (error) {
+        console.error("Failed to write draft locally", error);
+      }
+
+      if (autosaveId) {
+        setAutosaveStatus("saving");
+        try {
+          await adminApi.updateBlogPost(autosaveId, {
+            title: payload.title,
+            slug: payload.slug,
+            excerpt: payload.excerpt,
+            content: payload.content,
+            category: payload.category,
+            tags: payload.tags,
+            cover_image_url: payload.cover_image_url,
+            og_image_url: payload.og_image_url,
+            seo_title: payload.seo_title,
+            seo_description: payload.seo_description,
+            seo_keywords: payload.seo_keywords,
+            is_featured: payload.is_featured,
+          });
+          setAutosaveStatus("saved");
+          return;
+        } catch (error) {
+          console.error("Failed to autosave post", error);
+          setAutosaveStatus("error");
+          return;
+        }
+      }
+
+      if (isCreatingDraftRef.current) return;
+      if (!payload.title || !payload.slug) return;
+
+      isCreatingDraftRef.current = true;
+      setAutosaveStatus("saving");
+      try {
+        const created = await adminApi.createBlogPost({
+          ...payload,
+          status: "draft",
+        });
+        setAutosaveId(created.id);
+        setAutosaveStatus("saved");
+      } catch (error) {
+        console.error("Failed to create autosave draft", error);
+        setAutosaveStatus("error");
+      } finally {
+        isCreatingDraftRef.current = false;
+      }
+    }, 1200);
+
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+      }
+    };
+  }, [
+    titleValue,
+    slugValue,
+    excerptValue,
+    previewContent,
+    categoryValue,
+    tagsValue,
+    coverImageUrl,
+    ogImageUrl,
+    seoTitleValue,
+    seoDescriptionValue,
+    seoKeywordsValue,
+    isFeaturedValue,
+    statusValue,
+    autosaveId,
+    draftKey,
+  ]);
+
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
       }),
       Underline,
+      HorizontalRule,
       Link.configure({ openOnClick: false }),
       ImageExtension,
       Placeholder.configure({
@@ -314,7 +624,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
   useEffect(() => {
     if (!editor) return;
     const content = post?.content || "";
-    editor.commands.setContent(content, false);
+    editor.commands.setContent(content, { emitUpdate: false });
   }, [editor, post?.content]);
 
   return (
@@ -322,15 +632,18 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
       title={post ? copy.editTitle : copy.addTitle}
       description="Write a full post with rich text, upload images, and prepare a cover image for previews."
       onClose={onCancel}
+      maxWidthClass="max-w-7xl"
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-x-6 gap-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
+        <div className="space-y-4">
           <div>
-            <Label htmlFor="title" className="text-gray-700">{copy.fields.title} *</Label>
+            <FieldLabel htmlFor="title" label={`${copy.fields.title} *`} tooltip={copy.hints.title} />
             <Input id="title" {...register("title")} required className="mt-1" placeholder="e.g., Designing Trust in Web3" />
+            <p className="mt-1 text-xs text-gray-500">{copy.hints.title}</p>
             {errors.title && <p className="mt-1 text-xs text-red-600">{errors.title.message}</p>}
           </div>
           <div>
-            <Label htmlFor="slug" className="text-gray-700">{copy.fields.slug} *</Label>
+            <FieldLabel htmlFor="slug" label={`${copy.fields.slug} *`} tooltip={copy.hints.slug} />
             <Input
               id="slug"
               {...register("slug", {
@@ -341,16 +654,17 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
               placeholder="e.g., designing-trust-web3"
             />
             {errors.slug && <p className="mt-1 text-xs text-red-600">{errors.slug.message}</p>}
-            <p className="mt-1 text-xs text-gray-500">Use kebab-case, e.g. <span className="font-medium">my-new-post</span>.</p>
+            <p className="mt-1 text-xs text-gray-500">{copy.hints.slug}</p>
           </div>
           <div>
-            <Label htmlFor="excerpt" className="text-gray-700">{copy.fields.excerpt}</Label>
+            <FieldLabel htmlFor="excerpt" label={copy.fields.excerpt} tooltip={copy.hints.excerpt} />
             <Textarea id="excerpt" {...register("excerpt")} rows={4} className="mt-1" placeholder="Short summary shown on cards" />
+            <p className="mt-1 text-xs text-gray-500">{copy.hints.excerpt}</p>
           </div>
           <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
             <div>
               <p className="text-sm font-medium text-gray-800">{copy.fields.featured}</p>
-              <p className="text-xs text-gray-500">Featured posts appear at the top of the blog.</p>
+              <p className="text-xs text-gray-500">{copy.hints.featured}</p>
             </div>
             <Switch
               checked={!!watch("is_featured")}
@@ -359,16 +673,72 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <Label htmlFor="category" className="text-gray-700">{copy.fields.category}</Label>
-              <Input id="category" {...register("category")} className="mt-1" placeholder="e.g. AI, Blockchain" />
+              <FieldLabel htmlFor="category" label={copy.fields.category} tooltip={copy.hints.category} />
+              <Input id="category" {...register("category")} className="mt-1" placeholder="e.g. AI; Blockchain; Product" />
+              <p className="mt-1 text-xs text-gray-500">{copy.hints.category}</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {currentCategories.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => handleRemoveCategory(item)}
+                    className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                    aria-label={`Remove category ${item}`}
+                  >
+                    {item}
+                    <span className="text-slate-400">×</span>
+                  </button>
+                ))}
+                {categorySuggestions
+                  .filter((item) => !currentCategories.some((cat) => cat.toLowerCase() === item.toLowerCase()))
+                  .slice(0, 8)
+                  .map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => handleAddCategory(item)}
+                      className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:text-gray-900"
+                    >
+                      {item}
+                    </button>
+                  ))}
+              </div>
             </div>
             <div>
-              <Label htmlFor="tags" className="text-gray-700">{copy.fields.tags}</Label>
-              <Input id="tags" {...register("tags")} className="mt-1" placeholder="ai, product, design" />
+              <FieldLabel htmlFor="tags" label={copy.fields.tags} tooltip={copy.hints.tags} />
+              <Input id="tags" {...register("tags")} className="mt-1" placeholder="ai; product; design" />
+              <p className="mt-1 text-xs text-gray-500">{copy.hints.tags}</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {currentTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                    aria-label={`Remove tag ${tag}`}
+                  >
+                    #{tag}
+                    <span className="text-slate-400">×</span>
+                  </button>
+                ))}
+                {tagSuggestions
+                  .filter((item) => !currentTags.some((tag) => tag.toLowerCase() === item.toLowerCase()))
+                  .slice(0, 10)
+                  .map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => handleAddTag(item)}
+                      className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:text-gray-900"
+                    >
+                      #{item}
+                    </button>
+                  ))}
+              </div>
             </div>
           </div>
           <div>
-            <Label htmlFor="cover_image_url" className="text-gray-700">{copy.fields.coverImage}</Label>
+            <FieldLabel htmlFor="cover_image_url" label={copy.fields.coverImage} tooltip={copy.hints.coverImage} />
             <div className="mt-2 flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-3">
                 <Input
@@ -410,7 +780,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
                   Pick from Google Drive
                 </Button>
               </div>
-              <p className="text-xs text-gray-500">{copy.fields.coverImageHint}</p>
+              <p className="text-xs text-gray-500">{copy.hints.coverImage}</p>
             </div>
             {coverImageUrl ? (
               <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
@@ -433,7 +803,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
             )}
           </div>
           <div>
-            <Label htmlFor="og_image_url" className="text-gray-700">{copy.fields.ogImage}</Label>
+            <FieldLabel htmlFor="og_image_url" label={copy.fields.ogImage} tooltip={copy.hints.ogImage} />
             <div className="mt-1 flex flex-wrap items-center gap-3">
               <Input id="og_image_url" {...register("og_image_url")} className="flex-1" placeholder="https://..." />
               <Button
@@ -456,7 +826,8 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
             )}
           </div>
           <div>
-            <Label htmlFor="content" className="text-gray-700">{copy.fields.content}</Label>
+            <FieldLabel htmlFor="content" label={copy.fields.content} tooltip={copy.hints.content} />
+            <p className="mt-1 text-xs text-gray-500">{copy.hints.content}</p>
             <input type="hidden" {...register("content")} />
             <input
               ref={inlineImageInputRef}
@@ -470,6 +841,13 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
             />
             <div className="mt-2 rounded-lg border border-gray-200 bg-white">
               <div className="flex flex-wrap gap-2 border-b border-gray-200 px-3 py-2">
+                <button
+                  type="button"
+                  className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
+                  onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                >
+                  H1
+                </button>
                 <button
                   type="button"
                   className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
@@ -522,6 +900,13 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
                 <button
                   type="button"
                   className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
+                  onClick={() => editor?.chain().focus().setHorizontalRule().run()}
+                >
+                  Separator
+                </button>
+                <button
+                  type="button"
+                  className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
                   onClick={() => editor?.chain().focus().toggleBlockquote().run()}
                 >
                   Quote
@@ -529,9 +914,52 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
                 <button
                   type="button"
                   className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
+                  onClick={() => {
+                    const url = window.prompt("Paste a URL to link", "https://");
+                    if (!url) return;
+                    editor?.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+                  }}
+                >
+                  URL
+                </button>
+                <button
+                  type="button"
+                  className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
                   onClick={() => inlineImageInputRef.current?.click()}
                 >
                   Image
+                </button>
+                <button
+                  type="button"
+                  className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
+                  onClick={() => {
+                    const caption = window.prompt("Caption text", "Image caption");
+                    if (!caption) return;
+                    editor?.chain().focus().insertContent(`<p><em>${caption}</em></p>`).run();
+                  }}
+                >
+                  Caption
+                </button>
+                <button
+                  type="button"
+                  className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
+                  onClick={() => {
+                    const url = window.prompt("Paste YouTube URL", "https://www.youtube.com/watch?v=");
+                    if (!url) return;
+                    const match = url.match(/[?&]v=([^&]+)|youtu\.be\/([^?]+)/);
+                    const videoId = match?.[1] || match?.[2];
+                    if (!videoId) return;
+                    const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                    editor
+                      ?.chain()
+                      .focus()
+                      .insertContent(
+                        `<iframe src="${embedUrl}" width="560" height="315" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+                      )
+                      .run();
+                  }}
+                >
+                  YouTube
                 </button>
                 <button
                   type="button"
@@ -561,17 +989,20 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
             <div className="mb-3 text-sm font-semibold text-gray-700">SEO</div>
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <Label htmlFor="seo_title" className="text-gray-700">{copy.fields.seoTitle}</Label>
+                <FieldLabel htmlFor="seo_title" label={copy.fields.seoTitle} tooltip={copy.hints.seoTitle} />
                 <Input id="seo_title" {...register("seo_title")} className="mt-1" placeholder="Max 60 chars" />
+                <p className="mt-1 text-xs text-gray-500">{copy.hints.seoTitle}</p>
                 {errors.seo_title && <p className="mt-1 text-xs text-red-600">{errors.seo_title.message}</p>}
               </div>
               <div>
-                <Label htmlFor="seo_keywords" className="text-gray-700">{copy.fields.seoKeywords}</Label>
-                <Input id="seo_keywords" {...register("seo_keywords")} className="mt-1" placeholder="keyword1, keyword2" />
+                <FieldLabel htmlFor="seo_keywords" label={copy.fields.seoKeywords} tooltip={copy.hints.seoKeywords} />
+                <Input id="seo_keywords" {...register("seo_keywords")} className="mt-1" placeholder="keyword1; keyword2" />
+                <p className="mt-1 text-xs text-gray-500">{copy.hints.seoKeywords}</p>
               </div>
               <div className="md:col-span-2">
-                <Label htmlFor="seo_description" className="text-gray-700">{copy.fields.seoDescription}</Label>
+                <FieldLabel htmlFor="seo_description" label={copy.fields.seoDescription} tooltip={copy.hints.seoDescription} />
                 <Textarea id="seo_description" {...register("seo_description")} rows={3} className="mt-1" placeholder="Max 160 chars" />
+                <p className="mt-1 text-xs text-gray-500">{copy.hints.seoDescription}</p>
                 {errors.seo_description && (
                   <p className="mt-1 text-xs text-red-600">{errors.seo_description.message}</p>
                 )}
@@ -615,7 +1046,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
             <p className="mt-2 text-xs text-gray-500">Reading time will auto-calculate when content changes.</p>
           </div>
           <div>
-            <Label htmlFor="status" className="text-gray-700">{copy.fields.status} *</Label>
+            <FieldLabel htmlFor="status" label={`${copy.fields.status} *`} tooltip={copy.hints.status} />
             <select
               id="status"
               {...register("status")}
@@ -627,13 +1058,80 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
                 </option>
               ))}
             </select>
+            <p className="mt-1 text-xs text-gray-500">{copy.hints.status}</p>
           </div>
 
-          <div className="mt-6 flex justify-end gap-4">
-            <Button type="button" variant="outline" onClick={onCancel}>{copy.actions.cancel}</Button>
-            <Button type="submit">{copy.actions.save}</Button>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+            <p className="text-xs text-gray-500">
+              {autosaveStatus === "saving" && "Autosaving draft…"}
+              {autosaveStatus === "saved" && "Draft saved"}
+              {autosaveStatus === "error" && "Autosave failed — saved locally"}
+            </p>
+            <div className="flex justify-end gap-4">
+              <Button type="button" variant="outline" onClick={onCancel}>{copy.actions.cancel}</Button>
+              <Button type="submit">{copy.actions.save}</Button>
+            </div>
           </div>
-        </form>
+        </div>
+
+        <aside className="order-first xl:order-none">
+          <div className="sticky top-6 space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                {copy.preview.title}
+              </p>
+              <p className="mt-2 text-sm text-slate-500">{copy.preview.subtitle}</p>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+              {coverImageUrl ? (
+                <div className="relative h-40 w-full">
+                  <Image
+                    src={coverImageUrl}
+                    alt="Cover preview"
+                    fill
+                    unoptimized
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-40 items-center justify-center bg-slate-100 text-xs text-slate-400">
+                  Cover image preview
+                </div>
+              )}
+              <div className="space-y-3 p-4">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                  {previewCategories.map((item) => (
+                    <span key={item} className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">
+                      {item}
+                    </span>
+                  ))}
+                  {previewTags.slice(0, 2).map((tag) => (
+                    <span key={tag} className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900">{previewTitle}</h3>
+                <p className="text-sm text-slate-600">
+                  {previewExcerpt || copy.preview.excerptPlaceholder}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white p-4">
+              {previewContent.trim() ? (
+                <div
+                  className="prose prose-lg max-w-none text-slate-700"
+                  dangerouslySetInnerHTML={{ __html: previewContent }}
+                />
+              ) : (
+                <p className="text-sm text-slate-500">{copy.preview.contentPlaceholder}</p>
+              )}
+            </div>
+          </div>
+        </aside>
+      </form>
     </AdminModal>
   );
 };

@@ -11,7 +11,7 @@ const Navbar = () => {
   // State to manage mobile menu visibility
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAuthenticated, isLoading } = useAuth(); // Get auth state
-  const pathname = usePathname();
+  const pathname = usePathname() || '';
 
   if (pathname.startsWith('/admin')) {
     return null;
