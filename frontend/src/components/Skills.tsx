@@ -1,4 +1,3 @@
-// src/components/Skills.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
@@ -53,26 +52,6 @@ const copy = {
   subtitle: 'A curated toolkit spanning languages, frameworks, tools, and methodologies.',
   loading: 'Loading skills...',
   empty: 'Skills coming soon.',
-  codingChallenges: {
-    title: 'Coding Challenge Progress',
-    subtitle: 'Tracking problem-solving skills across competitive platforms',
-    leetcode: 'LeetCode',
-    hackerrank: 'HackerRank',
-    widgetNote: 'If the widget does not load, open the profile in a new tab.',
-  },
-};
-
-const widgets = {
-  leetcode: {
-    profileUrl: 'https://leetcode.com/u/gigahidjrikaaa/',
-    // Repo-backed card example: https://github.com/KnlnKS/leetcode-stats
-    cardUrl: 'https://leetcode-stats-six.vercel.app/?username=gigahidjrikaaa&theme=light',
-  },
-  hackerrank: {
-    profileUrl: 'https://www.hackerrank.com/profile/gigahidjrikaaa',
-    // Repo-backed badges SVG: https://github.com/VenkataRamanaRao5/hackerrank
-    badgesSvgUrl: 'https://hackerrank-badges.vercel.app/gigahidjrikaaa',
-  },
 };
 
 const Skills = () => {
@@ -93,7 +72,6 @@ const Skills = () => {
     fetchData();
   }, []);
 
-  // Group skills by category
   const skillsByCategory = useMemo(() => {
     return skills.reduce((acc, skill) => {
       const cat = skill.category || 'Other';
@@ -114,7 +92,6 @@ const Skills = () => {
           viewport={{ once: true, amount: 0.2 }}
           variants={containerVariants}
         >
-          {/* Header */}
           <motion.div variants={itemVariants} className="mb-16 max-w-2xl">
             <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
               {copy.eyebrow}
@@ -174,83 +151,6 @@ const Skills = () => {
           ) : (
             <div className="text-center text-gray-500">{copy.empty}</div>
           )}
-
-          {/* Coding Challenges Section */}
-          <motion.div
-            variants={itemVariants}
-            className="mt-16 rounded-[28px] border border-gray-200/60 bg-gradient-to-br from-gray-50/50 to-white p-8"
-          >
-            <div className="mb-8">
-              <h3 className="text-2xl font-semibold text-gray-900">
-                {copy.codingChallenges.title}
-              </h3>
-              <p className="mt-2 text-sm text-gray-500">{copy.codingChallenges.subtitle}</p>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* LeetCode */}
-              <div className="rounded-xl border border-gray-200 bg-white p-6">
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100">
-                    <span className="text-xl font-bold text-orange-600">LC</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{copy.codingChallenges.leetcode}</h4>
-                    <a
-                      href={widgets.leetcode.profileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      View Profile →
-                    </a>
-                  </div>
-                </div>
-                  <div className="w-full overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={widgets.leetcode.cardUrl}
-                      alt="LeetCode stats card"
-                      loading="lazy"
-                      className="h-auto w-full"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                <p className="mt-3 text-xs text-gray-500">{copy.codingChallenges.widgetNote}</p>
-              </div>
-
-              {/* HackerRank */}
-              <div className="rounded-xl border border-gray-200 bg-white p-6">
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
-                    <span className="text-xl font-bold text-green-600">HR</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{copy.codingChallenges.hackerrank}</h4>
-                    <a
-                      href={widgets.hackerrank.profileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      View Profile →
-                    </a>
-                  </div>
-                </div>
-                <div className="w-full overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={widgets.hackerrank.badgesSvgUrl}
-                    alt="HackerRank badges"
-                    loading="lazy"
-                    className="h-auto w-full"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-                <p className="mt-3 text-xs text-gray-500">{copy.codingChallenges.widgetNote}</p>
-              </div>
-            </div>
-          </motion.div>
         </motion.div>
       </div>
     </section>

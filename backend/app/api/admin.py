@@ -1,3 +1,4 @@
+import bleach
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func, or_
@@ -5,7 +6,6 @@ from typing import List, cast
 from datetime import datetime
 import math
 import re
-import bleach
 import logging
 from ..services.pdf_import_service import extract_text_from_pdf_bytes, parse_linkedin_resume_text
 from ..database import (
@@ -27,10 +27,10 @@ from ..database import (
     Certificate,
     Service,
     BlogPost,
-)
+    )
 from ..auth import get_current_admin_user
 from ..schemas import (
-    ProjectCreate, ProjectUpdate, ProjectResponse, 
+    ProjectCreate, ProjectUpdate, ProjectResponse,
     ExperienceCreate, ExperienceResponse, ExperienceUpdate,
     EducationCreate, EducationResponse, EducationUpdate,
     SkillCreate, SkillResponse, SkillUpdate,
@@ -46,12 +46,62 @@ from ..schemas import (
     CertificateCreate, CertificateResponse, CertificateUpdate,
     ServiceCreate, ServiceResponse, ServiceUpdate,
     BlogPostCreate, BlogPostResponse, BlogPostUpdate,
-)
+    )
+from ..utils import sanitize_text, sanitize_html
 from ..services.cloudinary_service import upload_image, delete_image
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+def sanitize_project_data(data: dict) -> dict:
+    """Sanitize project data to prevent XSS attacks."""
+    sanitized = data.copy()
+
+    text_fields = ['title', 'tagline', 'description', 'challenges', 'solutions', 'impact',
+                  'role', 'metrics_users', 'metrics_performance', 'metrics_impact',
+                  'solo_contributions', 'tech_decisions']
+
+    for field in text_fields:
+        if field in sanitized and sanitized[field]:
+            sanitized[field] = sanitize_text(sanitized[field])
+
+    return sanitized
+
+def sanitize_experience_data(data: dict) -> dict:
+    """Sanitize experience data to prevent XSS attacks."""
+    sanitized = data.copy()
+
+    text_fields = ['title', 'company', 'location', 'period', 'description']
+
+    for field in text_fields:
+        if field in sanitized and sanitized[field]:
+            sanitized[field] = sanitize_text(sanitized[field])
+
+    return sanitized
+
+def sanitize_education_data(data: dict) -> dict:
+    """Sanitize education data to prevent XSS attacks."""
+    sanitized = data.copy()
+
+    text_fields = ['degree', 'institution', 'location', 'period', 'description', 'gpa']
+
+    for field in text_fields:
+        if field in sanitized and sanitized[field]:
+            sanitized[field] = sanitize_text(sanitized[field])
+
+    return sanitized
+
+def sanitize_contact_message(data: dict) -> dict:
+    """Sanitize contact message to prevent XSS attacks."""
+    sanitized = data.copy()
+
+    if 'name' in sanitized and sanitized['name']:
+        sanitized['name'] = sanitize_text(sanitized['name'])
+    if 'message' in sanitized and sanitized['message']:
+        sanitized['message'] = sanitize_text(sanitized['message'])
+
+    return sanitized
 
 # =============================================================================
 # PROJECTS CRUD
@@ -63,7 +113,8 @@ async def create_project(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user)
 ):
-    db_project = Project(**project.model_dump())
+    sanitized_data = sanitize_project_data(project.model_dump())
+    db_project = Project(**sanitized_data)
     db.add(db_project)
     db.commit()
     db.refresh(db_project)
@@ -108,7 +159,9 @@ async def update_project(
     if not db_project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    for field, value in project.model_dump(exclude_unset=True).items():
+    update_data = sanitize_project_data(project.model_dump(exclude_unset=True))
+
+    for field, value in update_data.items():
         setattr(db_project, field, value)
 
     db.commit()
@@ -221,7 +274,8 @@ async def create_experience(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user)
 ):
-    db_experience = Experience(**experience.model_dump())
+    sanitized_data = sanitize_experience_data(experience.model_dump())
+    db_experience = Experience(**sanitized_data)
     db.add(db_experience)
     db.commit()
     db.refresh(db_experience)
@@ -256,7 +310,9 @@ async def update_experience(
     if not db_experience:
         raise HTTPException(status_code=404, detail="Experience not found")
 
-    for field, value in experience.model_dump(exclude_unset=True).items():
+    update_data = sanitize_experience_data(experience.model_dump(exclude_unset=True))
+
+    for field, value in update_data.items():
         setattr(db_experience, field, value)
 
     db.commit()
@@ -287,7 +343,8 @@ async def create_education(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user)
 ):
-    db_education = Education(**education.model_dump())
+    sanitized_data = sanitize_education_data(education.model_dump())
+    db_education = Education(**sanitized_data)
     db.add(db_education)
     db.commit()
     db.refresh(db_education)
@@ -322,7 +379,9 @@ async def update_education(
     if not db_education:
         raise HTTPException(status_code=404, detail="Education not found")
 
-    for field, value in education.model_dump(exclude_unset=True).items():
+    update_data = sanitize_education_data(education.model_dump(exclude_unset=True))
+
+    for field, value in update_data.items():
         setattr(db_education, field, value)
 
     db.commit()
@@ -624,12 +683,25 @@ async def delete_service(
 # =============================================================================
 
 def _apply_blog_status(post: BlogPost) -> None:
+    """Apply blog status logic including scheduled publishing."""
+    from datetime import datetime as dt
     status = cast(str, post.status)
     published_at = cast(object, getattr(post, "published_at", None))
-    if status == "published" and published_at is None:
-        setattr(post, "published_at", datetime.utcnow())
+    scheduled_at = cast(object, getattr(post, "scheduled_at", None))
+
+    # Handle scheduled publishing
+    if status == "scheduled" and scheduled_at:
+        # Keep as draft until scheduled time
+        setattr(post, "status", "draft")
+        setattr(post, "scheduled_at", scheduled_at)
+    elif status == "published":
+        if published_at is None:
+            setattr(post, "published_at", dt.utcnow())
+        # Clear scheduled_at when published
+        setattr(post, "scheduled_at", None)
     elif status in {"draft", "coming_soon"}:
         setattr(post, "published_at", None)
+        # Keep scheduled_at for future reference
 
 
 def _calculate_reading_time(content: str | None) -> int | None:
@@ -643,44 +715,10 @@ def _calculate_reading_time(content: str | None) -> int | None:
 
 
 def _sanitize_blog_content(content: str | None) -> str | None:
+    """Sanitize blog content allowing HTML with YouTube iframe support."""
     if not content:
         return content
-    allowed_tags = [
-        "p",
-        "br",
-        "strong",
-        "em",
-        "u",
-        "a",
-        "img",
-        "ul",
-        "ol",
-        "li",
-        "blockquote",
-        "code",
-        "pre",
-        "h1",
-        "h2",
-        "h3",
-        "hr",
-        "iframe",
-    ]
-    allowed_attrs = {
-        "a": ["href", "title", "rel", "target"],
-        "img": ["src", "alt", "title"],
-        "iframe": ["src", "width", "height", "title", "frameborder", "allow", "allowfullscreen"],
-    }
-    cleaned = bleach.clean(content, tags=allowed_tags, attributes=allowed_attrs, strip=True)
-    def _strip_non_youtube_iframes(html: str) -> str:
-        pattern = re.compile(r"<iframe[^>]+src=\"([^\"]+)\"[^>]*></iframe>", re.IGNORECASE)
-        def _replace(match: re.Match[str]) -> str:
-            src = match.group(1)
-            if "youtube.com/embed/" in src or "youtu.be/" in src:
-                return match.group(0)
-            return ""
-        return pattern.sub(_replace, html)
-
-    return _strip_non_youtube_iframes(cleaned)
+    return sanitize_html(content, allow_iframe=True)
 
 
 @router.post("/blog", response_model=BlogPostResponse)
@@ -762,6 +800,36 @@ async def delete_blog_post(
     db.delete(post)
     db.commit()
     return {"message": "Blog post deleted successfully"}
+
+
+@router.post("/blog/publish-scheduled")
+async def publish_scheduled_posts(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_user),
+):
+    """Publish all scheduled blog posts whose scheduled time has arrived."""
+    from datetime import datetime as dt
+
+    scheduled_posts = (
+        db.query(BlogPost)
+        .filter(BlogPost.status == "draft")
+        .filter(BlogPost.scheduled_at.isnot(None))
+        .all()
+    )
+
+    published_count = 0
+    now = dt.utcnow()
+
+    for post in scheduled_posts:
+        if post.scheduled_at and post.scheduled_at <= now:
+            setattr(post, "status", "published")
+            setattr(post, "published_at", post.scheduled_at)
+            setattr(post, "scheduled_at", None)
+            published_count += 1
+
+    db.commit()
+    return {"published": published_count}
+
 
 # =============================================================================
 # CONTACT MESSAGES

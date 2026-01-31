@@ -165,6 +165,21 @@ export interface ServiceResponse extends ServiceBase {
   created_at: string;
 }
 
+export interface TestimonialResponse {
+  id: number;
+  name: string;
+  role: string;
+  company?: string;
+  avatar_url?: string;
+  content: string;
+  rating?: number;
+  project_relation?: string;
+  linkedin_url?: string;
+  is_featured: boolean;
+  display_order: number;
+  created_at: string;
+}
+
 export interface BlogPostBase {
   title: string;
   slug: string;
@@ -485,6 +500,10 @@ class ApiService {
 
   async getRelatedBlogPosts(slug: string): Promise<BlogPostResponse[]> {
     return this.request<BlogPostResponse[]>(`/blog/related?slug=${encodeURIComponent(slug)}`);
+  }
+
+  async getTestimonials(): Promise<TestimonialResponse[]> {
+    return this.request<TestimonialResponse[]>('/testimonials/featured');
   }
 }
 

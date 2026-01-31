@@ -4,20 +4,18 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bars3Icon, XMarkIcon, PhoneIcon, CameraIcon, ArrowUpRightIcon } from '@heroicons/react/24/outline';
-import { useAuth } from '@/contexts/AuthContext'; // Import the useAuth hook
+import { Bars3Icon, XMarkIcon, PhoneIcon, CameraIcon, ArrowUpRightIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
-  // State to manage mobile menu visibility
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAuthenticated, isLoading } = useAuth(); // Get auth state
+  const { isAdmin, isLoading } = useAuth();
   const pathname = usePathname() || '';
 
   if (pathname.startsWith('/admin')) {
     return null;
   }
 
-  // Function to toggle mobile menu
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -40,9 +38,9 @@ const Navbar = () => {
       phone: 'Call',
       socials: 'Socials',
     },
+    adminBadge: 'Logged in as Admin',
   };
 
-  // Navigation links configuration
   const navLinks = [
     { name: copy.links.about, href: '#about' },
     { name: copy.links.experience, href: '#experience' },
@@ -52,10 +50,9 @@ const Navbar = () => {
     { name: copy.links.contact, href: '#contact' },
   ];
 
-  // Conditionally add the Admin link
-  const allLinks = [...navLinks];
-  if (isAuthenticated) {
-    allLinks.push({ name: copy.links.admin, href: '/admin' });
+  const allLinks: Array<{ name: string; href: string; isAdmin?: boolean }> = [...navLinks];
+  if (isAdmin) {
+    allLinks.push({ name: copy.links.admin, href: '/admin', isAdmin: true });
   }
 
   return (
@@ -74,19 +71,30 @@ const Navbar = () => {
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex md:items-center md:space-x-2 absolute left-1/2 -translate-x-1/2 rounded-full border border-gray-200 bg-white/90 px-4 py-2 shadow-sm">
-            {/* Don't render auth-dependent links until client-side hydration is complete */}
             {!isLoading && allLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-600 hover:text-gray-900 transition-colors duration-200 px-3 py-2 rounded-full"
+                className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-600 hover:text-gray-900 transition-colors duration-200 px-3 py-2 rounded-full flex items-center gap-1"
               >
                 {link.name}
+                {link.isAdmin && (
+                  <ShieldCheckIcon className="h-3.5 w-3.5 text-emerald-600" aria-label={copy.adminBadge} />
+                )}
               </Link>
             ))}
           </div>
 
           <div className="hidden md:flex items-center gap-2">
+            {isAdmin && (
+              <div
+                className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700"
+                title={copy.adminBadge}
+              >
+                <ShieldCheckIcon className="h-3.5 w-3.5" />
+                <span>Admin</span>
+              </div>
+            )}
             <a
               href="tel:+628000000000"
               className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 hover:text-gray-900"
@@ -134,21 +142,28 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu Panel */}
-      {/* Use a transition library like Headless UI or Framer Motion for smoother animations */}
       <div
         className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden transition-all duration-300 ease-out`}
         id="mobile-menu"
       >
         <div className="mt-2 rounded-2xl border border-gray-200/60 bg-white/95 px-3 py-3 shadow-lg">
+          {isAdmin && (
+            <div
+              className="mb-2 flex items-center justify-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700"
+            >
+              <ShieldCheckIcon className="h-3.5 w-3.5" />
+              <span>Logged in as Admin</span>
+            </div>
+          )}
           {!isLoading && allLinks.map((link) => (
             <Link
               key={link.name}
               href={link.href}
-              onClick={() => setIsMobileMenuOpen(false)} // Close menu on link click
-              className="block px-3 py-2 rounded-md text-sm font-semibold uppercase tracking-[0.15em] text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200"
-              // Add active link styling here if needed
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold uppercase tracking-[0.15em] text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200"
             >
               {link.name}
+              {link.isAdmin && <ShieldCheckIcon className="h-3.5 w-3.5 text-emerald-600" />}
             </Link>
           ))}
           <Link

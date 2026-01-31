@@ -43,13 +43,14 @@ const buildPagination = (page: number, totalPages: number) => {
 };
 
 interface BlogPageProps {
-  searchParams?: { page?: string; category?: string; q?: string };
+  searchParams?: Promise<{ page?: string; category?: string; q?: string }>;
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
-  const page = Number(searchParams?.page || "1");
-  const category = searchParams?.category;
-  const q = searchParams?.q;
+  const resolvedSearchParams = await searchParams;
+  const page = Number(resolvedSearchParams?.page || "1");
+  const category = resolvedSearchParams?.category;
+  const q = resolvedSearchParams?.q;
   const data = await getBlogData(page, category, q);
 
   const categories = data.categories ?? [];

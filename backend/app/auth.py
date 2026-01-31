@@ -9,6 +9,9 @@ from .database import get_db, User
 from .config import settings
 import secrets
 
+MAX_LOGIN_ATTEMPTS = 5
+LOCKOUT_DURATION_MINUTES = 15
+
 # Password hashing
 # Use bcrypt_sha256 to avoid bcrypt's 72-byte password limit.
 pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
@@ -45,6 +48,31 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
 
+def is_account_locked(user: User) -> bool:
+    """Check if account is currently locked."""
+    if user.locked_until and user.locked_until > datetime.utcnow():
+        return True
+    return False
+
+def record_failed_login(db: Session, user: User):
+    """Record failed login attempt and lock account if needed."""
+    if user.failed_login_attempts is None:
+        user.failed_login_attempts = 0
+    user.failed_login_attempts += 1
+
+    if user.failed_login_attempts >= MAX_LOGIN_ATTEMPTS:
+        user.locked_until = datetime.utcnow() + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
+        user.failed_login_attempts = 0
+
+    db.commit()
+
+def reset_login_attempts(db: Session, user: User):
+    """Reset login attempts on successful login."""
+    user.failed_login_attempts = 0
+    user.locked_until = None
+    user.last_login = datetime.utcnow()
+    db.commit()
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     to_encode.setdefault("type", "access")
@@ -71,9 +99,19 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
 def authenticate_user(db: Session, username: str, password: str):
     user = db.query(User).filter(User.username == username).first()
     if not user:
-        return False
+        return None
+
+    if is_account_locked(user):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Account locked due to too many failed attempts. Try again later.",
+        )
+
     if not verify_password(password, user.hashed_password):
-        return False
+        record_failed_login(db, user)
+        return None
+
+    reset_login_attempts(db, user)
     return user
 
 async def get_current_user(

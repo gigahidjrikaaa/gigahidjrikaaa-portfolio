@@ -1,11 +1,13 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { apiService } from '@/services/api';
+import { apiService, UserResponse } from '@/services/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isAdmin: boolean;
   isLoading: boolean;
+  user: UserResponse | null;
   checkAuth: () => Promise<void>;
   logout: () => void;
 }
@@ -14,7 +16,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // Start with isLoading true to prevent flash of unauthenticated content
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState<UserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const checkAuth = async () => {
@@ -22,9 +25,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const result = await apiService.verifyToken();
       setIsAuthenticated(!!result.valid);
+      setUser(result.user || null);
+      setIsAdmin(result.user?.is_admin || false);
     } catch (error) {
       console.error("Token verification failed", error);
       setIsAuthenticated(false);
+      setUser(null);
+      setIsAdmin(false);
     } finally {
       setIsLoading(false);
     }
@@ -33,15 +40,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     apiService.logout().catch(() => undefined);
     setIsAuthenticated(false);
+    setUser(null);
+    setIsAdmin(false);
   };
 
   useEffect(() => {
-    // Run the check only on the client-side after the initial render
     checkAuth();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, checkAuth, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isAdmin, isLoading, user, checkAuth, logout }}>
       {children}
     </AuthContext.Provider>
   );

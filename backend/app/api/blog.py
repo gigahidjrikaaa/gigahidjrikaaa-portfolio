@@ -1,9 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from typing import List, cast
+from datetime import datetime
 from .. import schemas
 from ..database import get_db, BlogPost
+from ..config import settings
 
 router = APIRouter()
 
@@ -177,3 +180,52 @@ def track_blog_like(slug: str, db: Session = Depends(get_db)):
     setattr(post, "like_count", like_count)
     db.commit()
     return {"message": "like tracked", "like_count": post.like_count}
+
+
+@router.get("/rss")
+async def get_rss_feed(db: Session = Depends(get_db)):
+    """Generate RSS 2.0 feed for blog posts."""
+    posts = (
+        db.query(BlogPost)
+        .filter(BlogPost.status == "published")
+        .filter(BlogPost.published_at.isnot(None))
+        .order_by(BlogPost.published_at.desc())
+        .limit(20)
+        .all()
+    )
+
+    site_url = settings.SITE_URL
+    site_title = settings.PROJECT_NAME
+
+    rss_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>{site_title} - Blog</title>
+    <link>{site_url}/blog</link>
+    <description>Latest articles on software development, AI, and blockchain</description>
+    <language>en-us</language>
+    <atom:link href="{site_url}/blog/rss" rel="self" type="application/rss+xml"/>
+    <lastBuildDate>{datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')}</lastBuildDate>
+"""
+
+    for post in posts:
+        if post.published_at:
+            pub_date = post.published_at.strftime('%a, %d %b %Y %H:%M:%S GMT')
+            description = post.excerpt or ""
+
+            rss_content += f"""
+    <item>
+      <title>{post.title}</title>
+      <link>{site_url}/blog/{post.slug}</link>
+      <description><![CDATA[{description}]]></description>
+      <pubDate>{pub_date}</pubDate>
+      <guid isPermaLink="true">{site_url}/blog/{post.slug}</guid>
+      <category>{post.category or 'General'}</category>
+    </item>"""
+
+    rss_content += """
+  </channel>
+</rss>"""
+
+    return Response(content=rss_content, media_type="application/rss+xml")
+

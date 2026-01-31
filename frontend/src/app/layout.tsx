@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import AppProviders from "@/app/providers";
+import AppProviders from "./providers";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -36,25 +36,25 @@ export default function RootLayout({
     "@graph": [
       {
         "@type": "WebSite",
-        name: "Giga Hidjrika",
-        url: siteUrl,
-        potentialAction: {
+        "name": "Giga Hidjrika",
+        "url": siteUrl,
+        "potentialAction": {
           "@type": "SearchAction",
-          target: `${siteUrl}/blog?q={search_term_string}`,
+          "target": `${siteUrl}/blog?q={search_term_string}`,
           "query-input": "required name=search_term_string",
         },
       },
       {
         "@type": "Organization",
-        name: "Giga Hidjrika",
-        url: siteUrl,
+        "name": "Giga Hidjrika",
+        "url": siteUrl,
       },
     ],
   };
 
   return (
     <html lang="en">
-      <body className="flex flex-col min-h-screen">
+      <body className="flex flex-col min-h-screen scroll-smooth">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

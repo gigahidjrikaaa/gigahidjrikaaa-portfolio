@@ -3,11 +3,11 @@
 
 import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { FaGithub, FaLinkedinIn, FaTwitter, FaEnvelope } from 'react-icons/fa';
+import { FaGithub, FaLinkedinIn, FaTwitter, FaEnvelope, FaFilePdf, FaDownload } from 'react-icons/fa';
 
 const copy = {
   eyebrow: 'GET IN TOUCH',
-  title: 'Contact Us',
+  title: 'Contact Me',
   subtitle: "Let's align on scope, timelines, and the right engagement model for your team.",
   form: {
     firstName: 'First Name',
@@ -21,12 +21,18 @@ const copy = {
     submit: 'Send Inquiry',
   },
   statusPending: 'Thanks! Your message has been received.',
-  socialPrompt: 'Prefer another channel?',
+  socialPrompt: 'Get in touch',
   socials: {
     github: 'GitHub',
     linkedin: 'LinkedIn',
     twitter: 'Twitter',
     email: 'Email',
+  },
+  downloads: {
+    title: 'Resume & CV',
+    subtitle: 'Download my resume or view more details.',
+    resume: 'Download Resume (PDF)',
+    cv: 'Download CV (PDF)',
   },
 };
 
@@ -96,6 +102,34 @@ const Contact = () => {
                     aria-label={copy.socials.email}
                   >
                     <FaEnvelope className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+
+              <div className="mt-8 rounded-2xl border border-gray-200 bg-gray-50 p-6">
+                <div className="mb-3 flex items-center gap-2">
+                  <FaFilePdf className="text-gray-600" />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {copy.downloads.title}
+                  </h3>
+                </div>
+                <p className="mb-4 text-sm text-gray-600">{copy.downloads.subtitle}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <a
+                    href="/resume.pdf"
+                    download
+                    className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-900 transition hover:border-gray-400 hover:shadow-md"
+                  >
+                    <FaDownload className="h-4 w-4" />
+                    {copy.downloads.resume}
+                  </a>
+                  <a
+                    href="/cv.pdf"
+                    download
+                    className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-900 transition hover:border-gray-400 hover:shadow-md"
+                  >
+                    <FaDownload className="h-4 w-4" />
+                    {copy.downloads.cv}
                   </a>
                 </div>
               </div>

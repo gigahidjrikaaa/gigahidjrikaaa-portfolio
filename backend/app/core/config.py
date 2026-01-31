@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     CLOUDINARY_API_SECRET: str = Field(default="")
     CLOUDINARY_FOLDER: str = Field(default="portfolio")
 
+    # Site Configuration
+    SITE_URL: str = Field(default="http://localhost:3000")
+
     # Basic rate limiting (in-memory; suitable for single-process dev)
     RATE_LIMIT_WINDOW_SECONDS: int = Field(default=60)
     RATE_LIMIT_LOGIN_PER_WINDOW: int = Field(default=10)

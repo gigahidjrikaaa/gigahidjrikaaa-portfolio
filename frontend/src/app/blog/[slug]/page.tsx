@@ -7,7 +7,7 @@ import LikeButton from "./LikeButton";
 import BlogCard from "@/components/BlogCard";
 
 interface BlogDetailProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 const formatDate = (value?: string | null) => {
@@ -21,7 +21,8 @@ const formatDate = (value?: string | null) => {
 };
 
 export async function generateMetadata({ params }: BlogDetailProps): Promise<Metadata> {
-  const post = await apiService.getBlogPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await apiService.getBlogPostBySlug(slug);
   const title = post.seo_title || post.title;
   const description = post.seo_description || post.excerpt || "";
   const ogImage = post.og_image_url || post.cover_image_url || undefined;
@@ -48,8 +49,9 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
 }
 
 export default async function BlogDetailPage({ params }: BlogDetailProps) {
-  const post = await apiService.getBlogPostBySlug(params.slug);
-  const related = await apiService.getRelatedBlogPosts(params.slug);
+  const { slug } = await params;
+  const post = await apiService.getBlogPostBySlug(slug);
+  const related = await apiService.getRelatedBlogPosts(slug);
   const publishedAt = post.published_at || post.created_at;
   const imageUrl = post.og_image_url || post.cover_image_url || undefined;
   const jsonLd = {
@@ -72,7 +74,7 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
 
   return (
     <article className="min-h-screen bg-white py-24">
-      <ViewTracker slug={params.slug} />
+      <ViewTracker slug={slug} />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <script
           type="application/ld+json"

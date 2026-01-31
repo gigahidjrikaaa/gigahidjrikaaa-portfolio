@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactElement, cloneElement, useId } from "react";
+import { ReactElement, cloneElement, useId, AriaAttributes, HTMLAttributes } from "react";
 
 interface TooltipProps {
   content: string;
@@ -9,11 +9,12 @@ interface TooltipProps {
 
 const Tooltip = ({ content, children }: TooltipProps) => {
   const tooltipId = useId();
+  const childProps = children.props as HTMLAttributes<HTMLElement> & AriaAttributes;
   return (
     <span className="group relative inline-flex" aria-describedby={tooltipId}>
       {cloneElement(children, {
-        "aria-label": children.props["aria-label"] || content,
-      })}
+        "aria-label": childProps["aria-label"] || content,
+      } as HTMLAttributes<HTMLElement> & AriaAttributes)}
       <span
         id={tooltipId}
         role="tooltip"

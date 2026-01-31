@@ -1,30 +1,39 @@
-from pydantic import BaseModel, EmailStr, HttpUrl, constr, Field
+from pydantic import BaseModel, EmailStr, HttpUrl, field_validator, Field
 from typing import List, Optional
 from datetime import datetime
+import re
 
 # Base schemas
 class ProjectBase(BaseModel):
-    title: str
-    tagline: str
-    description: str
-    github_url: str
-    live_url: Optional[str] = None
-    case_study_url: Optional[str] = None
-    role: str
-    team_size: int
-    challenges: str
-    solutions: str
-    impact: str
-    image_url: Optional[str] = None
-    thumbnail_url: Optional[str] = None
-    ui_image_url: Optional[str] = None
+    title: str = Field(..., min_length=1, max_length=200)
+    tagline: str = Field(..., min_length=1, max_length=300)
+    description: str = Field(..., min_length=1, max_length=10000)
+    github_url: str = Field(..., max_length=500)
+    live_url: Optional[str] = Field(None, max_length=500)
+    case_study_url: Optional[str] = Field(None, max_length=500)
+    role: str = Field(..., min_length=1, max_length=100)
+    team_size: int = Field(..., ge=1, le=100)
+    challenges: str = Field(..., min_length=1, max_length=10000)
+    solutions: str = Field(..., min_length=1, max_length=10000)
+    impact: str = Field(..., min_length=1, max_length=10000)
+    image_url: Optional[str] = Field(None, max_length=1000)
+    thumbnail_url: Optional[str] = Field(None, max_length=1000)
+    ui_image_url: Optional[str] = Field(None, max_length=1000)
     is_featured: bool = False
     display_order: int = 0
-    metrics_users: Optional[str] = None
-    metrics_performance: Optional[str] = None
-    metrics_impact: Optional[str] = None
-    solo_contributions: Optional[str] = None
-    tech_decisions: Optional[str] = None
+    metrics_users: Optional[str] = Field(None, max_length=5000)
+    metrics_performance: Optional[str] = Field(None, max_length=5000)
+    metrics_impact: Optional[str] = Field(None, max_length=5000)
+    solo_contributions: Optional[str] = Field(None, max_length=10000)
+    tech_decisions: Optional[str] = Field(None, max_length=10000)
+
+    @field_validator('github_url', 'live_url', 'case_study_url', mode='before')
+    @classmethod
+    def validate_urls(cls, v):
+        if v is not None and v != '':
+            if not (v.startswith('http://') or v.startswith('https://')):
+                raise ValueError('URL must start with http:// or https://')
+        return v if v != '' else None
 
 class ProjectCreate(ProjectBase):
     pass
@@ -64,12 +73,12 @@ class ProjectResponse(ProjectBase):
 
 # Experience schemas
 class ExperienceBase(BaseModel):
-    title: str
-    company: str
-    location: str
-    period: str
-    description: str
-    company_logo_url: Optional[str] = None
+    title: str = Field(..., min_length=1, max_length=200)
+    company: str = Field(..., min_length=1, max_length=200)
+    location: str = Field(..., min_length=1, max_length=200)
+    period: str = Field(..., min_length=1, max_length=100)
+    description: str = Field(..., min_length=1, max_length=10000)
+    company_logo_url: Optional[str] = Field(None, max_length=1000)
     is_current: bool = False
     display_order: int = 0
 
@@ -77,12 +86,12 @@ class ExperienceCreate(ExperienceBase):
     pass
 
 class ExperienceUpdate(BaseModel):
-    title: Optional[str] = None
-    company: Optional[str] = None
-    location: Optional[str] = None
-    period: Optional[str] = None
-    description: Optional[str] = None
-    company_logo_url: Optional[str] = None
+    title: Optional[str] = Field(None, min_length=1, max_length=200)
+    company: Optional[str] = Field(None, min_length=1, max_length=200)
+    location: Optional[str] = Field(None, min_length=1, max_length=200)
+    period: Optional[str] = Field(None, min_length=1, max_length=100)
+    description: Optional[str] = Field(None, min_length=1, max_length=10000)
+    company_logo_url: Optional[str] = Field(None, max_length=1000)
     is_current: Optional[bool] = None
     display_order: Optional[int] = None
 
@@ -90,19 +99,19 @@ class ExperienceResponse(ExperienceBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 # Education schemas
 class EducationBase(BaseModel):
-    degree: str
-    institution: str
-    location: str
-    period: str
-    description: str
-    gpa: Optional[str] = None
-    institution_logo_url: Optional[str] = None
+    degree: str = Field(..., min_length=1, max_length=200)
+    institution: str = Field(..., min_length=1, max_length=200)
+    location: str = Field(..., min_length=1, max_length=200)
+    period: str = Field(..., min_length=1, max_length=100)
+    description: str = Field(..., min_length=1, max_length=10000)
+    gpa: Optional[str] = Field(None, max_length=20)
+    institution_logo_url: Optional[str] = Field(None, max_length=1000)
     is_current: bool = False
     display_order: int = 0
 
@@ -110,13 +119,13 @@ class EducationCreate(EducationBase):
     pass
 
 class EducationUpdate(BaseModel):
-    degree: Optional[str] = None
-    institution: Optional[str] = None
-    location: Optional[str] = None
-    period: Optional[str] = None
-    description: Optional[str] = None
-    gpa: Optional[str] = None
-    institution_logo_url: Optional[str] = None
+    degree: Optional[str] = Field(None, min_length=1, max_length=200)
+    institution: Optional[str] = Field(None, min_length=1, max_length=200)
+    location: Optional[str] = Field(None, min_length=1, max_length=200)
+    period: Optional[str] = Field(None, min_length=1, max_length=100)
+    description: Optional[str] = Field(None, min_length=1, max_length=10000)
+    gpa: Optional[str] = Field(None, max_length=20)
+    institution_logo_url: Optional[str] = Field(None, max_length=1000)
     is_current: Optional[bool] = None
     display_order: Optional[int] = None
 
@@ -155,9 +164,9 @@ class SkillResponse(SkillBase):
 
 # Contact schemas
 class ContactForm(BaseModel):
-    name: constr(strip_whitespace=True, min_length=1, max_length=100)
+    name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
-    message: constr(strip_whitespace=True, min_length=1, max_length=5000)
+    message: str = Field(..., min_length=1, max_length=5000)
 
 class ContactMessageResponse(BaseModel):
     id: int
@@ -288,6 +297,7 @@ class BlogPostBase(BaseModel):
     like_count: Optional[int] = None
     is_featured: Optional[bool] = False
     status: str = "draft"
+    scheduled_at: Optional[str] = None
 
 
 class BlogPostCreate(BlogPostBase):
@@ -552,3 +562,22 @@ class TestimonialResponse(TestimonialBase):
 
 
 ProjectResponse.model_rebuild()
+
+# Blog comment schemas
+class BlogCommentBase(BaseModel):
+    author_name: str = Field(..., min_length=1, max_length=100)
+    author_email: EmailStr
+    content: str = Field(..., min_length=1, max_length=2000)
+    parent_id: Optional[int] = None
+
+class BlogCommentCreate(BlogCommentBase):
+    pass
+
+class BlogCommentResponse(BlogCommentBase):
+    id: int
+    post_id: int
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

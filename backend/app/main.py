@@ -4,15 +4,58 @@ from time import monotonic
 from typing import Deque, Dict, Tuple
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from starlette.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 from .config import settings
 from .init_db import init_db
 import uvicorn
 
-from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog, profile, testimonials
+from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog, profile, testimonials, comments
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Middleware to add security headers to all responses."""
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+
+        # Prevent MIME type sniffing
+        response.headers["X-Content-Type-Options"] = "nosniff"
+
+        # Prevent clickjacking
+        response.headers["X-Frame-Options"] = "DENY"
+
+        # Enable XSS protection in browsers
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+
+        # Force HTTPS for one year (only in production)
+        if settings.ENVIRONMENT == "production":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+        # Control referrer information leakage
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+        # Content Security Policy (only in production)
+        if settings.ENVIRONMENT == "production":
+            csp = (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                "style-src 'self' 'unsafe-inline'; "
+                "img-src 'self' data: https://res.cloudinary.com https://encrypted-tbn0.gstatic.com https://kompaspedia.kompas.id; "
+                "frame-src 'self' https://www.youtube.com https://youtu.be; "
+                "connect-src 'self' https://api.cloudinary.com; "
+                "font-src 'self' data:; "
+                "object-src 'none'; "
+                "base-uri 'self'; "
+                "form-action 'self'; "
+                "frame-ancestors 'none'; "
+            )
+            response.headers["Content-Security-Policy"] = csp
+
+        return response
 
 
 @asynccontextmanager
@@ -61,6 +104,7 @@ def _get_client_ip(headers: dict, fallback: str | None) -> str:
 RateKey = Tuple[str, str]  # (ip, bucket)
 rate_buckets: Dict[RateKey, Deque[float]] = {}
 
+app.add_middleware(SecurityHeadersMiddleware)
 
 @app.middleware("http")
 async def rate_limit_middleware(request, call_next):
@@ -127,6 +171,7 @@ app.include_router(services.router, prefix=f"{settings.API_V1_STR}/services", ta
 app.include_router(blog.router, prefix=f"{settings.API_V1_STR}/blog", tags=["blog"])
 app.include_router(contact.router, prefix=f"{settings.API_V1_STR}/contact", tags=["contact"])
 app.include_router(testimonials.router, prefix=f"{settings.API_V1_STR}/testimonials", tags=["testimonials"])
+app.include_router(comments.router, prefix=f"{settings.API_V1_STR}/comments", tags=["comments"])
 
 
 @app.get("/docs", include_in_schema=False)

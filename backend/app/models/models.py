@@ -25,12 +25,16 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
+    username = Column(String(50), unique=True, index=True, nullable=False)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
+    last_login = Column(DateTime, nullable=True)
+    failed_login_attempts = Column(Integer, default=0)
+    locked_until = Column(DateTime, nullable=True)
+
 
 
 class Project(Base):
@@ -202,8 +206,9 @@ class BlogPost(Base):
     view_count = Column(Integer, default=0)
     like_count = Column(Integer, default=0)
     is_featured = Column(Boolean, default=False)
-    status = Column(String, default="draft")  # draft | published | coming_soon
+    status = Column(String, default="draft")  # draft | published | coming_soon | scheduled
     published_at = Column(DateTime, nullable=True)
+    scheduled_at = Column(DateTime, nullable=True)  # For scheduled publishing
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -297,3 +302,18 @@ class Testimonial(Base):
     is_featured = Column(Boolean, default=True)
     display_order = Column(Integer, default=0)
     created_at = Column(DateTime, server_default=func.now())
+
+
+class BlogComment(Base):
+    __tablename__ = "blog_comments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey("blog_posts.id"), nullable=False, index=True)
+    author_name = Column(String(100), nullable=False)
+    author_email = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)
+    parent_id = Column(Integer, ForeignKey("blog_comments.id"), nullable=True)
+    status = Column(String, default="pending")  # pending, approved, rejected, spam
+    created_at = Column(DateTime, server_default=func.now())
+
+    post = relationship("BlogPost", backref="comments")

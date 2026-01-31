@@ -15,6 +15,7 @@ from .db.session import SessionLocal, engine, get_db
 from .models.models import (
     Award,
     BlogPost,
+    BlogComment,
     ContactMessage,
     Certificate,
     Education,

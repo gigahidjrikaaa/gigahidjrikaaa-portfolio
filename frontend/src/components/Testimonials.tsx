@@ -6,21 +6,7 @@ import Image from 'next/image';
 import { FaQuoteLeft } from "react-icons/fa";
 import { StarIcon } from '@heroicons/react/24/solid';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
-
-interface TestimonialItem {
-  id: number;
-  name: string;
-  role: string;
-  company?: string;
-  avatar_url?: string;
-  content: string;
-  rating?: number;
-  project_relation?: string;
-  linkedin_url?: string;
-  is_featured: boolean;
-  display_order: number;
-  created_at: string;
-}
+import { apiService, TestimonialResponse } from "@/services/api";
 
 const copy = {
   eyebrow: "Social Proof",
@@ -33,14 +19,13 @@ const copy = {
 
 const Testimonials = () => {
   const reduceMotion = useReducedMotion();
-  const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
+  const [testimonials, setTestimonials] = useState<TestimonialResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1'}/testimonials/featured`);
-        const data = await response.json();
+        const data = await apiService.getTestimonials();
         setTestimonials(data);
       } catch (error) {
         console.error('Failed to fetch testimonials', error);
