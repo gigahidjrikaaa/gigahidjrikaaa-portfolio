@@ -5,7 +5,7 @@ from ..database import get_db, SeoSettings
 
 router = APIRouter()
 
-@router.get("/seo", response_model=Optional[dict])
+@router.get("/", response_model=Optional[dict])
 async def get_public_seo_settings(db: Session = Depends(get_db)):
     """Public endpoint to fetch SEO settings for frontend metadata."""
     seo = db.query(SeoSettings).first()

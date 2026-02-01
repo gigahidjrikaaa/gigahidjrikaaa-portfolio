@@ -172,7 +172,7 @@ app.include_router(blog.router, prefix=f"{settings.API_V1_STR}/blog", tags=["blo
 app.include_router(contact.router, prefix=f"{settings.API_V1_STR}/contact", tags=["contact"])
 app.include_router(testimonials.router, prefix=f"{settings.API_V1_STR}/testimonials", tags=["testimonials"])
 app.include_router(comments.router, prefix=f"{settings.API_V1_STR}/comments", tags=["comments"])
-app.include_router(seo.router, prefix=f"{settings.API_V1_STR}/seo", tags=["seo"])
+app.include_router(seo.router, prefix=f"{settings.API_V1_STR}", tags=["seo"])
 
 
 @app.get("/docs", include_in_schema=False)
