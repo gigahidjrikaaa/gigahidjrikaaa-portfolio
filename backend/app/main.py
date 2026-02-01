@@ -13,7 +13,7 @@ from .config import settings
 from .init_db import init_db
 import uvicorn
 
-from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog, profile, testimonials, comments
+from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog, profile, testimonials, comments, seo
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -172,6 +172,7 @@ app.include_router(blog.router, prefix=f"{settings.API_V1_STR}/blog", tags=["blo
 app.include_router(contact.router, prefix=f"{settings.API_V1_STR}/contact", tags=["contact"])
 app.include_router(testimonials.router, prefix=f"{settings.API_V1_STR}/testimonials", tags=["testimonials"])
 app.include_router(comments.router, prefix=f"{settings.API_V1_STR}/comments", tags=["comments"])
+app.include_router(seo.router, prefix=f"{settings.API_V1_STR}/seo", tags=["seo"])
 
 
 @app.get("/docs", include_in_schema=False)

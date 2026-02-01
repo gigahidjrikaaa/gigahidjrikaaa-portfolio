@@ -8,6 +8,7 @@ import { AcademicCapIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { apiService, EducationResponse } from '@/services/api';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
 import EducationModal from './EducationModal';
+import DescriptionList from '@/components/ui/DescriptionList';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -146,9 +147,9 @@ const Education = () => {
                       )}
 
                       {item.description && (
-                        <p className="mt-4 text-sm leading-relaxed text-gray-600">
-                          {item.description}
-                        </p>
+                        <div className="mt-4">
+                          <DescriptionList description={item.description} />
+                        </div>
                       )}
                     </div>
                   </div>

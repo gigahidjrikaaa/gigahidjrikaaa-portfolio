@@ -302,6 +302,22 @@ export interface MediaAssetListResponse {
   page_size: number;
 }
 
+export interface SeoSettingsBase {
+  site_title?: string;
+  site_description?: string;
+  keywords?: string;
+  og_image_url?: string;
+  canonical_url?: string;
+}
+
+export type SeoSettingsUpdate = Partial<SeoSettingsBase>;
+
+export interface SeoSettingsResponse extends SeoSettingsBase {
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
 // --- API Services ---
 class ApiError extends Error {
   status: number;
@@ -504,6 +520,10 @@ class ApiService {
 
   async getTestimonials(): Promise<TestimonialResponse[]> {
     return this.request<TestimonialResponse[]>('/testimonials/featured');
+  }
+
+  async getPublicSeoSettings(): Promise<Partial<SeoSettingsResponse> | null> {
+    return this.request<Partial<SeoSettingsResponse> | null>('/seo');
   }
 }
 
@@ -871,6 +891,18 @@ class AdminApiService extends ApiService {
         body: JSON.stringify({ ids })
       }
     );
+  }
+
+  // SEO Settings
+  async getSeoSettings(): Promise<SeoSettingsResponse> {
+    return this.request<SeoSettingsResponse>('/admin/seo');
+  }
+
+  async updateSeoSettings(payload: SeoSettingsUpdate): Promise<SeoSettingsResponse> {
+    return this.request<SeoSettingsResponse>('/admin/seo', {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
   }
 }
 

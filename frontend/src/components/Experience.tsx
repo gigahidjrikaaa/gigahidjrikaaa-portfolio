@@ -8,6 +8,7 @@ import { BriefcaseIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { apiService, ExperienceResponse } from '@/services/api';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
 import ExperienceModal from './ExperienceModal';
+import DescriptionList from '@/components/ui/DescriptionList';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -145,9 +146,9 @@ const Experience = () => {
                         <span className="rounded-full bg-gray-100 px-3 py-1">{item.period}</span>
                       </div>
 
-                      <p className="mt-4 text-sm leading-relaxed text-gray-600">
-                        {item.description}
-                      </p>
+                      <div className="mt-4">
+                        <DescriptionList description={item.description} />
+                      </div>
                     </div>
                   </motion.article>
                 ))}
