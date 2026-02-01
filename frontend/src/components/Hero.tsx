@@ -32,7 +32,7 @@ const itemVariants = {
 
 const copy = {
   eyebrow: 'YOGYAKARTA',
-  headline: 'Building AI-Powered Products and Full-Stack Solutions.',
+  headline: 'Hi, I\'m Giga Hidjrika Aura Adkhy — Building AI-Powered Products and Full-Stack Solutions.',
   subhead: 'I\'m a creative technologist passionate about AI, blockchain, and modern web development — turning complex ideas into elegant, user-focused experiences.',
   ctaPrimary: 'Let\'s Connect',
   heroAlt: 'Modern interior workspace',
