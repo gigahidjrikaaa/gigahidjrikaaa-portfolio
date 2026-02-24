@@ -317,3 +317,59 @@ class BlogComment(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     post = relationship("BlogPost", backref="comments")
+
+
+class Client(Base):
+    __tablename__ = "clients"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    logo_url = Column(String, nullable=True)
+    website_url = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+    is_featured = Column(Boolean, default=False)
+    display_order = Column(Integer, default=0)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class Story(Base):
+    __tablename__ = "stories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    caption = Column(Text, nullable=True)
+    image_url = Column(String, nullable=False)
+    thumbnail_url = Column(String, nullable=True)
+    is_featured = Column(Boolean, default=False)
+    display_order = Column(Integer, default=0)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class PressMention(Base):
+    __tablename__ = "press_mentions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    publication = Column(String, nullable=False)
+    publication_url = Column(String, nullable=True)
+    publication_date = Column(String, nullable=True)
+    excerpt = Column(Text, nullable=True)
+    image_url = Column(String, nullable=True)
+    is_featured = Column(Boolean, default=False)
+    display_order = Column(Integer, default=0)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class CurrentlyWorkingOn(Base):
+    __tablename__ = "currently_working_on"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    project_url = Column(String, nullable=True)
+    status = Column(String, default="in_progress")  # in_progress | paused | completed
+    progress_percentage = Column(Integer, default=0)
+    tags = Column(String, nullable=True)
+    is_public = Column(Boolean, default=True)
+    display_order = Column(Integer, default=0)
+    created_at = Column(DateTime, server_default=func.now())

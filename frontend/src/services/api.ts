@@ -249,6 +249,12 @@ export interface ProfileImportResponse {
   };
 }
 
+export interface ScrapeResult {
+  content_type: 'press_mention' | 'blog_article' | 'project';
+  url: string;
+  data: Record<string, string | boolean | string[] | null>;
+}
+
 export interface UserLogin {
   username: string;
   password: string;
@@ -1086,6 +1092,17 @@ class AdminApiService extends ApiService {
   async deleteCurrentlyWorkingOn(id: number): Promise<{ message: string }> {
     return this.request<{ message: string }>(`/admin/currently-working-on/${id}`, {
       method: 'DELETE'
+    });
+  }
+
+  // ─── URL Scraper / AI Analyzer ──────────────────────────────────────────
+  async scrapeUrl(
+    url: string,
+    contentType: 'press_mention' | 'blog_article' | 'project'
+  ): Promise<ScrapeResult> {
+    return this.request<ScrapeResult>('/admin/scrape', {
+      method: 'POST',
+      body: JSON.stringify({ url, content_type: contentType }),
     });
   }
 }

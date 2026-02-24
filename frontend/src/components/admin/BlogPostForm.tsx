@@ -20,6 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import AdminModal from "@/components/admin/AdminModal";
 import { useToast } from "@/components/ui/toast";
 import { adminApi, BlogPostBase, BlogPostResponse } from "@/services/api";
+import ImportFromUrl from "@/components/admin/ImportFromUrl";
 import { openGoogleDrivePicker } from "@/lib/googleDrivePicker";
 import { openMediaLibrary } from "@/lib/cloudinaryWidget";
 import Tooltip from "@/components/ui/tooltip";
@@ -670,6 +671,21 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
     >
       <form onSubmit={handleSubmit(onSubmit)} className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
         <div className="space-y-4">
+          <ImportFromUrl
+            contentType="blog_article"
+            onImport={(d) => {
+              if (d.title) setValue("title", d.title as string, { shouldValidate: true });
+              if (d.slug) setValue("slug", d.slug as string, { shouldValidate: true });
+              if (d.excerpt) setValue("excerpt", d.excerpt as string, { shouldValidate: true });
+              if (d.category) setValue("category", d.category as string, { shouldValidate: true });
+              if (d.tags && Array.isArray(d.tags)) setValue("tags", (d.tags as string[]).join("; "), { shouldValidate: true });
+              if (d.cover_image_url) setValue("cover_image_url", d.cover_image_url as string, { shouldValidate: true });
+              if (d.is_external) setValue("is_external", true, { shouldValidate: true });
+              if (d.external_url) setValue("external_url", d.external_url as string, { shouldValidate: true });
+              if (d.external_source) setValue("external_source", d.external_source as string, { shouldValidate: true });
+            }}
+            className="mb-2"
+          />
           <div>
             <FieldLabel htmlFor="title" label={`${copy.fields.title} *`} tooltip={copy.hints.title} />
             <Input id="title" {...register("title")} required className="mt-1" placeholder="e.g., Designing Trust in Web3" />

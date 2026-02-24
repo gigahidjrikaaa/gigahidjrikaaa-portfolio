@@ -9,71 +9,57 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
   PhotoIcon,
+  FilmIcon,
 } from "@heroicons/react/24/outline";
 import { adminApi, StoryResponse } from "@/services/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import LoadingAnimation from "@/components/ui/LoadingAnimation";
+import AdminModal from "@/components/admin/AdminModal";
+import { useToast } from "@/components/ui/toast";
 
-const copy = {
-  title: "Stories & BTS Photos",
-  subtitle: "Manage your behind-the-scenes stories and photos.",
-  add: "Add Story",
-  delete: "Delete Story",
-  edit: "Edit Story",
-  confirmDelete: "Are you sure you want to delete this story?",
-  upload: "Upload Image",
-  thumbnail: "Thumbnail URL",
-  image: "Image URL",
-  caption: "Caption",
-  featured: "Featured Story",
-  save: "Save",
-  cancel: "Cancel",
-  loading: "Loading...",
+
+const EMPTY_FORM = {
+  title: "",
+  caption: "",
+  image_url: "",
+  thumbnail_url: "",
+  is_featured: false,
+  display_order: 0,
 };
 
+const INPUT_CLS =
+  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition";
+
 const StoriesManagement = () => {
+  const { toast } = useToast();
   const [stories, setStories] = useState<StoryResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [editingStory, setEditingStory] = useState<StoryResponse | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    caption: "",
-    image_url: "",
-    thumbnail_url: "",
-    is_featured: false,
-    display_order: 0,
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await adminApi.getStories();
-        setStories(data);
-      } catch (error) {
-        console.error("Failed to fetch stories", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchStories = async () => {
+    try {
+      setLoading(true);
+      const data = await adminApi.getStories();
+      setStories(data);
+    } catch {
+      toast({ variant: "error", title: "Failed to load stories" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
-  }, []);
+  useEffect(() => { fetchStories(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleAdd = () => {
+  const openAdd = () => {
     setEditingStory(null);
-    setFormData({
-      title: "",
-      caption: "",
-      image_url: "",
-      thumbnail_url: "",
-      is_featured: false,
-      display_order: stories.length,
-    });
+    setFormData({ ...EMPTY_FORM, display_order: stories.length });
     setIsModalOpen(true);
   };
 
-  const handleEdit = (story: StoryResponse) => {
+  const openEdit = (story: StoryResponse) => {
     setEditingStory(story);
     setFormData({
       title: story.title || "",
@@ -87,224 +73,271 @@ const StoriesManagement = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm(copy.confirmDelete)) return;
-
+    if (!confirm("Are you sure you want to delete this story?")) return;
     try {
       await adminApi.deleteStory(id);
-      setStories(stories.filter((s) => s.id !== id));
-    } catch (error) {
-      console.error("Failed to delete story", error);
+      setStories((prev) => prev.filter((s) => s.id !== id));
+      toast({ variant: "success", title: "Story deleted" });
+    } catch {
+      toast({ variant: "error", title: "Failed to delete story" });
     }
   };
 
   const handleSave = async () => {
+    if (!formData.image_url.trim()) {
+      toast({ variant: "error", title: "Image URL is required" });
+      return;
+    }
+    setSaving(true);
     try {
       if (editingStory) {
         const updated = await adminApi.updateStory(editingStory.id, formData);
-        setStories(stories.map((s) => (s.id === editingStory.id ? updated : s)));
+        setStories((prev) => prev.map((s) => (s.id === editingStory.id ? updated : s)));
+        toast({ variant: "success", title: "Story updated" });
       } else {
         const created = await adminApi.createStory(formData);
-        setStories([...stories, created]);
+        setStories((prev) => [...prev, created]);
+        toast({ variant: "success", title: "Story added" });
       }
       setIsModalOpen(false);
-    } catch (error) {
-      console.error("Failed to save story", error);
+    } catch {
+      toast({ variant: "error", title: "Failed to save story. Check your inputs and try again." });
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleMove = async (index: number, direction: number) => {
     const newIndex = index + direction;
     if (newIndex < 0 || newIndex >= stories.length) return;
-
-    const newStories = [...stories];
-    [newStories[index], newStories[newIndex]] = [newStories[newIndex], newStories[index]];
-
-    const updated = await Promise.all(
-      newStories.map((s, i) => adminApi.updateStory(s.id, { ...s, display_order: i }))
-    );
-
-    setStories(updated);
+    const reordered = [...stories];
+    [reordered[index], reordered[newIndex]] = [reordered[newIndex], reordered[index]];
+    try {
+      const updated = await Promise.all(
+        reordered.map((s, i) => adminApi.updateStory(s.id, { ...s, display_order: i }))
+      );
+      setStories(updated);
+    } catch {
+      toast({ variant: "error", title: "Failed to reorder stories" });
+    }
   };
 
-  if (loading) {
-    return <LoadingAnimation label={copy.loading} />;
-  }
+  if (loading) return <LoadingAnimation label="Loading stories…" />;
 
   return (
     <div className="space-y-8">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">{copy.title}</h2>
-          <p className="text-sm text-gray-500">{copy.subtitle}</p>
+          <h2 className="text-2xl font-semibold text-slate-900">Stories & BTS Photos</h2>
+          <p className="mt-1 text-sm text-slate-500">Manage your behind-the-scenes stories and photos.</p>
         </div>
         <button
-          onClick={handleAdd}
-          className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
+          onClick={openAdd}
+          className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
         >
           <PlusIcon className="h-4 w-4" />
-          {copy.add}
+          Add Story
         </button>
       </div>
 
+      {/* Empty state */}
+      {stories.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 py-20 text-center"
+        >
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+            <FilmIcon className="h-8 w-8 text-slate-400" />
+          </div>
+          <h3 className="mt-4 text-base font-semibold text-slate-900">No stories yet</h3>
+          <p className="mt-1 text-sm text-slate-500">Add your first behind-the-scenes story or photo.</p>
+          <button
+            onClick={openAdd}
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add Story
+          </button>
+        </motion.div>
+      )}
+
+      {/* Grid */}
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {stories.map((story, index) => (
-          <Card key={story.id} className="overflow-hidden">
-            <div className="relative aspect-[9/16] bg-gray-100">
-              {story.thumbnail_url || story.image_url ? (
-                <img
-                  src={story.thumbnail_url || story.image_url}
-                  alt={story.title || "Story"}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center">
-                  <PhotoIcon className="h-12 w-12 text-gray-400" />
+        <AnimatePresence>
+          {stories.map((story, index) => (
+            <motion.div
+              key={story.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.18, delay: index * 0.04 }}
+            >
+              <Card className="overflow-hidden shadow-sm transition-shadow hover:shadow-md">
+                <div className="relative aspect-[9/16] bg-slate-100">
+                  {story.thumbnail_url || story.image_url ? (
+                    <img
+                      src={story.thumbnail_url || story.image_url}
+                      alt={story.title || "Story"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <PhotoIcon className="h-12 w-12 text-slate-300" />
+                    </div>
+                  )}
+                  {story.is_featured && (
+                    <span className="absolute right-2 top-2 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow">
+                      Featured
+                    </span>
+                  )}
                 </div>
-              )}
-              {story.is_featured && (
-                <div className="absolute top-2 right-2 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 px-3 py-1 text-xs font-semibold text-white">
-                  Featured
-                </div>
-              )}
-            </div>
-            <CardContent className="p-4">
-              <p className="text-sm font-medium text-gray-900 line-clamp-1">
-                {story.title || "Untitled"}
-              </p>
-              {story.caption && (
-                <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                  {story.caption}
-                </p>
-              )}
-              <div className="mt-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleMove(index, -1)}
-                    disabled={index === 0}
-                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <ArrowUpIcon className="h-4 w-4 text-gray-600" />
-                  </button>
-                  <button
-                    onClick={() => handleMove(index, 1)}
-                    disabled={index === stories.length - 1}
-                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <ArrowDownIcon className="h-4 w-4 text-gray-600" />
-                  </button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleEdit(story)}
-                    className="p-1 rounded hover:bg-gray-100"
-                  >
-                    <PencilIcon className="h-4 w-4 text-gray-600" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(story.id)}
-                    className="p-1 rounded hover:bg-gray-100 text-red-600"
-                  >
-                    <TrashIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <CardContent className="p-4">
+                  <p className="line-clamp-1 text-sm font-semibold text-slate-900">
+                    {story.title || "Untitled"}
+                  </p>
+                  {story.caption && (
+                    <p className="mt-1 line-clamp-2 text-xs text-slate-500">{story.caption}</p>
+                  )}
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleMove(index, -1)}
+                        disabled={index === 0}
+                        aria-label="Move up"
+                        className="flex h-7 w-7 items-center justify-center rounded-md transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        <ArrowUpIcon className="h-4 w-4 text-slate-600" />
+                      </button>
+                      <button
+                        onClick={() => handleMove(index, 1)}
+                        disabled={index === stories.length - 1}
+                        aria-label="Move down"
+                        className="flex h-7 w-7 items-center justify-center rounded-md transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        <ArrowDownIcon className="h-4 w-4 text-slate-600" />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => openEdit(story)}
+                        aria-label="Edit story"
+                        className="flex h-7 w-7 items-center justify-center rounded-md transition hover:bg-slate-100"
+                      >
+                        <PencilIcon className="h-4 w-4 text-slate-600" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(story.id)}
+                        aria-label="Delete story"
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-rose-600 transition hover:bg-rose-50"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
+      {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl"
-            >
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">
-                {editingStory ? copy.edit : copy.add}
-              </h3>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Caption
-                  </label>
-                  <textarea
-                    value={formData.caption}
-                    onChange={(e) => setFormData({ ...formData, caption: e.target.value })}
-                    rows={3}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Image URL
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Thumbnail URL (optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.thumbnail_url}
-                    onChange={(e) => setFormData({ ...formData, thumbnail_url: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="featured"
-                    checked={formData.is_featured}
-                    onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                    className="h-4 w-4 rounded border-gray-300"
-                  />
-                  <label htmlFor="featured" className="text-sm text-gray-700">
-                    {copy.featured}
-                  </label>
-                </div>
+          <AdminModal
+            title={editingStory ? "Edit Story" : "Add Story"}
+            description={editingStory ? "Update the story details below." : "Fill in the details for the new story."}
+            onClose={() => setIsModalOpen(false)}
+            maxWidthClass="max-w-lg"
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="story-title">
+                  Title
+                </label>
+                <input
+                  id="story-title"
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData((f) => ({ ...f, title: e.target.value }))}
+                  placeholder="E.g. Recording session at studio"
+                  className={INPUT_CLS}
+                />
               </div>
 
-              <div className="mt-6 flex justify-end gap-3">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="story-caption">
+                  Caption
+                </label>
+                <textarea
+                  id="story-caption"
+                  value={formData.caption}
+                  onChange={(e) => setFormData((f) => ({ ...f, caption: e.target.value }))}
+                  rows={3}
+                  placeholder="A short description of the story…"
+                  className={INPUT_CLS}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="story-image">
+                  Image URL <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  id="story-image"
+                  type="url"
+                  value={formData.image_url}
+                  onChange={(e) => setFormData((f) => ({ ...f, image_url: e.target.value }))}
+                  placeholder="https://..."
+                  className={INPUT_CLS}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="story-thumb">
+                  Thumbnail URL <span className="text-xs font-normal text-slate-400">(optional)</span>
+                </label>
+                <input
+                  id="story-thumb"
+                  type="url"
+                  value={formData.thumbnail_url}
+                  onChange={(e) => setFormData((f) => ({ ...f, thumbnail_url: e.target.value }))}
+                  placeholder="https://..."
+                  className={INPUT_CLS}
+                />
+              </div>
+
+              <label className="flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={formData.is_featured}
+                  onChange={(e) => setFormData((f) => ({ ...f, is_featured: e.target.checked }))}
+                  className="h-4 w-4 cursor-pointer rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                />
+                <span className="text-sm font-medium text-slate-700">Mark as Featured</span>
+              </label>
+
+              <div className="flex justify-end gap-3 pt-2">
                 <button
+                  type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-full border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                  className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
-                  {copy.cancel}
+                  Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={handleSave}
-                  className="rounded-full bg-gray-900 px-6 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
+                  disabled={saving}
+                  className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
                 >
-                  {copy.save}
+                  {saving ? "Saving…" : editingStory ? "Update Story" : "Add Story"}
                 </button>
               </div>
-            </motion.div>
-          </div>
+            </div>
+          </AdminModal>
         )}
       </AnimatePresence>
     </div>
@@ -312,3 +345,4 @@ const StoriesManagement = () => {
 };
 
 export default StoriesManagement;
+

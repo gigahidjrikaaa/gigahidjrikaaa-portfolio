@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '20260224_add_new_social_proof_tables'
-down_revision = None
+down_revision = 'cf085ade2af6'
 branch_labels = None
 depends_on = None
 

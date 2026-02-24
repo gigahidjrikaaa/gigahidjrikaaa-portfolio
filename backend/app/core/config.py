@@ -61,6 +61,17 @@ class Settings(BaseSettings):
     # Site Configuration
     SITE_URL: str = Field(default="http://localhost:3000")
 
+    # Z.AI / AI Content Analyzer (OpenAI-compatible)
+    # API docs: https://docs.z.ai/guides/develop/openai/python
+    # Note: Coding Plan quota is for IDE tools (Claude Code, Cline) only.
+    # Direct API calls (like this scraper) are billed separately at standard rates
+    # and do NOT consume Coding Plan quota. GLM-4.7-Flash is free on the standard API.
+    ZAI_API_KEY: str = Field(default="")
+    ZAI_BASE_URL: str = Field(default="https://api.z.ai/api/paas/v4")
+    ZAI_MODEL: str = Field(default="glm-4.7-flash")
+    # Set ZAI_SCRAPER_TIMEOUT to control per-request AI timeout (seconds)
+    ZAI_SCRAPER_TIMEOUT: int = Field(default=60)
+
     # Basic rate limiting (in-memory; suitable for single-process dev)
     RATE_LIMIT_WINDOW_SECONDS: int = Field(default=60)
     RATE_LIMIT_LOGIN_PER_WINDOW: int = Field(default=10)

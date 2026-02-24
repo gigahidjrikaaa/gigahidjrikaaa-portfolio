@@ -1,71 +1,56 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PlusIcon, PencilIcon, TrashIcon, PhotoIcon } from "@heroicons/react/24/outline";
+import { motion, AnimatePresence } from "framer-motion";
+import { PlusIcon, PencilIcon, TrashIcon, PhotoIcon, BuildingOffice2Icon } from "@heroicons/react/24/outline";
 import { adminApi, ClientResponse } from "@/services/api";
 import { Card, CardContent } from "@/components/ui/card";
 import LoadingAnimation from "@/components/ui/LoadingAnimation";
+import AdminModal from "@/components/admin/AdminModal";
+import { useToast } from "@/components/ui/toast";
 
-const copy = {
-  title: "Client Logos",
-  subtitle: "Manage companies and organizations you've worked with.",
-  add: "Add Client",
-  delete: "Delete Client",
-  edit: "Edit Client",
-  confirmDelete: "Are you sure you want to delete this client?",
-  name: "Client Name",
-  logo: "Logo URL",
-  website: "Website URL",
-  description: "Description",
-  featured: "Featured Client",
-  save: "Save",
-  cancel: "Cancel",
-  loading: "Loading...",
+const EMPTY_FORM = {
+  name: "",
+  logo_url: "",
+  website_url: "",
+  description: "",
+  is_featured: false,
+  display_order: 0,
 };
 
+const INPUT_CLS =
+  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition";
+
 const ClientsManagement = () => {
+  const { toast } = useToast();
   const [clients, setClients] = useState<ClientResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [editingClient, setEditingClient] = useState<ClientResponse | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    logo_url: "",
-    website_url: "",
-    description: "",
-    is_featured: false,
-    display_order: 0,
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await adminApi.getClients();
-        setClients(data);
-      } catch (error) {
-        console.error("Failed to fetch clients", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchClients = async () => {
+    try {
+      setLoading(true);
+      const data = await adminApi.getClients();
+      setClients(data);
+    } catch {
+      toast({ variant: "error", title: "Failed to load clients" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
-  }, []);
+  useEffect(() => { fetchClients(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleAdd = () => {
+  const openAdd = () => {
     setEditingClient(null);
-    setFormData({
-      name: "",
-      logo_url: "",
-      website_url: "",
-      description: "",
-      is_featured: false,
-      display_order: clients.length,
-    });
+    setFormData({ ...EMPTY_FORM, display_order: clients.length });
     setIsModalOpen(true);
   };
 
-  const handleEdit = (client: ClientResponse) => {
+  const openEdit = (client: ClientResponse) => {
     setEditingClient(client);
     setFormData({
       name: client.name,
@@ -79,176 +64,262 @@ const ClientsManagement = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm(copy.confirmDelete)) return;
-
+    if (!confirm("Are you sure you want to delete this client?")) return;
     try {
       await adminApi.deleteClient(id);
-      setClients(clients.filter((c) => c.id !== id));
-    } catch (error) {
-      console.error("Failed to delete client", error);
+      setClients((prev) => prev.filter((c) => c.id !== id));
+      toast({ variant: "success", title: "Client deleted" });
+    } catch {
+      toast({ variant: "error", title: "Failed to delete client" });
     }
   };
 
   const handleSave = async () => {
+    if (!formData.name.trim()) {
+      toast({ variant: "error", title: "Client name is required" });
+      return;
+    }
+    setSaving(true);
     try {
       if (editingClient) {
         const updated = await adminApi.updateClient(editingClient.id, formData);
-        setClients(clients.map((c) => (c.id === editingClient.id ? updated : c)));
+        setClients((prev) => prev.map((c) => (c.id === editingClient.id ? updated : c)));
+        toast({ variant: "success", title: "Client updated" });
       } else {
         const created = await adminApi.createClient(formData);
-        setClients([...clients, created]);
+        setClients((prev) => [...prev, created]);
+        toast({ variant: "success", title: "Client added" });
       }
       setIsModalOpen(false);
-    } catch (error) {
-      console.error("Failed to save client", error);
+    } catch {
+      toast({ variant: "error", title: "Failed to save client" });
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (loading) {
-    return <LoadingAnimation label={copy.loading} />;
-  }
+  if (loading) return <LoadingAnimation label="Loading clients…" />;
 
   return (
     <div className="space-y-8">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">{copy.title}</h2>
-          <p className="text-sm text-gray-500">{copy.subtitle}</p>
+          <h2 className="text-2xl font-semibold text-slate-900">Client Logos</h2>
+          <p className="mt-1 text-sm text-slate-500">Manage companies and organisations you&apos;ve worked with.</p>
         </div>
         <button
-          onClick={handleAdd}
-          className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
+          onClick={openAdd}
+          className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
         >
           <PlusIcon className="h-4 w-4" />
-          {copy.add}
+          Add Client
         </button>
       </div>
 
+      {/* Empty state */}
+      {clients.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 py-20 text-center"
+        >
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+            <BuildingOffice2Icon className="h-8 w-8 text-slate-400" />
+          </div>
+          <h3 className="mt-4 text-base font-semibold text-slate-900">No clients yet</h3>
+          <p className="mt-1 text-sm text-slate-500">Add your first client logo to showcase your collaborations.</p>
+          <button
+            onClick={openAdd}
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add Client
+          </button>
+        </motion.div>
+      )}
+
+      {/* Grid */}
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {clients.map((client) => (
-          <Card key={client.id} className="overflow-hidden">
-            <CardContent className="p-6">
-              <div className="mb-4 flex h-24 items-center justify-center rounded-xl bg-gray-50">
-                {client.logo_url ? (
-                  <img src={client.logo_url} alt={client.name} className="max-h-20 max-w-full object-contain" />
-                ) : (
-                  <PhotoIcon className="h-12 w-12 text-gray-400" />
-                )}
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">{client.name}</h3>
-              {client.description && (
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                  {client.description}
-                </p>
-              )}
-              <div className="flex items-center justify-between">
-                {client.website_url && (
-                  <a
-                    href={client.website_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-purple-600 hover:underline"
-                  >
-                    Visit Website
-                  </a>
-                )}
-                <div className="flex items-center gap-2">
-                  <button onClick={() => handleEdit(client)} className="p-1 rounded hover:bg-gray-100">
-                    <PencilIcon className="h-4 w-4 text-gray-600" />
-                  </button>
-                  <button onClick={() => handleDelete(client.id)} className="p-1 rounded hover:bg-gray-100 text-red-600">
-                    <TrashIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        <AnimatePresence>
+          {clients.map((client, index) => (
+            <motion.div
+              key={client.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.18, delay: index * 0.04 }}
+            >
+              <Card className="overflow-hidden shadow-sm transition-shadow hover:shadow-md">
+                <CardContent className="p-5">
+                  {/* Logo preview */}
+                  <div className="mb-4 flex h-20 items-center justify-center rounded-xl bg-slate-50">
+                    {client.logo_url ? (
+                      <img
+                        src={client.logo_url}
+                        alt={client.name}
+                        className="max-h-16 max-w-full object-contain"
+                      />
+                    ) : (
+                      <PhotoIcon className="h-10 w-10 text-slate-300" />
+                    )}
+                  </div>
+
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-slate-900">{client.name}</p>
+                      {client.description && (
+                        <p className="mt-0.5 line-clamp-2 text-xs text-slate-500">
+                          {client.description}
+                        </p>
+                      )}
+                      {client.is_featured && (
+                        <span className="mt-2 inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+                          Featured
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between">
+                    {client.website_url ? (
+                      <a
+                        href={client.website_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-medium text-purple-600 hover:underline"
+                      >
+                        Visit site ↗
+                      </a>
+                    ) : (
+                      <span />
+                    )}
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => openEdit(client)}
+                        aria-label="Edit client"
+                        className="flex h-7 w-7 items-center justify-center rounded-md transition hover:bg-slate-100"
+                      >
+                        <PencilIcon className="h-4 w-4 text-slate-600" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(client.id)}
+                        aria-label="Delete client"
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-rose-600 transition hover:bg-rose-50"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">
-              {editingClient ? copy.edit : copy.add}
-            </h3>
-
+      {/* Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <AdminModal
+            title={editingClient ? "Edit Client" : "Add Client"}
+            description={editingClient ? "Update the client details below." : "Fill in the details for the new client."}
+            onClose={() => setIsModalOpen(false)}
+            maxWidthClass="max-w-lg"
+          >
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {copy.name}
+                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="client-name">
+                  Client Name <span className="text-rose-500">*</span>
                 </label>
                 <input
+                  id="client-name"
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2"
-                  required
+                  onChange={(e) => setFormData((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="Acme Corporation"
+                  className={INPUT_CLS}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {copy.logo}
+                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="client-logo">
+                  Logo URL
                 </label>
                 <input
-                  type="text"
+                  id="client-logo"
+                  type="url"
                   value={formData.logo_url}
-                  onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2"
-                  required
+                  onChange={(e) => setFormData((f) => ({ ...f, logo_url: e.target.value }))}
+                  placeholder="https://..."
+                  className={INPUT_CLS}
                 />
+                {formData.logo_url && (
+                  <div className="mt-2 flex h-16 w-full items-center justify-center overflow-hidden rounded-lg bg-slate-50">
+                    <img src={formData.logo_url} alt="preview" className="max-h-14 max-w-full object-contain" />
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {copy.website}
+                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="client-website">
+                  Website URL
                 </label>
                 <input
-                  type="text"
+                  id="client-website"
+                  type="url"
                   value={formData.website_url}
-                  onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2"
+                  onChange={(e) => setFormData((f) => ({ ...f, website_url: e.target.value }))}
+                  placeholder="https://..."
+                  className={INPUT_CLS}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {copy.description}
+                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="client-desc">
+                  Description
                 </label>
                 <textarea
+                  id="client-desc"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) => setFormData((f) => ({ ...f, description: e.target.value }))}
                   rows={3}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2"
+                  placeholder="Brief description of the client or collaboration…"
+                  className={INPUT_CLS}
                 />
               </div>
 
-              <div className="flex items-center gap-2">
+              <label className="flex cursor-pointer items-center gap-3">
                 <input
                   type="checkbox"
-                  id="featured"
                   checked={formData.is_featured}
-                  onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                  className="h-4 w-4 rounded border-gray-300"
+                  onChange={(e) => setFormData((f) => ({ ...f, is_featured: e.target.checked }))}
+                  className="h-4 w-4 cursor-pointer rounded border-slate-300 text-slate-900 focus:ring-slate-900"
                 />
-                <label htmlFor="featured" className="text-sm text-gray-700">
-                  {copy.featured}
-                </label>
+                <span className="text-sm font-medium text-slate-700">Mark as Featured</span>
+              </label>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
+                >
+                  {saving ? "Saving…" : editingClient ? "Update Client" : "Add Client"}
+                </button>
               </div>
             </div>
-
-            <div className="mt-6 flex justify-end gap-3">
-              <button onClick={() => setIsModalOpen(false)} className="rounded-full border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
-                {copy.cancel}
-              </button>
-              <button onClick={handleSave} className="rounded-full bg-gray-900 px-6 py-2 text-sm font-semibold text-white transition hover:bg-gray-800">
-                {copy.save}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </AdminModal>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

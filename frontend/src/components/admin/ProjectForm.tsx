@@ -9,6 +9,7 @@ import Image from 'next/image';
 import AdminModal from '@/components/admin/AdminModal';
 import { useToast } from '@/components/ui/toast';
 import { ProjectBase, ProjectResponse } from '@/services/api';
+import ImportFromUrl from '@/components/admin/ImportFromUrl';
 import { openMediaLibrary } from '@/lib/cloudinaryWidget';
 import { openGoogleDrivePicker } from '@/lib/googleDrivePicker';
 
@@ -268,6 +269,22 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
       description="Prioritize clarity and keep the key links up to date."
       onClose={onCancel}
     >
+      <ImportFromUrl
+        contentType="project"
+        onImport={(d) => setFormData((prev) => ({
+          ...prev,
+          title: (d.title as string) || prev.title,
+          tagline: (d.tagline as string) || prev.tagline,
+          description: (d.description as string) || prev.description,
+          github_url: (d.github_url as string) || prev.github_url,
+          live_url: (d.live_url as string) || prev.live_url,
+          role: (d.role as string) || prev.role,
+          challenges: (d.challenges as string) || prev.challenges,
+          solutions: (d.solutions as string) || prev.solutions,
+          impact: (d.impact as string) || prev.impact,
+        }))}
+        className="mb-2"
+      />
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <div>
             <Label htmlFor="title" className="text-gray-700">Title *</Label>

@@ -581,3 +581,135 @@ class BlogCommentResponse(BlogCommentBase):
 
     class Config:
         from_attributes = True
+
+
+# Client schemas
+class ClientBase(BaseModel):
+    name: str
+    logo_url: Optional[str] = None
+    website_url: Optional[str] = None
+    description: Optional[str] = None
+    is_featured: bool = False
+    display_order: int = 0
+
+
+class ClientCreate(ClientBase):
+    pass
+
+
+class ClientUpdate(BaseModel):
+    name: Optional[str] = None
+    logo_url: Optional[str] = None
+    website_url: Optional[str] = None
+    description: Optional[str] = None
+    is_featured: Optional[bool] = None
+    display_order: Optional[int] = None
+
+
+class ClientResponse(ClientBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Story schemas
+class StoryBase(BaseModel):
+    title: str
+    caption: Optional[str] = None
+    image_url: str
+    thumbnail_url: Optional[str] = None
+    is_featured: bool = False
+    display_order: int = 0
+
+
+class StoryCreate(StoryBase):
+    pass
+
+
+class StoryUpdate(BaseModel):
+    title: Optional[str] = None
+    caption: Optional[str] = None
+    image_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+    is_featured: Optional[bool] = None
+    display_order: Optional[int] = None
+
+
+class StoryResponse(StoryBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Press Mention schemas
+class PressMentionBase(BaseModel):
+    title: str
+    publication: str
+    publication_url: Optional[str] = None
+    publication_date: Optional[str] = None
+    excerpt: Optional[str] = None
+    image_url: Optional[str] = None
+    is_featured: bool = False
+    display_order: int = 0
+
+
+class PressMentionCreate(PressMentionBase):
+    pass
+
+
+class PressMentionUpdate(BaseModel):
+    title: Optional[str] = None
+    publication: Optional[str] = None
+    publication_url: Optional[str] = None
+    publication_date: Optional[str] = None
+    excerpt: Optional[str] = None
+    image_url: Optional[str] = None
+    is_featured: Optional[bool] = None
+    display_order: Optional[int] = None
+
+
+class PressMentionResponse(PressMentionBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# CurrentlyWorkingOn schemas
+class CurrentlyWorkingOnBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    project_url: Optional[str] = None
+    status: str = "in_progress"
+    progress_percentage: int = 0
+    tags: Optional[str] = None
+    is_public: bool = True
+    display_order: int = 0
+
+
+class CurrentlyWorkingOnCreate(CurrentlyWorkingOnBase):
+    pass
+
+
+class CurrentlyWorkingOnUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    project_url: Optional[str] = None
+    status: Optional[str] = None
+    progress_percentage: Optional[int] = None
+    tags: Optional[str] = None
+    is_public: Optional[bool] = None
+    display_order: Optional[int] = None
+
+
+class CurrentlyWorkingOnResponse(CurrentlyWorkingOnBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

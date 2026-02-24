@@ -13,7 +13,7 @@ from .config import settings
 from .init_db import init_db
 import uvicorn
 
-from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog, profile, testimonials, comments, seo
+from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog, profile, testimonials, comments, seo, scraper, press_mentions, clients, stories, currently_working_on
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -173,6 +173,11 @@ app.include_router(contact.router, prefix=f"{settings.API_V1_STR}/contact", tags
 app.include_router(testimonials.router, prefix=f"{settings.API_V1_STR}/testimonials", tags=["testimonials"])
 app.include_router(comments.router, prefix=f"{settings.API_V1_STR}/comments", tags=["comments"])
 app.include_router(seo.router, prefix=f"{settings.API_V1_STR}", tags=["seo"])
+app.include_router(scraper.router, prefix=f"{settings.API_V1_STR}/admin", tags=["scraper"])
+app.include_router(press_mentions.router, prefix=f"{settings.API_V1_STR}/admin/press-mentions", tags=["press-mentions"])
+app.include_router(clients.router, prefix=f"{settings.API_V1_STR}/admin/clients", tags=["clients"])
+app.include_router(stories.router, prefix=f"{settings.API_V1_STR}/admin/stories", tags=["stories"])
+app.include_router(currently_working_on.router, prefix=f"{settings.API_V1_STR}/admin/currently-working-on", tags=["currently-working-on"])
 
 
 @app.get("/docs", include_in_schema=False)
