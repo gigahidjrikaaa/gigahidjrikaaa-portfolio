@@ -27,6 +27,10 @@ const copy = {
   overviewSection: "Overview",
   contentSection: "Content",
   settingsSection: "Settings",
+  stories: "Stories & BTS",
+  clients: "Client Logos",
+  pressMentions: "Press & Media",
+  currentlyWorkingOn: "Currently Working On",
 };
 
 const navSections = [
@@ -45,6 +49,10 @@ const navSections = [
       { href: "/admin/skills", label: copy.skills },
       { href: "/admin/services", label: copy.services },
       { href: "/admin/blog", label: copy.blog },
+      { href: "/admin/stories", label: copy.stories },
+      { href: "/admin/clients", label: copy.clients },
+      { href: "/admin/press-mentions", label: copy.pressMentions },
+      { href: "/admin/currently-working-on", label: copy.currentlyWorkingOn },
       { href: "/admin/messages", label: copy.messages },
     ],
   },

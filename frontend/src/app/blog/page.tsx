@@ -172,24 +172,34 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             <div className="rounded-2xl border border-gray-200 bg-white p-6">
               <h2 className="text-lg font-semibold text-gray-900">Popular</h2>
               <div className="mt-4 space-y-4">
-                {popular.map((post) => (
-                  <Link key={post.id} href={`/blog/${post.slug}`} className="block text-sm text-gray-700 hover:text-gray-900">
-                    <div className="font-semibold text-gray-900">{post.title}</div>
-                    <div className="text-xs text-gray-500">{post.view_count ?? 0} views</div>
-                  </Link>
-                ))}
+                {popular.map((post) => {
+                  const href = post.is_external && post.external_url ? post.external_url : `/blog/${post.slug}`;
+                  const target = post.is_external ? "_blank" : undefined;
+                  const rel = post.is_external ? "noopener noreferrer" : undefined;
+                  return (
+                    <Link key={post.id} href={href} target={target} rel={rel} className="block text-sm text-gray-700 hover:text-gray-900">
+                      <div className="font-semibold text-gray-900">{post.title}</div>
+                      <div className="text-xs text-gray-500">{post.view_count ?? 0} views</div>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
 
             <div className="rounded-2xl border border-gray-200 bg-white p-6">
               <h2 className="text-lg font-semibold text-gray-900">Latest</h2>
               <div className="mt-4 space-y-4">
-                {latest.map((post) => (
-                  <Link key={post.id} href={`/blog/${post.slug}`} className="block text-sm text-gray-700 hover:text-gray-900">
-                    <div className="font-semibold text-gray-900">{post.title}</div>
-                    <div className="text-xs text-gray-500">{post.published_at ?? post.created_at}</div>
-                  </Link>
-                ))}
+                {latest.map((post) => {
+                  const href = post.is_external && post.external_url ? post.external_url : `/blog/${post.slug}`;
+                  const target = post.is_external ? "_blank" : undefined;
+                  const rel = post.is_external ? "noopener noreferrer" : undefined;
+                  return (
+                    <Link key={post.id} href={href} target={target} rel={rel} className="block text-sm text-gray-700 hover:text-gray-900">
+                      <div className="font-semibold text-gray-900">{post.title}</div>
+                      <div className="text-xs text-gray-500">{post.published_at ?? post.created_at}</div>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </aside>

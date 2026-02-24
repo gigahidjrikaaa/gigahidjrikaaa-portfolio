@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { apiService } from "@/services/api";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import ViewTracker from "./ViewTracker";
 import LikeButton from "./LikeButton";
 import BlogCard from "@/components/BlogCard";
@@ -51,6 +52,11 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
 export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const { slug } = await params;
   const post = await apiService.getBlogPostBySlug(slug);
+
+  if (post.is_external && post.external_url) {
+    redirect(post.external_url);
+  }
+
   const related = await apiService.getRelatedBlogPosts(slug);
   const publishedAt = post.published_at || post.created_at;
   const imageUrl = post.og_image_url || post.cover_image_url || undefined;

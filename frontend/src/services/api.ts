@@ -197,6 +197,9 @@ export interface BlogPostBase {
   like_count?: number;
   is_featured?: boolean;
   status: string;
+  is_external?: boolean;
+  external_url?: string;
+  external_source?: string;
 }
 
 export type BlogPostUpdate = Partial<BlogPostBase>;
@@ -313,6 +316,75 @@ export interface SeoSettingsBase {
 export type SeoSettingsUpdate = Partial<SeoSettingsBase>;
 
 export interface SeoSettingsResponse extends SeoSettingsBase {
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StoryBase {
+  title?: string;
+  caption?: string;
+  image_url: string;
+  thumbnail_url?: string;
+  is_featured: boolean;
+  display_order: number;
+}
+
+export type StoryUpdate = Partial<StoryBase>;
+
+export interface StoryResponse extends StoryBase {
+  id: number;
+  created_at: string;
+}
+
+export interface ClientBase {
+  name: string;
+  logo_url: string;
+  website_url?: string;
+  description?: string;
+  is_featured: boolean;
+  display_order: number;
+}
+
+export type ClientUpdate = Partial<ClientBase>;
+
+export interface ClientResponse extends ClientBase {
+  id: number;
+  created_at: string;
+}
+
+export interface PressMentionBase {
+  title: string;
+  publication?: string;
+  publication_url?: string;
+  publication_date?: string;
+  excerpt?: string;
+  image_url?: string;
+  is_featured: boolean;
+  display_order: number;
+}
+
+export type PressMentionUpdate = Partial<PressMentionBase>;
+
+export interface PressMentionResponse extends PressMentionBase {
+  id: number;
+  created_at: string;
+}
+
+export interface CurrentlyWorkingOnBase {
+  title: string;
+  description: string;
+  project_url?: string;
+  status: 'planning' | 'in_progress' | 'paused' | 'completed';
+  progress_percentage?: number;
+  tags?: string;
+  is_public: boolean;
+  display_order: number;
+}
+
+export type CurrentlyWorkingOnUpdate = Partial<CurrentlyWorkingOnBase>;
+
+export interface CurrentlyWorkingOnResponse extends CurrentlyWorkingOnBase {
   id: number;
   created_at: string;
   updated_at: string;
@@ -524,6 +596,22 @@ class ApiService {
 
   async getPublicSeoSettings(): Promise<Partial<SeoSettingsResponse> | null> {
     return this.request<Partial<SeoSettingsResponse> | null>('/seo');
+  }
+
+  async getStories(): Promise<StoryResponse[]> {
+    return this.request<StoryResponse[]>('/stories');
+  }
+
+  async getClients(): Promise<ClientResponse[]> {
+    return this.request<ClientResponse[]>('/clients');
+  }
+
+  async getPressMentions(): Promise<PressMentionResponse[]> {
+    return this.request<PressMentionResponse[]>('/press-mentions');
+  }
+
+  async getCurrentlyWorkingOn(): Promise<CurrentlyWorkingOnResponse[]> {
+    return this.request<CurrentlyWorkingOnResponse[]>('/currently-working-on');
   }
 }
 
@@ -902,6 +990,102 @@ class AdminApiService extends ApiService {
     return this.request<SeoSettingsResponse>('/admin/seo', {
       method: 'PUT',
       body: JSON.stringify(payload)
+    });
+  }
+
+  async getStories(): Promise<StoryResponse[]> {
+    return this.request<StoryResponse[]>('/admin/stories');
+  }
+
+  async createStory(payload: StoryBase): Promise<StoryResponse> {
+    return this.request<StoryResponse>('/admin/stories', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async updateStory(id: number, payload: StoryUpdate): Promise<StoryResponse> {
+    return this.request<StoryResponse>(`/admin/stories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async deleteStory(id: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/admin/stories/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async getClients(): Promise<ClientResponse[]> {
+    return this.request<ClientResponse[]>('/admin/clients');
+  }
+
+  async createClient(payload: ClientBase): Promise<ClientResponse> {
+    return this.request<ClientResponse>('/admin/clients', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async updateClient(id: number, payload: ClientUpdate): Promise<ClientResponse> {
+    return this.request<ClientResponse>(`/admin/clients/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async deleteClient(id: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/admin/clients/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async getPressMentions(): Promise<PressMentionResponse[]> {
+    return this.request<PressMentionResponse[]>('/admin/press-mentions');
+  }
+
+  async createPressMention(payload: PressMentionBase): Promise<PressMentionResponse> {
+    return this.request<PressMentionResponse>('/admin/press-mentions', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async updatePressMention(id: number, payload: PressMentionUpdate): Promise<PressMentionResponse> {
+    return this.request<PressMentionResponse>(`/admin/press-mentions/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async deletePressMention(id: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/admin/press-mentions/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async getCurrentlyWorkingOn(): Promise<CurrentlyWorkingOnResponse[]> {
+    return this.request<CurrentlyWorkingOnResponse[]>('/admin/currently-working-on');
+  }
+
+  async createCurrentlyWorkingOn(payload: CurrentlyWorkingOnBase): Promise<CurrentlyWorkingOnResponse> {
+    return this.request<CurrentlyWorkingOnResponse>('/admin/currently-working-on', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async updateCurrentlyWorkingOn(id: number, payload: CurrentlyWorkingOnUpdate): Promise<CurrentlyWorkingOnResponse> {
+    return this.request<CurrentlyWorkingOnResponse>(`/admin/currently-working-on/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async deleteCurrentlyWorkingOn(id: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/admin/currently-working-on/${id}`, {
+      method: 'DELETE'
     });
   }
 }

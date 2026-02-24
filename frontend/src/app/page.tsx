@@ -15,53 +15,58 @@ import Certificates from '@/components/Certificates';
 import Services from '@/components/Services';
 import Testimonials from '@/components/Testimonials';
 import Contact from '@/components/Contact';
+import Stories from '@/components/Stories';
+import Clients from '@/components/Clients';
+import PressMentions from '@/components/PressMentions';
+import CurrentlyWorkingOn from '@/components/CurrentlyWorkingOn';
+import VisitorMap from '@/components/VisitorMap';
+import VisitorCounter from '@/components/VisitorCounter';
 
 export default function Home() {
   return (
     <>
-      {/* Hero - Full-screen intro */}
       <Hero />
 
-      {/* About - Overview with capabilities */}
+      <div className="fixed top-20 right-4 z-40 bg-white/90 backdrop-blur-md rounded-full px-6 py-3 shadow-lg border border-gray-200">
+        <VisitorCounter />
+      </div>
+
+      <Stories />
+
       <About />
 
-      {/* Highlights - Location & collaboration stats */}
+      <CurrentlyWorkingOn />
+
+      <Clients />
+
       <Highlights />
 
-      {/* Experience - Work history timeline */}
       <Experience />
 
-      {/* Education - Academic background */}
       <Education />
 
-      {/* Skills - Technical expertise */}
       <Skills />
 
-      {/* Tech Stack Marquee - Technologies I work with */}
       <TechStackMarquee />
 
-      {/* GitHub Integration - Open source activity */}
       <GitHubIntegration />
 
-      {/* Articles - Blog previews */}
       <ArticlesPreview />
 
-      {/* Projects - Portfolio showcase */}
       <Projects />
 
-      {/* Awards - Recognition (dark section) */}
       <Awards />
 
-      {/* Certificates - Credentials */}
       <Certificates />
 
-      {/* Testimonials - Social proof */}
+      <PressMentions />
+
+      <VisitorMap />
+
       <Testimonials />
 
-      {/* Services - Why work with me */}
       <Services />
 
-      {/* Contact - Get in touch */}
       <Contact />
     </>
   );

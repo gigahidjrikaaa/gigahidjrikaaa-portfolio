@@ -41,6 +41,10 @@ const copy = {
   manageCertificates: "Certificates",
   manageServices: "Services",
   manageBlog: "Blog",
+  manageStories: "Stories & BTS",
+  manageClients: "Client Logos",
+  managePress: "Press & Media",
+  manageWorkingOn: "Currently Working On",
   profile: "Profile",
   integrations: "Integrations",
   integrationsSubtitle: "Monitor connected media sources for image uploads.",
@@ -167,6 +171,34 @@ const AdminOverview = () => {
               className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-white"
             >
               {copy.manageServices}
+              <span className="text-xs text-slate-400">{copy.manageContent}</span>
+            </Link>
+            <Link
+              href="/admin/stories"
+              className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-white"
+            >
+              {copy.manageStories}
+              <span className="text-xs text-slate-400">{copy.manageContent}</span>
+            </Link>
+            <Link
+              href="/admin/clients"
+              className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-white"
+            >
+              {copy.manageClients}
+              <span className="text-xs text-slate-400">{copy.manageContent}</span>
+            </Link>
+            <Link
+              href="/admin/press-mentions"
+              className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-white"
+            >
+              {copy.managePress}
+              <span className="text-xs text-slate-400">{copy.manageContent}</span>
+            </Link>
+            <Link
+              href="/admin/currently-working-on"
+              className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-white"
+            >
+              {copy.manageWorkingOn}
               <span className="text-xs text-slate-400">{copy.manageContent}</span>
             </Link>
           </CardContent>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiService, BlogPostResponse } from "@/services/api";
 import LoadingAnimation from "@/components/ui/LoadingAnimation";
+import { ExternalLink } from "lucide-react";
 
 const copy = {
   eyebrow: "BLOG",
@@ -89,14 +90,11 @@ export default function ArticlesPreview() {
           <div className="grid gap-6 md:grid-cols-3">
             {posts.map((post) => {
               const publishedAt = formatDate(post.published_at || post.created_at);
+              const isExternal = post.is_external && post.external_url;
+              const href = isExternal ? post.external_url! : `/blog/${post.slug}`;
 
-              return (
-                <Link
-                  key={post.id}
-                  href={`/blog/${post.slug}`}
-                  className="group block h-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
-                  aria-label={post.title}
-                >
+              const CardContent = (
+                <>
                   <div className="flex items-center gap-3 text-xs text-gray-500">
                     {publishedAt ? <span>{publishedAt}</span> : null}
                     {post.category ? (
@@ -109,9 +107,32 @@ export default function ArticlesPreview() {
                     <p className="mt-3 text-sm text-gray-600 line-clamp-3">{post.excerpt}</p>
                   ) : null}
 
-                  <div className="mt-6 text-sm font-semibold text-gray-900 group-hover:underline">
-                    {copy.readOnBlog}
+                  <div className="mt-6 flex items-center gap-1 text-sm font-semibold text-gray-900 group-hover:underline">
+                    {isExternal ? `Read on ${post.external_source || "External Site"}` : copy.readOnBlog}
+                    {isExternal && <ExternalLink className="h-3 w-3" />}
                   </div>
+                </>
+              );
+
+              return isExternal ? (
+                <a
+                  key={post.id}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group block h-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+                  aria-label={post.title}
+                >
+                  {CardContent}
+                </a>
+              ) : (
+                <Link
+                  key={post.id}
+                  href={href}
+                  className="group block h-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+                  aria-label={post.title}
+                >
+                  {CardContent}
                 </Link>
               );
             })}

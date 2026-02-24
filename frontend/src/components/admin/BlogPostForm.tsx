@@ -43,6 +43,9 @@ const copy = {
     seoKeywords: "SEO Keywords",
     featured: "Feature this post",
     status: "Status",
+    isExternal: "External Article",
+    externalUrl: "External URL",
+    externalSource: "External Source",
     metrics: "Post Metrics",
     readingTime: "Reading time (auto)",
     views: "Views",
@@ -147,10 +150,22 @@ const blogPostSchema = z
     like_count: z.number().optional(),
     is_featured: z.boolean().optional(),
     status: z.enum(["draft", "coming_soon", "published"]),
+    is_external: z.boolean().optional(),
+    external_url: z.string().url().optional().or(z.literal("")),
+    external_source: z.string().optional(),
   })
   .refine(
     (data) => {
       if (data.status !== "published") return true;
+      if (data.is_external) return !!data.external_url;
+      return true;
+    },
+    { path: ["external_url"], message: "External URL is required to publish an external post." }
+  )
+  .refine(
+    (data) => {
+      if (data.status !== "published") return true;
+      if (data.is_external) return true;
       const text = (data.content || "").replace(/<[^>]*>/g, "").trim();
       return text.length > 0;
     },
@@ -197,6 +212,9 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
       like_count: 0,
       is_featured: false,
       status: "draft",
+      is_external: false,
+      external_url: "",
+      external_source: "",
     },
   });
 
@@ -219,6 +237,9 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
         like_count: post.like_count ?? 0,
         is_featured: post.is_featured ?? false,
         status: post.status || "draft",
+        is_external: post.is_external ?? false,
+        external_url: post.external_url || "",
+        external_source: post.external_source || "",
       });
       setIsSlugEdited(true);
       setAutosaveId(post.id);
@@ -290,6 +311,9 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
         reading_time_minutes: parsed.payload.reading_time_minutes || undefined,
         view_count: parsed.payload.view_count ?? 0,
         like_count: parsed.payload.like_count ?? 0,
+        is_external: parsed.payload.is_external ?? false,
+        external_url: parsed.payload.external_url || "",
+        external_source: parsed.payload.external_source || "",
       });
     } catch (error) {
       console.error("Failed to restore draft", error);
@@ -397,6 +421,9 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
       like_count: undefined,
       is_featured: isFeaturedValue,
       status: statusValue || "draft",
+      is_external: watch("is_external") || false,
+      external_url: watch("external_url") || undefined,
+      external_source: watch("external_source") || undefined,
     };
 
     const hasAnyInput = Boolean(
@@ -410,7 +437,8 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
         payload.og_image_url ||
         payload.seo_title ||
         payload.seo_description ||
-        payload.seo_keywords
+        payload.seo_keywords ||
+        payload.external_url
     );
 
     if (!hasAnyInput) return;
@@ -494,6 +522,9 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
     seoKeywordsValue,
     isFeaturedValue,
     statusValue,
+    watch("is_external"),
+    watch("external_url"),
+    watch("external_source"),
     autosaveId,
     draftKey,
   ]);
@@ -618,6 +649,9 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
       seo_description: data.seo_description || undefined,
       seo_keywords: data.seo_keywords || undefined,
       is_featured: data.is_featured ?? false,
+      is_external: data.is_external ?? false,
+      external_url: data.external_url || undefined,
+      external_source: data.external_source || undefined,
     });
   };
 
@@ -671,6 +705,29 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
               onCheckedChange={(value) => setValue("is_featured", value, { shouldValidate: true })}
             />
           </div>
+          <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-gray-800">{copy.fields.isExternal}</p>
+              <p className="text-xs text-gray-500">Link to an article published elsewhere (e.g., Medium, LinkedIn).</p>
+            </div>
+            <Switch
+              checked={!!watch("is_external")}
+              onCheckedChange={(value) => setValue("is_external", value, { shouldValidate: true })}
+            />
+          </div>
+          {watch("is_external") && (
+            <div className="grid gap-4 md:grid-cols-2 rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <div>
+                <FieldLabel htmlFor="external_url" label={`${copy.fields.externalUrl} *`} />
+                <Input id="external_url" {...register("external_url")} className="mt-1" placeholder="https://medium.com/..." />
+                {errors.external_url && <p className="mt-1 text-xs text-red-600">{errors.external_url.message}</p>}
+              </div>
+              <div>
+                <FieldLabel htmlFor="external_source" label={copy.fields.externalSource} />
+                <Input id="external_source" {...register("external_source")} className="mt-1" placeholder="e.g., Medium, LinkedIn" />
+              </div>
+            </div>
+          )}
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <FieldLabel htmlFor="category" label={copy.fields.category} tooltip={copy.hints.category} />
@@ -825,30 +882,31 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
               <p className="mt-1 text-xs text-red-600">{errors.og_image_url.message}</p>
             )}
           </div>
-          <div>
-            <FieldLabel htmlFor="content" label={copy.fields.content} tooltip={copy.hints.content} />
-            <p className="mt-1 text-xs text-gray-500">{copy.hints.content}</p>
-            <input type="hidden" {...register("content")} />
-            <input
-              ref={inlineImageInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void handleInlineImageUpload(file);
-              }}
-            />
-            <div className="mt-2 rounded-lg border border-gray-200 bg-white">
-              <div className="flex flex-wrap gap-2 border-b border-gray-200 px-3 py-2">
-                <button
-                  type="button"
-                  className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
-                  onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-                >
-                  H1
-                </button>
-                <button
+          {!watch("is_external") && (
+            <div>
+              <FieldLabel htmlFor="content" label={copy.fields.content} tooltip={copy.hints.content} />
+              <p className="mt-1 text-xs text-gray-500">{copy.hints.content}</p>
+              <input type="hidden" {...register("content")} />
+              <input
+                ref={inlineImageInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleInlineImageUpload(file);
+                }}
+              />
+              <div className="mt-2 rounded-lg border border-gray-200 bg-white">
+                <div className="flex flex-wrap gap-2 border-b border-gray-200 px-3 py-2">
+                  <button
+                    type="button"
+                    className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
+                    onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                  >
+                    H1
+                  </button>
+                  <button
                   type="button"
                   className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
                   onClick={() => editor?.chain().focus().toggleBold().run()}
@@ -985,6 +1043,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
             ) : null}
             {errors.content && <p className="mt-1 text-xs text-red-600">{errors.content.message}</p>}
           </div>
+          )}
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div className="mb-3 text-sm font-semibold text-gray-700">SEO</div>
             <div className="grid gap-4 md:grid-cols-2">

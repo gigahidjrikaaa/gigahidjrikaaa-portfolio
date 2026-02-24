@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BlogPostResponse } from "@/services/api";
+import { ExternalLink } from "lucide-react";
 
 const formatDate = (value?: string | null) => {
   if (!value) return null;
@@ -66,12 +67,23 @@ const BlogCard = ({ post }: { post: BlogPostResponse }) => {
         )}
 
         <div className="mt-auto pt-6">
-          <Link
-            href={`/blog/${post.slug}`}
-            className="text-sm font-semibold text-gray-900 hover:underline"
-          >
-            Read more →
-          </Link>
+          {post.is_external && post.external_url ? (
+            <a
+              href={post.external_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-gray-900 hover:underline"
+            >
+              Read on {post.external_source || "External Site"} <ExternalLink className="h-3 w-3" />
+            </a>
+          ) : (
+            <Link
+              href={`/blog/${post.slug}`}
+              className="text-sm font-semibold text-gray-900 hover:underline"
+            >
+              Read more →
+            </Link>
+          )}
         </div>
       </div>
     </article>
