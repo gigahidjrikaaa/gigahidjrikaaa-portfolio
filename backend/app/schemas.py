@@ -20,6 +20,7 @@ class ProjectBase(BaseModel):
     thumbnail_url: Optional[str] = Field(None, max_length=1000)
     ui_image_url: Optional[str] = Field(None, max_length=1000)
     is_featured: bool = False
+    is_active: bool = False
     display_order: int = 0
     metrics_users: Optional[str] = Field(None, max_length=5000)
     metrics_performance: Optional[str] = Field(None, max_length=5000)
@@ -55,6 +56,7 @@ class ProjectUpdate(BaseModel):
     thumbnail_url: Optional[str] = None
     ui_image_url: Optional[str] = None
     is_featured: Optional[bool] = None
+    is_active: Optional[bool] = None
     display_order: Optional[int] = None
     metrics_users: Optional[str] = None
     metrics_performance: Optional[str] = None
@@ -422,6 +424,16 @@ class SeoSettingsBase(BaseModel):
     keywords: Optional[str] = None
     og_image_url: Optional[HttpUrl] = None
     canonical_url: Optional[HttpUrl] = None
+    # Sitemap control
+    sitemap_home_priority: Optional[float] = None
+    sitemap_home_changefreq: Optional[str] = None
+    sitemap_blog_enabled: Optional[bool] = None
+    sitemap_blog_priority: Optional[float] = None
+    sitemap_blog_changefreq: Optional[str] = None
+    sitemap_posts_enabled: Optional[bool] = None
+    sitemap_posts_priority: Optional[float] = None
+    sitemap_posts_changefreq: Optional[str] = None
+    sitemap_custom_pages: Optional[str] = None  # JSON string
 
 
 class SeoSettingsUpdate(SeoSettingsBase):
@@ -534,10 +546,24 @@ class TestimonialBase(BaseModel):
     linkedin_url: Optional[str] = None
     is_featured: bool = True
     display_order: int = 0
+    status: str = "approved"
+    submitter_email: Optional[str] = None
 
 
 class TestimonialCreate(TestimonialBase):
     pass
+
+
+class TestimonialSubmit(BaseModel):
+    """Public submission schema — goes to pending status for admin review."""
+    name: str = Field(..., min_length=1, max_length=100)
+    role: str = Field(..., min_length=1, max_length=100)
+    company: Optional[str] = Field(None, max_length=100)
+    content: str = Field(..., min_length=10, max_length=2000)
+    rating: Optional[int] = Field(None, ge=1, le=5)
+    project_relation: Optional[str] = Field(None, max_length=200)
+    linkedin_url: Optional[str] = Field(None, max_length=500)
+    submitter_email: str = Field(..., description="Used to send a confirmation email")
 
 
 class TestimonialUpdate(BaseModel):
@@ -551,6 +577,7 @@ class TestimonialUpdate(BaseModel):
     linkedin_url: Optional[str] = None
     is_featured: Optional[bool] = None
     display_order: Optional[int] = None
+    status: Optional[str] = None
 
 
 class TestimonialResponse(TestimonialBase):
@@ -655,6 +682,15 @@ class PressMentionBase(BaseModel):
     image_url: Optional[str] = None
     is_featured: bool = False
     display_order: int = 0
+    social_username: Optional[str] = None
+
+    @field_validator("publication_date", "publication_url", "excerpt", "image_url", mode="before")
+    @classmethod
+    def empty_str_to_none(cls, v: object) -> object:
+        """Convert empty strings to None so PostgreSQL timestamp/nullable columns don't error."""
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
 
 
 class PressMentionCreate(PressMentionBase):
@@ -670,6 +706,15 @@ class PressMentionUpdate(BaseModel):
     image_url: Optional[str] = None
     is_featured: Optional[bool] = None
     display_order: Optional[int] = None
+    social_username: Optional[str] = None
+
+    @field_validator("publication_date", "publication_url", "excerpt", "image_url", mode="before")
+    @classmethod
+    def empty_str_to_none(cls, v: object) -> object:
+        """Convert empty strings to None so PostgreSQL timestamp/nullable columns don't error."""
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
 
 
 class PressMentionResponse(PressMentionBase):

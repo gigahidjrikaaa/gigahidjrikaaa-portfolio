@@ -192,4 +192,4 @@ if [ "${DRY_RUN:-}" = "1" ]; then
 fi
 
 log "--- Starting Backend Server (localhost:${PORT}) ---"
-exec "$VENV_PY" -m uvicorn app.main:app --host 0.0.0.0 --port "$PORT"
+exec "$VENV_PY" -m uvicorn app.main:app --host 0.0.0.0 --port "$PORT" --reload

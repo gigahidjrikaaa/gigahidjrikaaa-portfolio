@@ -13,7 +13,7 @@ from .config import settings
 from .init_db import init_db
 import uvicorn
 
-from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog, profile, testimonials, comments, seo, scraper, press_mentions, clients, stories, currently_working_on
+from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog, profile, testimonials, comments, seo, scraper, press_mentions, clients, stories, currently_working_on, analytics
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -172,12 +172,19 @@ app.include_router(blog.router, prefix=f"{settings.API_V1_STR}/blog", tags=["blo
 app.include_router(contact.router, prefix=f"{settings.API_V1_STR}/contact", tags=["contact"])
 app.include_router(testimonials.router, prefix=f"{settings.API_V1_STR}/testimonials", tags=["testimonials"])
 app.include_router(comments.router, prefix=f"{settings.API_V1_STR}/comments", tags=["comments"])
-app.include_router(seo.router, prefix=f"{settings.API_V1_STR}", tags=["seo"])
+app.include_router(seo.router, prefix=f"{settings.API_V1_STR}/seo", tags=["seo"])
 app.include_router(scraper.router, prefix=f"{settings.API_V1_STR}/admin", tags=["scraper"])
+# Admin-prefixed routes (write operations, require auth)
 app.include_router(press_mentions.router, prefix=f"{settings.API_V1_STR}/admin/press-mentions", tags=["press-mentions"])
 app.include_router(clients.router, prefix=f"{settings.API_V1_STR}/admin/clients", tags=["clients"])
 app.include_router(stories.router, prefix=f"{settings.API_V1_STR}/admin/stories", tags=["stories"])
 app.include_router(currently_working_on.router, prefix=f"{settings.API_V1_STR}/admin/currently-working-on", tags=["currently-working-on"])
+# Public-prefixed routes (read-only GET endpoints for the portfolio frontend)
+app.include_router(press_mentions.router, prefix=f"{settings.API_V1_STR}/press-mentions", tags=["press-mentions"])
+app.include_router(clients.router, prefix=f"{settings.API_V1_STR}/clients", tags=["clients"])
+app.include_router(stories.router, prefix=f"{settings.API_V1_STR}/stories", tags=["stories"])
+app.include_router(currently_working_on.router, prefix=f"{settings.API_V1_STR}/currently-working-on", tags=["currently-working-on"])
+app.include_router(analytics.router, prefix=f"{settings.API_V1_STR}/analytics", tags=["analytics"])
 
 
 @app.get("/docs", include_in_schema=False)

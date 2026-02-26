@@ -18,7 +18,6 @@ import Contact from '@/components/Contact';
 import Stories from '@/components/Stories';
 import Clients from '@/components/Clients';
 import PressMentions from '@/components/PressMentions';
-import CurrentlyWorkingOn from '@/components/CurrentlyWorkingOn';
 import VisitorMap from '@/components/VisitorMap';
 import VisitorCounter from '@/components/VisitorCounter';
 
@@ -31,11 +30,11 @@ export default function Home() {
         <VisitorCounter />
       </div>
 
+      <PressMentions />
+
       <Stories />
 
       <About />
-
-      <CurrentlyWorkingOn />
 
       <Clients />
 
@@ -58,8 +57,6 @@ export default function Home() {
       <Awards />
 
       <Certificates />
-
-      <PressMentions />
 
       <VisitorMap />
 

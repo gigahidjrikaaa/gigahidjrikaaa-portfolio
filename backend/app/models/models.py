@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table, Text
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Table, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -56,6 +56,7 @@ class Project(Base):
     thumbnail_url = Column(String, nullable=True)
     ui_image_url = Column(String, nullable=True)
     is_featured = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=False)
     display_order = Column(Integer, default=0)
     metrics_users = Column(String, nullable=True)
     metrics_performance = Column(String, nullable=True)
@@ -251,6 +252,16 @@ class SeoSettings(Base):
     keywords = Column(String, nullable=True)
     og_image_url = Column(String, nullable=True)
     canonical_url = Column(String, nullable=True)
+    # Sitemap control
+    sitemap_home_priority = Column(Float, default=1.0, nullable=True)
+    sitemap_home_changefreq = Column(String(20), default="daily", nullable=True)
+    sitemap_blog_enabled = Column(Boolean, default=True, nullable=True)
+    sitemap_blog_priority = Column(Float, default=0.9, nullable=True)
+    sitemap_blog_changefreq = Column(String(20), default="daily", nullable=True)
+    sitemap_posts_enabled = Column(Boolean, default=True, nullable=True)
+    sitemap_posts_priority = Column(Float, default=0.8, nullable=True)
+    sitemap_posts_changefreq = Column(String(20), default="monthly", nullable=True)
+    sitemap_custom_pages = Column(Text, nullable=True)  # JSON array of {url, priority, changefreq}
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -301,6 +312,8 @@ class Testimonial(Base):
     linkedin_url = Column(String, nullable=True)
     is_featured = Column(Boolean, default=True)
     display_order = Column(Integer, default=0)
+    status = Column(String(20), default="approved")  # approved | pending | rejected
+    submitter_email = Column(String(255), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
 
@@ -357,6 +370,7 @@ class PressMention(Base):
     image_url = Column(String, nullable=True)
     is_featured = Column(Boolean, default=False)
     display_order = Column(Integer, default=0)
+    social_username = Column(String(100), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
 
@@ -373,3 +387,20 @@ class CurrentlyWorkingOn(Base):
     is_public = Column(Boolean, default=True)
     display_order = Column(Integer, default=0)
     created_at = Column(DateTime, server_default=func.now())
+
+
+class PageVisit(Base):
+    """Stores one row per visitor session; updated on heartbeat."""
+    __tablename__ = "page_visits"
+
+    id = Column(Integer, primary_key=True)
+    session_id = Column(String(64), nullable=False, index=True)
+    ip_hash = Column(String(64), nullable=False)
+    country_code = Column(String(5), nullable=True)
+    country_name = Column(String(100), nullable=True)
+    region = Column(String(100), nullable=True)
+    city = Column(String(100), nullable=True)
+    lat = Column(Integer, nullable=True)
+    lon = Column(Integer, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    last_seen = Column(DateTime, server_default=func.now())

@@ -31,6 +31,7 @@ const copy = {
   clients: "Client Logos",
   pressMentions: "Press & Media",
   currentlyWorkingOn: "Currently Working On",
+  testimonials: "Testimonials",
 };
 
 const navSections = [
@@ -53,6 +54,7 @@ const navSections = [
       { href: "/admin/clients", label: copy.clients },
       { href: "/admin/press-mentions", label: copy.pressMentions },
       { href: "/admin/currently-working-on", label: copy.currentlyWorkingOn },
+      { href: "/admin/testimonials", label: copy.testimonials },
       { href: "/admin/messages", label: copy.messages },
     ],
   },

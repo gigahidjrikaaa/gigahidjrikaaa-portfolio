@@ -25,6 +25,16 @@ def read_press_mention(mention_id: int, db: Session = Depends(get_db)):
     return mention
 
 
+def _sanitize_mention(data: dict) -> dict:
+    """Convert any empty-string values to None for nullable fields.
+    Belt-and-suspenders guard in addition to the Pydantic field_validator."""
+    nullable = {"publication_date", "publication_url", "excerpt", "image_url"}
+    return {
+        k: (None if (k in nullable and isinstance(v, str) and v.strip() == "") else v)
+        for k, v in data.items()
+    }
+
+
 @router.post("/", response_model=PressMentionResponse, status_code=status.HTTP_201_CREATED)
 def create_press_mention(
     mention: PressMentionCreate,
@@ -32,7 +42,7 @@ def create_press_mention(
     _current_user: User = Depends(get_current_admin_user),
 ):
     """Create a new press mention (admin only)"""
-    db_mention = PressMention(**mention.model_dump())
+    db_mention = PressMention(**_sanitize_mention(mention.model_dump()))
     db.add(db_mention)
     db.commit()
     db.refresh(db_mention)
@@ -50,7 +60,8 @@ def update_press_mention(
     db_mention = db.query(PressMention).filter(PressMention.id == mention_id).first()
     if not db_mention:
         raise HTTPException(status_code=404, detail="Press mention not found")
-    for field, value in mention.model_dump(exclude_unset=True).items():
+    sanitized = _sanitize_mention(mention.model_dump(exclude_unset=True))
+    for field, value in sanitized.items():
         setattr(db_mention, field, value)
     db.commit()
     db.refresh(db_mention)

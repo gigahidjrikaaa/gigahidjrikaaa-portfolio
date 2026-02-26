@@ -17,6 +17,7 @@ export interface ProjectBase {
   thumbnail_url?: string;
   ui_image_url?: string;
   is_featured: boolean;
+  is_active?: boolean;
   display_order: number;
 }
 
@@ -165,6 +166,17 @@ export interface ServiceResponse extends ServiceBase {
   created_at: string;
 }
 
+export interface TestimonialSubmit {
+  name: string;
+  role: string;
+  company?: string;
+  content: string;
+  rating?: number;
+  project_relation?: string;
+  linkedin_url?: string;
+  submitter_email: string;
+}
+
 export interface TestimonialResponse {
   id: number;
   name: string;
@@ -177,6 +189,8 @@ export interface TestimonialResponse {
   linkedin_url?: string;
   is_featured: boolean;
   display_order: number;
+  status?: string;
+  submitter_email?: string;
   created_at: string;
 }
 
@@ -317,6 +331,16 @@ export interface SeoSettingsBase {
   keywords?: string;
   og_image_url?: string;
   canonical_url?: string;
+  // Sitemap control
+  sitemap_home_priority?: number;
+  sitemap_home_changefreq?: string;
+  sitemap_blog_enabled?: boolean;
+  sitemap_blog_priority?: number;
+  sitemap_blog_changefreq?: string;
+  sitemap_posts_enabled?: boolean;
+  sitemap_posts_priority?: number;
+  sitemap_posts_changefreq?: string;
+  sitemap_custom_pages?: string; // JSON string
 }
 
 export type SeoSettingsUpdate = Partial<SeoSettingsBase>;
@@ -368,6 +392,7 @@ export interface PressMentionBase {
   image_url?: string;
   is_featured: boolean;
   display_order: number;
+  social_username?: string;
 }
 
 export type PressMentionUpdate = Partial<PressMentionBase>;
@@ -394,6 +419,31 @@ export interface CurrentlyWorkingOnResponse extends CurrentlyWorkingOnBase {
   id: number;
   created_at: string;
   updated_at: string;
+}
+
+// --- Analytics ---
+export interface AnalyticsRegion {
+  region: string;
+  count: number;
+  pct: number;
+  color: string;
+}
+
+export interface AnalyticsTopCity {
+  label: string;
+  city: string;
+  country_code: string;
+  count: number;
+}
+
+export interface AnalyticsStats {
+  total: number;
+  today: number;
+  online_now: number;
+  countries_count: number;
+  regions: AnalyticsRegion[];
+  top_cities: AnalyticsTopCity[];
+  sparkline: number[]; // 7 values (last 7 days)
 }
 
 // --- API Services ---
@@ -600,6 +650,13 @@ class ApiService {
     return this.request<TestimonialResponse[]>('/testimonials/featured');
   }
 
+  async submitTestimonial(payload: TestimonialSubmit): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/testimonials/submit', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
   async getPublicSeoSettings(): Promise<Partial<SeoSettingsResponse> | null> {
     return this.request<Partial<SeoSettingsResponse> | null>('/seo');
   }
@@ -618,6 +675,17 @@ class ApiService {
 
   async getCurrentlyWorkingOn(): Promise<CurrentlyWorkingOnResponse[]> {
     return this.request<CurrentlyWorkingOnResponse[]>('/currently-working-on');
+  }
+
+  async recordVisit(sessionId: string): Promise<void> {
+    await this.request<void>('/analytics/visit', {
+      method: 'POST',
+      body: JSON.stringify({ session_id: sessionId }),
+    });
+  }
+
+  async getAnalyticsStats(): Promise<AnalyticsStats> {
+    return this.request<AnalyticsStats>('/analytics/stats');
   }
 }
 
@@ -1092,6 +1160,34 @@ class AdminApiService extends ApiService {
   async deleteCurrentlyWorkingOn(id: number): Promise<{ message: string }> {
     return this.request<{ message: string }>(`/admin/currently-working-on/${id}`, {
       method: 'DELETE'
+    });
+  }
+
+  // ─── Testimonials (admin) ──────────────────────────────────────────────
+  async adminGetAllTestimonials(): Promise<TestimonialResponse[]> {
+    return this.request<TestimonialResponse[]>('/testimonials/admin/all');
+  }
+
+  async adminGetPendingTestimonials(): Promise<TestimonialResponse[]> {
+    return this.request<TestimonialResponse[]>('/testimonials/admin/pending');
+  }
+
+  async adminApproveTestimonial(id: number): Promise<TestimonialResponse> {
+    return this.request<TestimonialResponse>(`/testimonials/admin/${id}/approve`, { method: 'POST' });
+  }
+
+  async adminRejectTestimonial(id: number): Promise<TestimonialResponse> {
+    return this.request<TestimonialResponse>(`/testimonials/admin/${id}/reject`, { method: 'POST' });
+  }
+
+  async adminDeleteTestimonial(id: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/testimonials/${id}`, { method: 'DELETE' });
+  }
+
+  async adminUpdateTestimonial(id: number, payload: Partial<TestimonialResponse>): Promise<TestimonialResponse> {
+    return this.request<TestimonialResponse>(`/testimonials/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
     });
   }
 

@@ -33,7 +33,7 @@ const itemVariants = {
 const copy = {
   eyebrow: 'YOGYAKARTA',
   headline: 'Hi, I\'m Giga Hidjrika Aura Adkhy — Building AI-Powered Products and Full-Stack Solutions.',
-  subhead: 'I\'m a creative technologist passionate about AI, blockchain, and modern web development — turning complex ideas into elegant, user-focused experiences.',
+  subhead: 'I build across AI, web3, and full-stack engineering — with a focus on practical, well-crafted solutions.',
   ctaPrimary: 'Let\'s Connect',
   heroAlt: 'Modern interior workspace',
 };

@@ -58,6 +58,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
     thumbnail_url: '',
     ui_image_url: '',
     is_featured: false,
+    is_active: false,
     display_order: 0,
   });
   const [rolePreset, setRolePreset] = useState('');
@@ -88,6 +89,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
         thumbnail_url: project.thumbnail_url || '',
         ui_image_url: project.ui_image_url || '',
         is_featured: project.is_featured || false,
+        is_active: project.is_active || false,
         display_order: project.display_order || 0,
       });
       setRolePreset(preset);
@@ -111,6 +113,13 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
     setFormData((prev: ProjectBase) => ({
       ...prev,
       is_featured: checked,
+    }));
+  };
+
+  const handleActiveCheckboxChange = (checked: boolean) => {
+    setFormData((prev: ProjectBase) => ({
+      ...prev,
+      is_active: checked,
     }));
   };
 
@@ -598,6 +607,17 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
           <div className="flex items-center space-x-2 md:col-span-2">
             <Checkbox id="is_featured" checked={formData.is_featured} onCheckedChange={handleCheckboxChange} />
             <Label htmlFor="is_featured" className="text-gray-700">Featured Project</Label>
+          </div>
+
+          <div className="flex items-center space-x-2 md:col-span-2">
+            <Checkbox id="is_active" checked={formData.is_active ?? false} onCheckedChange={handleActiveCheckboxChange} />
+            <Label htmlFor="is_active" className="text-gray-700">
+              Currently working on this
+              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Active
+              </span>
+            </Label>
           </div>
 
           <div className="flex justify-end gap-4 mt-6 md:col-span-2">

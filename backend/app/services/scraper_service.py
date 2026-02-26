@@ -26,6 +26,99 @@ from ..core.config import settings
 logger = logging.getLogger(__name__)
 
 ContentType = Literal["press_mention", "blog_article", "project"]
+SocialPlatform = Literal["twitter", "instagram", "facebook", "linkedin"]
+
+# ---------------------------------------------------------------------------
+# Social-platform detection
+# ---------------------------------------------------------------------------
+
+_SOCIAL_PATTERNS: dict[str, re.Pattern[str]] = {
+    "twitter":   re.compile(r"(?:twitter\.com|x\.com)/\w+/status/\d+", re.I),
+    "instagram": re.compile(r"instagram\.com/(?:p|reel|tv)/[A-Za-z0-9_-]+", re.I),
+    "facebook":  re.compile(r"(?:facebook\.com|fb\.com|fb\.watch)", re.I),
+    "linkedin":  re.compile(r"linkedin\.com/(?:posts?|feed/update|pulse|in/|company/)", re.I),
+}
+
+_SOCIAL_NAMES: dict[str, str] = {
+    "twitter":   "X (Twitter)",
+    "instagram": "Instagram",
+    "facebook":  "Facebook",
+    "linkedin":  "LinkedIn",
+}
+
+
+def detect_social_platform(url: str) -> str | None:
+    """Return the social platform key if the URL is a recognised social post, else None."""
+    for platform, pattern in _SOCIAL_PATTERNS.items():
+        if pattern.search(url):
+            return platform
+    return None
+
+
+def _social_username_from_url(url: str, platform: str) -> str:
+    """Best-effort extraction of a username / page name from a social URL."""
+    parts = [p for p in urlparse(url).path.split("/") if p]
+    if platform in ("twitter", "instagram") and parts:
+        return "@" + parts[0]
+    if platform == "linkedin" and len(parts) >= 2:
+        return parts[1]
+    if platform == "facebook" and parts:
+        return parts[0]
+    return ""
+
+
+async def _fetch_twitter_oembed(url: str) -> dict[str, Any]:
+    """
+    Call the free Twitter/X oEmbed endpoint (no auth required).
+    Returns the raw oEmbed JSON dict, or {} on failure.
+    """
+    oembed_url = f"https://publish.twitter.com/oembed?url={url}&omit_script=true&dnt=true"
+    try:
+        async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+            resp = await client.get(oembed_url)
+        if resp.status_code == 200:
+            return resp.json()
+    except Exception as exc:
+        logger.warning("Twitter oEmbed failed for %s: %s", url, exc)
+    return {}
+
+
+def _extract_tweet_text(html: str) -> str:
+    """Strip tags from oEmbed HTML and return the plain tweet text."""
+    soup = BeautifulSoup(html, "lxml")
+    # Remove trailing attribution links (<a> with twitter.com href)
+    for a in soup.find_all("a", href=re.compile(r"twitter\.com|x\.com|t\.co")):
+        a.decompose()
+    text = re.sub(r"\s+", " ", soup.get_text(separator=" ")).strip()
+    return text[:320]
+
+
+def _build_social_metadata(url: str, platform: str) -> dict[str, Any]:
+    """
+    Return a partial scraped-metadata dict for platforms where HTML scraping
+    is blocked.  The caller should add the `_social_platform` hint so the
+    frontend can show a specialised form.
+    """
+    username = _social_username_from_url(url, platform)
+    pub_name = _SOCIAL_NAMES.get(platform, platform.title())
+    domain   = urlparse(url).netloc.replace("www.", "")
+    return {
+        "url":             url,
+        "title":           "",          # user must supply
+        "description":     "",
+        "image_url":       "",
+        "site_name":       pub_name,
+        "published_time":  "",
+        "author":          username,
+        "domain":          domain,
+        "content_snippet": "",
+        "keywords":        [],
+        "article_section": "",
+        # Extra hint consumed by _fallback_extraction and the frontend
+        "_social_platform": platform,
+        "_social_username": username,
+    }
+
 
 # ---------------------------------------------------------------------------
 # Scraping helpers
@@ -334,7 +427,47 @@ async def scrape_url(url: str) -> dict[str, Any]:
     Returns a dict with keys:
       url, title, description, image_url, site_name, published_time,
       author, domain, content_snippet, keywords, article_section
+
+    For social-platform URLs:
+      - Twitter/X posts: resolved via the public oEmbed API (no auth needed).
+      - Instagram / Facebook / LinkedIn: blocked by login walls; returns an
+        empty-field dict with `_social_platform` and `_social_username` keys
+        so the frontend can show a specialised entry form.
     """
+    # -----------------------------------------------------------------------
+    # Social-platform short-circuit
+    # -----------------------------------------------------------------------
+    platform = detect_social_platform(url)
+
+    if platform == "twitter":
+        oembed = await _fetch_twitter_oembed(url)
+        if oembed:
+            tweet_text = _extract_tweet_text(oembed.get("html", ""))
+            author      = oembed.get("author_name", "")
+            return {
+                "url":             url,
+                "title":           tweet_text[:140] or "",
+                "description":     tweet_text,
+                "image_url":       oembed.get("thumbnail_url", ""),
+                "site_name":       "X (Twitter)",
+                "published_time":  "",
+                "author":          author,
+                "domain":          "x.com",
+                "content_snippet": tweet_text,
+                "keywords":        [],
+                "article_section": "",
+                # Frontend / fallback hints
+                "_social_platform": "twitter",
+                "_social_username":  ("@" + author) if author else "",
+            }
+        # oEmbed unavailable — fall through to normal HTML scrape
+
+    elif platform in ("instagram", "facebook", "linkedin"):
+        return _build_social_metadata(url, platform)
+
+    # -----------------------------------------------------------------------
+    # Normal HTML scrape
+    # -----------------------------------------------------------------------
     async with httpx.AsyncClient(
         timeout=30.0,
         follow_redirects=True,
@@ -490,7 +623,22 @@ async def analyze_with_ai(scraped: dict[str, Any], content_type: ContentType) ->
     """
     Send scraped page data to Z.AI and return structured JSON for the given content type.
     Falls back to a raw extraction if the API key is not configured or the call fails.
+
+    Social-platform shortcut:
+    - Instagram / Facebook / LinkedIn: all fields are empty (login-walled), so
+      AI has nothing to work with. Skip the API call and return the fallback
+      immediately.  The `_social_platform` hint is preserved so the frontend
+      knows to show a specialised entry form.
+    - Twitter/X: tweet text comes back via oEmbed; AI enrichment is still
+      worthwhile for a concise excerpt, so the call proceeds normally.
     """
+    social_platform = scraped.get("_social_platform")
+    if social_platform in ("instagram", "facebook", "linkedin"):
+        logger.info(
+            "Skipping AI enrichment for %s URL — content is login-walled.", social_platform,
+        )
+        return _fallback_extraction(scraped, content_type)
+
     if not settings.ZAI_API_KEY:
         logger.warning("ZAI_API_KEY not set — returning raw scraped data without AI enrichment.")
         return _fallback_extraction(scraped, content_type)
@@ -570,8 +718,16 @@ def _fallback_extraction(scraped: dict[str, Any], content_type: ContentType) -> 
     # Excerpt: prefer OG description; fall back to first sentences of body text
     excerpt = _make_excerpt(description, content_snippet)
 
+    # Social-platform hint  (set by _build_social_metadata / twitter oEmbed branch)
+    social_platform = scraped.get("_social_platform")
+    social_username = scraped.get("_social_username", "")
+
     if content_type == "press_mention":
-        return {
+        # For social posts, `site` is already set to the platform display name
+        # (e.g. "X (Twitter)"), and `title` may be empty (Instagram/Facebook/LinkedIn)
+        # or the tweet text (Twitter oEmbed).  Include social hints so the caller
+        # and frontend can detect and render the appropriate form.
+        result: dict[str, Any] = {
             "title":            title,
             "publication":      site,
             "publication_url":  url,
@@ -580,6 +736,10 @@ def _fallback_extraction(scraped: dict[str, Any], content_type: ContentType) -> 
             "image_url":        image,
             "is_featured":      False,
         }
+        if social_platform:
+            result["_social_platform"] = social_platform
+            result["_social_username"]  = social_username
+        return result
 
     if content_type == "blog_article":
         # Infer category from title + description + keywords

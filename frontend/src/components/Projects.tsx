@@ -24,6 +24,7 @@ interface ProjectItem {
   solutions: string;
   impact: string;
   is_featured: boolean;
+  is_active?: boolean;
   tech_stack?: string[];
   features?: string[];
   images?: { id: number; url: string; caption?: string; kind?: string; display_order?: number }[];
@@ -85,6 +86,7 @@ const Projects = () => {
 
   const featuredProjects = useMemo(() => projects.filter(p => p.is_featured), [projects]);
   const otherProjects = useMemo(() => projects.filter(p => !p.is_featured), [projects]);
+  const activeProjects = useMemo(() => projects.filter(p => p.is_active), [projects]);
   const displayProjects = activeTab === 'featured' ? featuredProjects : otherProjects;
 
   const handleProjectClick = (project: ProjectItem) => {
@@ -148,6 +150,20 @@ const Projects = () => {
                     <Star className="h-3 w-3 text-amber-400" fill="currentColor" />
                     Featured
                   </motion.div>
+                  {project.is_active && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.12 }}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300 mb-2"
+                    >
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                      </span>
+                      In progress
+                    </motion.div>
+                  )}
                   <motion.h3
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -299,9 +315,29 @@ const Projects = () => {
 
             {/* Featured badge */}
             {project.is_featured && (
-              <div className="absolute left-3 top-3">
+              <div className="absolute left-3 top-3 flex flex-col gap-1">
                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow">
                   <Star className="h-2.5 w-2.5" fill="currentColor" /> Featured
+                </span>
+                {project.is_active && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+                    </span>
+                    Active
+                  </span>
+                )}
+              </div>
+            )}
+            {!project.is_featured && project.is_active && (
+              <div className="absolute left-3 top-3">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+                  </span>
+                  Active
                 </span>
               </div>
             )}
@@ -416,7 +452,7 @@ const Projects = () => {
             Portfolio
           </span>
           <h2 className="mt-3 text-4xl font-bold text-gray-900 sm:text-5xl">
-            Signature{" "}
+            My{" "}
             <span className="relative inline-block">
               Projects
               <motion.span
@@ -429,9 +465,37 @@ const Projects = () => {
             </span>
           </h2>
           <p className="mt-4 max-w-xl text-base text-gray-500">
-            A curated selection of work spanning AI, blockchain, and full-stack engineering.
+            A selection of projects across AI, blockchain, and full-stack engineering.
           </p>
         </motion.div>
+
+        {/* Currently active banner */}
+        {!loading && activeProjects.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-10 flex flex-wrap items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/60 px-5 py-3.5"
+          >
+            <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              Currently building
+            </div>
+            <span className="h-3.5 w-px bg-emerald-200" />
+            {activeProjects.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => handleProjectClick(p)}
+                className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-medium text-emerald-700 transition-colors hover:border-emerald-300 hover:bg-emerald-50"
+              >
+                {p.title}
+              </button>
+            ))}
+          </motion.div>
+        )}
 
         {/* Featured Hero Carousel */}
         {!loading && featuredProjects.length > 0 && (

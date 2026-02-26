@@ -16,7 +16,79 @@ import {
   TagIcon,
   CheckCircleIcon,
   XCircleIcon,
+  DocumentTextIcon,
+  PlusIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
+
+const CHANGE_FREQS = ['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'] as const;
+type ChangeFreq = typeof CHANGE_FREQS[number];
+
+interface SitemapRowProps {
+  label: string;
+  path: string;
+  enabled: boolean;
+  disableToggle?: boolean;
+  priority: number;
+  changefreq: string;
+  onToggle?: () => void;
+  onPriorityChange: (v: number) => void;
+  onFreqChange: (v: string) => void;
+}
+
+function SitemapRow({ label, path, enabled, disableToggle, priority, changefreq, onToggle, onPriorityChange, onFreqChange }: SitemapRowProps) {
+  return (
+    <div className={`grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_100px_120px] items-center rounded-lg border p-3 transition-opacity ${
+      enabled || disableToggle ? 'border-gray-200 bg-gray-50' : 'border-gray-100 bg-gray-50/50 opacity-60'
+    }`}>
+      <div>
+        <p className="text-sm font-medium text-gray-800">{label}</p>
+        <p className="font-mono text-xs text-gray-400">{path}</p>
+      </div>
+      <div className="flex items-center">
+        {disableToggle ? (
+          <span className="text-xs text-gray-400">Always on</span>
+        ) : (
+          <button
+            type="button"
+            onClick={onToggle}
+            role="switch"
+            aria-checked={enabled}
+            className={`relative inline-flex h-5 w-9 cursor-pointer rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+              enabled ? 'bg-blue-600' : 'bg-gray-300'
+            }`}
+          >
+            <span className={`inline-block h-4 w-4 translate-y-0.5 rounded-full bg-white shadow transition-transform ${
+              enabled ? 'translate-x-4' : 'translate-x-0.5'
+            }`} />
+          </button>
+        )}
+      </div>
+      <div>
+        <input
+          type="number"
+          min={0}
+          max={1}
+          step={0.1}
+          value={priority}
+          onChange={(e) => onPriorityChange(parseFloat(e.target.value) || 0)}
+          disabled={!enabled && !disableToggle}
+          className="w-full rounded border border-gray-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+        />
+      </div>
+      <div>
+        <select
+          value={changefreq}
+          onChange={(e) => onFreqChange(e.target.value)}
+          disabled={!enabled && !disableToggle}
+          className="w-full rounded border border-gray-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+        >
+          {CHANGE_FREQS.map(f => <option key={f} value={f}>{f}</option>)}
+        </select>
+      </div>
+    </div>
+  );
+}
 
 const copy = {
   title: "SEO Settings",
@@ -49,6 +121,15 @@ const SeoPage = () => {
     keywords: '',
     og_image_url: '',
     canonical_url: '',
+    sitemap_home_priority: 1.0,
+    sitemap_home_changefreq: 'daily',
+    sitemap_blog_enabled: true,
+    sitemap_blog_priority: 0.9,
+    sitemap_blog_changefreq: 'daily',
+    sitemap_posts_enabled: true,
+    sitemap_posts_priority: 0.8,
+    sitemap_posts_changefreq: 'monthly',
+    sitemap_custom_pages: '[]',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -77,6 +158,27 @@ const SeoPage = () => {
 
   const handleChange = (field: keyof SeoSettingsResponse, value: string) => {
     setSeo(prev => ({ ...prev, [field]: value }));
+    setHasChanges(true);
+  };
+
+  const handleBoolToggle = (field: keyof SeoSettingsResponse) => {
+    setSeo(prev => ({ ...prev, [field]: !prev[field as keyof typeof prev] }));
+    setHasChanges(true);
+  };
+
+  const handleNumChange = (field: keyof SeoSettingsResponse, value: number) => {
+    setSeo(prev => ({ ...prev, [field]: value }));
+    setHasChanges(true);
+  };
+
+  // Custom pages helpers
+  type CustomPage = { url: string; priority: number; changefreq: ChangeFreq };
+  const parsedCustomPages = (): CustomPage[] => {
+    try { return JSON.parse(seo.sitemap_custom_pages || '[]'); }
+    catch { return []; }
+  };
+  const updateCustomPages = (pages: CustomPage[]) => {
+    setSeo(prev => ({ ...prev, sitemap_custom_pages: JSON.stringify(pages) }));
     setHasChanges(true);
   };
 
@@ -377,6 +479,136 @@ const SeoPage = () => {
               </p>
               <p className="mt-1 text-xs text-gray-500">yoursite.com</p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sitemap Control */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DocumentTextIcon className="h-5 w-5 text-gray-500" />
+            Sitemap Control
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <p className="text-sm text-gray-500">
+            Configure which pages appear in <span className="font-mono text-gray-700">/sitemap.xml</span> and
+            their crawl priority. Changes take effect on the next site build / revalidation (1 hour cache).
+          </p>
+
+          {/* Column headers */}
+          <div className="hidden grid-cols-[1fr_auto_100px_120px] gap-3 px-3 sm:grid">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Page</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Enabled</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Priority</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Frequency</span>
+          </div>
+
+          <div className="space-y-2">
+            <SitemapRow
+              label="Homepage"
+              path="/"
+              enabled
+              disableToggle
+              priority={seo.sitemap_home_priority ?? 1.0}
+              changefreq={seo.sitemap_home_changefreq ?? 'daily'}
+              onPriorityChange={(v) => handleNumChange('sitemap_home_priority', v)}
+              onFreqChange={(v) => handleChange('sitemap_home_changefreq', v)}
+            />
+            <SitemapRow
+              label="Blog index"
+              path="/blog"
+              enabled={seo.sitemap_blog_enabled ?? true}
+              priority={seo.sitemap_blog_priority ?? 0.9}
+              changefreq={seo.sitemap_blog_changefreq ?? 'daily'}
+              onToggle={() => handleBoolToggle('sitemap_blog_enabled')}
+              onPriorityChange={(v) => handleNumChange('sitemap_blog_priority', v)}
+              onFreqChange={(v) => handleChange('sitemap_blog_changefreq', v)}
+            />
+            <SitemapRow
+              label="Blog posts"
+              path="/blog/:slug (all published)"
+              enabled={seo.sitemap_posts_enabled ?? true}
+              priority={seo.sitemap_posts_priority ?? 0.8}
+              changefreq={seo.sitemap_posts_changefreq ?? 'monthly'}
+              onToggle={() => handleBoolToggle('sitemap_posts_enabled')}
+              onPriorityChange={(v) => handleNumChange('sitemap_posts_priority', v)}
+              onFreqChange={(v) => handleChange('sitemap_posts_changefreq', v)}
+            />
+          </div>
+
+          {/* Custom pages */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm font-medium text-gray-700">Custom Pages</p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => updateCustomPages([...parsedCustomPages(), { url: '', priority: 0.7, changefreq: 'monthly' as ChangeFreq }])}
+              >
+                <PlusIcon className="mr-1.5 h-3.5 w-3.5" />
+                Add page
+              </Button>
+            </div>
+            {parsedCustomPages().length === 0 ? (
+              <p className="rounded-lg border border-dashed border-gray-200 p-4 text-center text-sm text-gray-400">
+                No custom pages. Click &ldquo;Add page&rdquo; to include extra URLs in your sitemap.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {parsedCustomPages().map((page, i) => {
+                  const pages = parsedCustomPages();
+                  return (
+                    <div key={i} className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                      <input
+                        type="text"
+                        value={page.url}
+                        placeholder="/about or https://..."
+                        onChange={(e) => {
+                          pages[i] = { ...pages[i], url: e.target.value };
+                          updateCustomPages(pages);
+                        }}
+                        className="min-w-0 flex-1 rounded border border-gray-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="number"
+                        min={0}
+                        max={1}
+                        step={0.1}
+                        value={page.priority}
+                        onChange={(e) => {
+                          pages[i] = { ...pages[i], priority: parseFloat(e.target.value) || 0 };
+                          updateCustomPages(pages);
+                        }}
+                        className="w-20 rounded border border-gray-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <select
+                        value={page.changefreq}
+                        onChange={(e) => {
+                          pages[i] = { ...pages[i], changefreq: e.target.value as ChangeFreq };
+                          updateCustomPages(pages);
+                        }}
+                        className="rounded border border-gray-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {CHANGE_FREQS.map(f => <option key={f} value={f}>{f}</option>)}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = parsedCustomPages().filter((_, idx) => idx !== i);
+                          updateCustomPages(next);
+                        }}
+                        className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                        aria-label="Remove"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

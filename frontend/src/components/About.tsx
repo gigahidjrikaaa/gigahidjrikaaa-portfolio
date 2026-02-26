@@ -42,8 +42,8 @@ const amenities = [
 const copy = {
   title: 'About Me',
   intro:
-    'A creative technologist passionate about building innovative digital products — from AI-powered applications to blockchain solutions and modern web experiences.',
-  body: 'I bring a versatile skill set that spans the entire product development lifecycle. Whether it\'s crafting intuitive user interfaces, architecting scalable backends, or integrating cutting-edge AI, I focus on delivering solutions that make a real impact.',
+    'A software engineer working across AI, blockchain, and modern web development — building products from concept to production.',
+  body: 'My work covers the full product lifecycle — from user interfaces and backend systems to AI integrations. I focus on writing clean code and shipping things that actually hold up.',
   videoCaption: 'MY WORKSPACE',
   videoCaptionBody: 'Where ideas become reality',
   videoSrc: '/about-me-video.mp4', // Replace with your video URL or path
