@@ -402,25 +402,6 @@ export interface PressMentionResponse extends PressMentionBase {
   created_at: string;
 }
 
-export interface CurrentlyWorkingOnBase {
-  title: string;
-  description: string;
-  project_url?: string;
-  status: 'planning' | 'in_progress' | 'paused' | 'completed';
-  progress_percentage?: number;
-  tags?: string;
-  is_public: boolean;
-  display_order: number;
-}
-
-export type CurrentlyWorkingOnUpdate = Partial<CurrentlyWorkingOnBase>;
-
-export interface CurrentlyWorkingOnResponse extends CurrentlyWorkingOnBase {
-  id: number;
-  created_at: string;
-  updated_at: string;
-}
-
 // --- Analytics ---
 export interface AnalyticsRegion {
   region: string;
@@ -671,10 +652,6 @@ class ApiService {
 
   async getPressMentions(): Promise<PressMentionResponse[]> {
     return this.request<PressMentionResponse[]>('/press-mentions');
-  }
-
-  async getCurrentlyWorkingOn(): Promise<CurrentlyWorkingOnResponse[]> {
-    return this.request<CurrentlyWorkingOnResponse[]>('/currently-working-on');
   }
 
   async recordVisit(sessionId: string): Promise<void> {
@@ -1135,30 +1112,6 @@ class AdminApiService extends ApiService {
 
   async deletePressMention(id: number): Promise<{ message: string }> {
     return this.request<{ message: string }>(`/admin/press-mentions/${id}`, {
-      method: 'DELETE'
-    });
-  }
-
-  async getCurrentlyWorkingOn(): Promise<CurrentlyWorkingOnResponse[]> {
-    return this.request<CurrentlyWorkingOnResponse[]>('/admin/currently-working-on');
-  }
-
-  async createCurrentlyWorkingOn(payload: CurrentlyWorkingOnBase): Promise<CurrentlyWorkingOnResponse> {
-    return this.request<CurrentlyWorkingOnResponse>('/admin/currently-working-on', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-  }
-
-  async updateCurrentlyWorkingOn(id: number, payload: CurrentlyWorkingOnUpdate): Promise<CurrentlyWorkingOnResponse> {
-    return this.request<CurrentlyWorkingOnResponse>(`/admin/currently-working-on/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(payload)
-    });
-  }
-
-  async deleteCurrentlyWorkingOn(id: number): Promise<{ message: string }> {
-    return this.request<{ message: string }>(`/admin/currently-working-on/${id}`, {
       method: 'DELETE'
     });
   }

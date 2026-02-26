@@ -725,36 +725,3 @@ class PressMentionResponse(PressMentionBase):
         from_attributes = True
 
 
-# CurrentlyWorkingOn schemas
-class CurrentlyWorkingOnBase(BaseModel):
-    title: str
-    description: Optional[str] = None
-    project_url: Optional[str] = None
-    status: str = "in_progress"
-    progress_percentage: int = 0
-    tags: Optional[str] = None
-    is_public: bool = True
-    display_order: int = 0
-
-
-class CurrentlyWorkingOnCreate(CurrentlyWorkingOnBase):
-    pass
-
-
-class CurrentlyWorkingOnUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    project_url: Optional[str] = None
-    status: Optional[str] = None
-    progress_percentage: Optional[int] = None
-    tags: Optional[str] = None
-    is_public: Optional[bool] = None
-    display_order: Optional[int] = None
-
-
-class CurrentlyWorkingOnResponse(CurrentlyWorkingOnBase):
-    id: int
-    created_at: datetime
-
-    class Config:
-        from_attributes = True

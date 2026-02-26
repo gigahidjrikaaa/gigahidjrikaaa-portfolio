@@ -374,21 +374,6 @@ class PressMention(Base):
     created_at = Column(DateTime, server_default=func.now())
 
 
-class CurrentlyWorkingOn(Base):
-    __tablename__ = "currently_working_on"
-
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=False)
-    description = Column(Text, nullable=True)
-    project_url = Column(String, nullable=True)
-    status = Column(String, default="in_progress")  # in_progress | paused | completed
-    progress_percentage = Column(Integer, default=0)
-    tags = Column(String, nullable=True)
-    is_public = Column(Boolean, default=True)
-    display_order = Column(Integer, default=0)
-    created_at = Column(DateTime, server_default=func.now())
-
-
 class PageVisit(Base):
     """Stores one row per visitor session; updated on heartbeat."""
     __tablename__ = "page_visits"
