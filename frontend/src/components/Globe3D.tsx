@@ -107,11 +107,14 @@ function Arc({ from, to, color = "#6ee7b7" }: { from: THREE.Vector3; to: THREE.V
     return g;
   }, [points]);
 
-  return (
-    <line geometry={geometry}>
-      <lineBasicMaterial color={color} transparent opacity={0.18} depthWrite={false} />
-    </line>
+  const material = useMemo(
+    () => new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.18, depthWrite: false }),
+    [color]
   );
+
+  const lineObject = useMemo(() => new THREE.Line(geometry, material), [geometry, material]);
+
+  return <primitive object={lineObject} />;
 }
 
 // ─── Atmosphere shell ─────────────────────────────────────────────────────────

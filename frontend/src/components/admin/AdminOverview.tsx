@@ -60,7 +60,7 @@ const StatCard = ({
 }: {
   label: string;
   value: number;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
 }) => (
   <Card className="border-slate-200 shadow-sm">
     <CardHeader className="flex flex-row items-center justify-between pb-2">

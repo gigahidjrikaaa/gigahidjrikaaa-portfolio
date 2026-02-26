@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PlusIcon, PencilIcon, TrashIcon, PhotoIcon, BuildingOffice2Icon } from "@heroicons/react/24/outline";
@@ -153,12 +154,14 @@ const ClientsManagement = () => {
               <Card className="overflow-hidden shadow-sm transition-shadow hover:shadow-md">
                 <CardContent className="p-5">
                   {/* Logo preview */}
-                  <div className="mb-4 flex h-20 items-center justify-center rounded-xl bg-slate-50">
+                  <div className="relative mb-4 flex h-20 items-center justify-center overflow-hidden rounded-xl bg-slate-50">
                     {client.logo_url ? (
-                      <img
+                      <Image
+                        fill
                         src={client.logo_url}
                         alt={client.name}
-                        className="max-h-16 max-w-full object-contain"
+                        className="object-contain"
+                        sizes="80px"
                       />
                     ) : (
                       <PhotoIcon className="h-10 w-10 text-slate-300" />
@@ -255,8 +258,8 @@ const ClientsManagement = () => {
                   className={INPUT_CLS}
                 />
                 {formData.logo_url && (
-                  <div className="mt-2 flex h-16 w-full items-center justify-center overflow-hidden rounded-lg bg-slate-50">
-                    <img src={formData.logo_url} alt="preview" className="max-h-14 max-w-full object-contain" />
+                  <div className="relative mt-2 flex h-16 w-full items-center justify-center overflow-hidden rounded-lg bg-slate-50">
+                    <Image fill src={formData.logo_url} alt="preview" className="object-contain" sizes="200px" />
                   </div>
                 )}
               </div>

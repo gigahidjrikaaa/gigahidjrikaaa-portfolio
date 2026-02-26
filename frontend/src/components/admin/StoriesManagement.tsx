@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -177,10 +178,12 @@ const StoriesManagement = () => {
               <Card className="overflow-hidden shadow-sm transition-shadow hover:shadow-md">
                 <div className="relative aspect-[9/16] bg-slate-100">
                   {story.thumbnail_url || story.image_url ? (
-                    <img
-                      src={story.thumbnail_url || story.image_url}
+                    <Image
+                      fill
+                      src={(story.thumbnail_url || story.image_url) as string}
                       alt={story.title || "Story"}
-                      className="h-full w-full object-cover"
+                      className="object-cover"
+                      sizes="(max-width: 768px) 50vw, 33vw"
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center">
