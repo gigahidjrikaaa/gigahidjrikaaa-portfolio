@@ -279,6 +279,9 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
   const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY || "";
   const canOpenGoogleDrive = Boolean(googleClientId && googleApiKey);
   const titleValue = watch("title");
+  const isExternalValue = watch("is_external") || false;
+  const externalUrlValue = watch("external_url") || undefined;
+  const externalSourceValue = watch("external_source") || undefined;
 
   const draftKey = useMemo(() => {
     if (post?.id) return `blog-draft-${post.id}`;
@@ -422,9 +425,9 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
       like_count: undefined,
       is_featured: isFeaturedValue,
       status: statusValue || "draft",
-      is_external: watch("is_external") || false,
-      external_url: watch("external_url") || undefined,
-      external_source: watch("external_source") || undefined,
+      is_external: isExternalValue,
+      external_url: externalUrlValue,
+      external_source: externalSourceValue,
     };
 
     const hasAnyInput = Boolean(
@@ -523,9 +526,9 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
     seoKeywordsValue,
     isFeaturedValue,
     statusValue,
-    watch("is_external"),
-    watch("external_url"),
-    watch("external_source"),
+    isExternalValue,
+    externalUrlValue,
+    externalSourceValue,
     autosaveId,
     draftKey,
   ]);

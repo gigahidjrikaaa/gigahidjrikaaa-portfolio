@@ -41,63 +41,6 @@ const useCounter = (target: number, duration = 1200, enabled = true) => {
 };
 
 // ---------------------------------------------------------------------------
-// Sparkline SVG (7-day trend)
-// ---------------------------------------------------------------------------
-interface SparklineProps {
-  values: number[];
-  width?: number;
-  height?: number;
-  color?: string;
-  animate?: boolean;
-}
-
-function Sparkline({ values, width = 120, height = 36, color = "#0ea5e9", animate = true }: SparklineProps) {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = max - min || 1;
-  const step = width / (values.length - 1);
-
-  const points = values.map((v, i) => [
-    i * step,
-    height - ((v - min) / range) * (height - 4),
-  ]);
-
-  const pathD =
-    "M " + points.map(([x, y]) => `${x},${y}`).join(" L ");
-
-  const fillD =
-    pathD +
-    ` L ${width},${height} L 0,${height} Z`;
-
-  return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden>
-      <defs>
-        <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-        {animate && (
-          <clipPath id="reveal">
-            <rect x="0" y="0" width="0" height={height}>
-              <animate attributeName="width" from="0" to={width} dur="1.2s" fill="freeze" />
-            </rect>
-          </clipPath>
-        )}
-      </defs>
-      <path d={fillD} fill="url(#sg)" clipPath={animate ? "url(#reveal)" : undefined} />
-      <path d={pathD} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" clipPath={animate ? "url(#reveal)" : undefined} />
-      {/* Last-point dot */}
-      <circle
-        cx={points[points.length - 1][0]}
-        cy={points[points.length - 1][1]}
-        r="3"
-        fill={color}
-      />
-    </svg>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Micro stat pill
 // ---------------------------------------------------------------------------
 interface MicroStatProps {
