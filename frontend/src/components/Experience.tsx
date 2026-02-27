@@ -44,7 +44,7 @@ const Experience = () => {
   };
 
   return (
-    <section id="experience" className="relative bg-white py-24 md:py-32">
+    <section id="experience" className="relative bg-white py-24 dark:bg-zinc-900 md:py-32">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── Header ─────────────────────────────────────────────────── */}
@@ -59,7 +59,7 @@ const Experience = () => {
             Career
           </span>
           <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-            <h2 className="text-4xl font-semibold leading-tight text-gray-900 sm:text-5xl">
+            <h2 className="text-4xl font-semibold leading-tight text-gray-900 dark:text-white sm:text-5xl">
               Work Experience
             </h2>
             <p className="max-w-md text-sm leading-relaxed text-gray-400">
@@ -84,14 +84,14 @@ const Experience = () => {
                 <button
                   type="button"
                   onClick={() => handleOpen(item)}
-                  className="group w-full py-7 text-left transition-colors duration-150 hover:bg-gray-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20"
+                  className="group w-full py-7 text-left transition-colors duration-150 hover:bg-gray-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20 dark:hover:bg-zinc-800/50"
                 >
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-[180px_1fr] sm:gap-8 lg:grid-cols-[220px_1fr]">
 
                     {/* ── Left: company meta ─────────────────────────── */}
                     <div className="flex items-start gap-3 sm:flex-col sm:gap-2">
                       {/* Logo */}
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 sm:h-9 sm:w-9">
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 sm:h-9 sm:w-9 dark:border-zinc-700 dark:bg-zinc-800">
                         {item.company_logo_url ? (
                           <Image
                             src={item.company_logo_url}
@@ -106,7 +106,7 @@ const Experience = () => {
                       </div>
 
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-gray-800">
+                        <p className="truncate text-sm font-semibold text-gray-800 dark:text-zinc-200">
                           {item.company}
                         </p>
                         <p className="mt-0.5 font-mono text-xs text-gray-400">{item.period}</p>
@@ -117,7 +117,7 @@ const Experience = () => {
                     <div className="min-w-0 space-y-2">
                       {/* Role row */}
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
                           {item.title}
                         </h3>
                         {item.is_current && (
@@ -138,13 +138,13 @@ const Experience = () => {
 
                       {/* Description preview */}
                       {item.description && (
-                        <p className="text-sm leading-relaxed text-gray-500">
+                        <p className="text-sm leading-relaxed text-gray-500 dark:text-zinc-400">
                           {descriptionPreview(item.description)}
                         </p>
                       )}
 
                       {/* View more link */}
-                      <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-400 transition-colors group-hover:text-gray-700">
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-400 transition-colors group-hover:text-gray-700 dark:group-hover:text-zinc-200">
                         View details
                         <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                       </span>

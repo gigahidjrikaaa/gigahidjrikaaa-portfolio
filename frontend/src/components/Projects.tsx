@@ -429,7 +429,7 @@ const Projects = () => {
   };
 
   return (
-    <section id="projects" className="relative overflow-hidden bg-white py-24 md:py-32" ref={sectionRef}>
+    <section id="projects" className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32" ref={sectionRef}>
       {/* Subtle grid background */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.03]"

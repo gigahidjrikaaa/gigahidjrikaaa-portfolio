@@ -71,7 +71,7 @@ const About = () => {
     <section
       id="about"
       ref={sectionRef}
-      className="relative overflow-hidden bg-white py-24 md:py-32"
+      className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32"
     >
       {/* Decorative blobs */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -94,7 +94,7 @@ const About = () => {
               <span className="text-xs font-semibold uppercase tracking-[0.28em] text-gray-400">
                 About Me
               </span>
-              <h2 className="mt-3 text-4xl font-bold leading-tight text-gray-900 sm:text-5xl">
+              <h2 className="mt-3 text-4xl font-bold leading-tight text-gray-900 dark:text-white sm:text-5xl">
                 I build things<br />
                 <span className="bg-gradient-to-r from-emerald-500 to-sky-500 bg-clip-text text-transparent">
                   that matter.
@@ -107,7 +107,7 @@ const About = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-              className="text-lg leading-relaxed text-gray-600"
+              className="text-lg leading-relaxed text-gray-600 dark:text-zinc-300"
             >
               {headline}
             </motion.p>
@@ -115,7 +115,7 @@ const About = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-              className="text-base leading-relaxed text-gray-400"
+              className="text-base leading-relaxed text-gray-400 dark:text-zinc-400"
             >
               {bio}
             </motion.p>
@@ -127,7 +127,7 @@ const About = () => {
               transition={{ duration: 0.6, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
               className="flex flex-wrap gap-2"
             >
-              <span className="flex items-center gap-1.5 rounded-full bg-gray-100 px-4 py-2 text-sm text-gray-600">
+                <span className="flex items-center gap-1.5 rounded-full bg-gray-100 px-4 py-2 text-sm text-gray-600 dark:bg-zinc-800 dark:text-zinc-300">
                 <MapPin className="h-3.5 w-3.5 text-gray-400" />
                 {location}
               </span>
@@ -147,11 +147,11 @@ const About = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="grid grid-cols-3 divide-x divide-gray-100 rounded-2xl border border-gray-100 bg-gray-50 py-6"
+              className="grid grid-cols-3 divide-x divide-gray-100 rounded-2xl border border-gray-100 bg-gray-50 py-6 dark:divide-zinc-700 dark:border-zinc-800 dark:bg-zinc-800"
             >
               {statItems.map(({ target, suffix, label }) => (
                 <div key={label} className="flex flex-col items-center gap-1 px-3">
-                  <span className="text-3xl font-bold text-gray-900">
+                  <span className="text-3xl font-bold text-gray-900 dark:text-white">
                     <Counter target={target} suffix={suffix} />
                   </span>
                   <span className="text-center text-xs text-gray-400">{label}</span>
@@ -179,9 +179,9 @@ const About = () => {
                     transition={{ delay: 0.32 + i * 0.07, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                     className="relative"
                   >
-                    <div className="absolute -left-5 top-[3px] h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-400 shadow-sm" />
+                    <div className="absolute -left-5 top-[3px] h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-400 shadow-sm dark:border-zinc-900" />
                     <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">{m.year}</p>
-                    <p className="text-sm text-gray-600">{m.event}</p>
+                    <p className="text-sm text-gray-600 dark:text-zinc-400">{m.event}</p>
                   </motion.div>
                 ))}
               </div>
@@ -218,7 +218,7 @@ const About = () => {
                   initial={{ opacity: 0, x: -16 }}
                   animate={isInView ? { opacity: 1, x: 0 } : {}}
                   transition={{ delay: 0.5 + i * 0.09, duration: 0.4 }}
-                  className="whitespace-nowrap rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-md ring-1 ring-gray-900/5"
+                  className="whitespace-nowrap rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-md ring-1 ring-gray-900/5 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-white/5"
                 >
                   {tech}
                 </motion.span>
@@ -233,7 +233,7 @@ const About = () => {
                   initial={{ opacity: 0, x: 16 }}
                   animate={isInView ? { opacity: 1, x: 0 } : {}}
                   transition={{ delay: 0.6 + i * 0.09, duration: 0.4 }}
-                  className="whitespace-nowrap rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-md ring-1 ring-gray-900/5"
+                  className="whitespace-nowrap rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-md ring-1 ring-gray-900/5 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-white/5"
                 >
                   {tech}
                 </motion.span>
@@ -245,7 +245,7 @@ const About = () => {
               {techStack.map((tech) => (
                 <span
                   key={tech}
-                  className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600"
+                  className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:bg-zinc-800 dark:text-zinc-300"
                 >
                   {tech}
                 </span>
@@ -253,13 +253,13 @@ const About = () => {
             </div>
 
             {/* Bottom overlay "Currently Building" card */}
-            <div className="absolute bottom-6 left-6 right-6 flex items-center gap-3 rounded-2xl bg-white/95 p-4 shadow-xl backdrop-blur-sm ring-1 ring-white/60">
+            <div className="absolute bottom-6 left-6 right-6 flex items-center gap-3 rounded-2xl bg-white/95 p-4 shadow-xl backdrop-blur-sm ring-1 ring-white/60 dark:bg-zinc-900/95 dark:ring-zinc-700/60">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
                 <Code2 className="h-5 w-5 text-emerald-600" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-gray-900">Currently Building</p>
-                <p className="truncate text-xs text-gray-500">AI-powered portfolio management platform</p>
+                <p className="text-xs font-bold text-gray-900 dark:text-white">Currently Building</p>
+                <p className="truncate text-xs text-gray-500 dark:text-zinc-400">AI-powered portfolio management platform</p>
               </div>
               <Zap className="ml-auto h-4 w-4 shrink-0 text-amber-400" />
             </div>

@@ -36,6 +36,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
     description: '',
     gpa: '',
     institution_logo_url: '',
+    institution_background_url: '',
     is_current: false,
     display_order: 0,
   });
@@ -55,6 +56,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
         description: education.description || '',
         gpa: education.gpa || '',
         institution_logo_url: education.institution_logo_url || '',
+        institution_background_url: education.institution_background_url || '',
         is_current: education.is_current || false,
         display_order: education.display_order || 0,
       });
@@ -261,6 +263,31 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
                   <p className="text-xs font-semibold text-gray-700">Logo preview</p>
                   <p className="text-xs text-gray-500">Check aspect ratio and clarity.</p>
                 </div>
+              </div>
+            ) : null}
+          </div>
+          <div>
+            <Label htmlFor="institution_background_url" className="text-gray-700">Institution Background Image URL (Optional)</Label>
+            <Input
+              id="institution_background_url"
+              value={formData.institution_background_url || ''}
+              onChange={handleChange}
+              className="mt-1"
+              placeholder="https://... (landscape photo of the campus)"
+            />
+            <p className="mt-1 text-xs text-gray-400">
+              Used as the card background on the Education section. Use a wide/landscape campus or banner photo for best results.
+            </p>
+            {formData.institution_background_url ? (
+              <div className="mt-3 overflow-hidden rounded-lg border border-gray-200">
+                <Image
+                  src={formData.institution_background_url}
+                  alt="Background preview"
+                  width={400}
+                  height={160}
+                  unoptimized
+                  className="h-32 w-full object-cover"
+                />
               </div>
             ) : null}
           </div>

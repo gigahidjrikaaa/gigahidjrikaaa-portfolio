@@ -15,6 +15,16 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "kompaspedia.kompas.id",
       },
+      // Allow any external hostname for admin-managed URLs
+      // (institution backgrounds, logos, etc. entered via admin panel)
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+      {
+        protocol: "http",
+        hostname: "**",
+      },
     ],
   },
 };

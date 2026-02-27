@@ -73,6 +73,7 @@ export interface EducationBase {
   description: string;
   gpa?: string;
   institution_logo_url?: string;
+  institution_background_url?: string;
   is_current: boolean;
   display_order: number;
 }

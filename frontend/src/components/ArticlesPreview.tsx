@@ -55,7 +55,7 @@ export default function ArticlesPreview() {
   }, []);
 
   return (
-    <section id="articles" className="relative overflow-hidden bg-white py-24 md:py-32">
+    <section id="articles" className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32">
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-2xl">

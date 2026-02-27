@@ -454,7 +454,7 @@ const PressMentions = () => {
   const visibleGrid = regular.slice(0, REGULAR_PREVIEW);
 
   return (
-    <section id="press" className="relative overflow-hidden bg-white py-24 md:py-32">
+    <section id="press" className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32">
       {/* Decorative background */}
       <div
         aria-hidden

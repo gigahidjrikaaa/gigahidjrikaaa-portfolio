@@ -117,6 +117,7 @@ class Education(Base):
     description = Column(Text)
     gpa = Column(String, nullable=True)
     institution_logo_url = Column(String, nullable=True)
+    institution_background_url = Column(String, nullable=True)
     is_current = Column(Boolean, default=False)
     display_order = Column(Integer, default=0)
     created_at = Column(DateTime, server_default=func.now())

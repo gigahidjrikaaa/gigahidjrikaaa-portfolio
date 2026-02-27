@@ -114,6 +114,7 @@ class EducationBase(BaseModel):
     description: str = Field(..., min_length=1, max_length=10000)
     gpa: Optional[str] = Field(None, max_length=20)
     institution_logo_url: Optional[str] = Field(None, max_length=1000)
+    institution_background_url: Optional[str] = Field(None, max_length=1000)
     is_current: bool = False
     display_order: int = 0
 
@@ -128,6 +129,7 @@ class EducationUpdate(BaseModel):
     description: Optional[str] = Field(None, min_length=1, max_length=10000)
     gpa: Optional[str] = Field(None, max_length=20)
     institution_logo_url: Optional[str] = Field(None, max_length=1000)
+    institution_background_url: Optional[str] = Field(None, max_length=1000)
     is_current: Optional[bool] = None
     display_order: Optional[int] = None
 
