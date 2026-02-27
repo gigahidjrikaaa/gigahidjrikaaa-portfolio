@@ -70,6 +70,7 @@ const GitHubIntegration = () => {
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [contributions, setContributions] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,6 +99,7 @@ const GitHubIntegration = () => {
         }
       } catch (error) {
         console.error("Failed to fetch GitHub data:", error);
+        if (!cancelled) setError(true);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -258,9 +260,9 @@ const GitHubIntegration = () => {
 
           {loading ? (
             <LoadingAnimation label={copy.loading} />
-          ) : (
+          ) : error ? (
             <div className="text-center text-red-600">{copy.error}</div>
-          )}
+          ) : null}
         </motion.div>
       </div>
     </section>

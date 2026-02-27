@@ -1,15 +1,13 @@
 "use client";
 
-import Lottie from "lottie-react";
-import animationData from "@/assets/lottie/loading-arc.json";
 import { cn } from "@/lib/utils";
 
 type LoadingSize = "sm" | "md" | "lg";
 
-const sizeMap: Record<LoadingSize, number> = {
-  sm: 56,
-  md: 84,
-  lg: 110,
+const sizeMap: Record<LoadingSize, string> = {
+  sm: "h-8 w-8",
+  md: "h-12 w-12",
+  lg: "h-16 w-16",
 };
 
 interface LoadingAnimationProps {
@@ -24,7 +22,7 @@ const LoadingAnimation = ({ label = "Loading…", size = "md", className }: Load
     role="status"
     aria-live="polite"
   >
-    <Lottie animationData={animationData} loop style={{ width: sizeMap[size], height: sizeMap[size] }} />
+    <span className={cn("block animate-spin rounded-full border-[3px] border-slate-200 border-t-slate-600", sizeMap[size])} />
     <span className="text-sm font-medium">{label}</span>
   </div>
 );

@@ -64,7 +64,7 @@ const Projects = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'featured' | 'all'>('featured');
+  const [activeTab, setActiveTab] = useState<'featured' | 'all'>('all');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [carouselDir, setCarouselDir] = useState<1 | -1>(1);
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -85,9 +85,8 @@ const Projects = () => {
   }, []);
 
   const featuredProjects = useMemo(() => projects.filter(p => p.is_featured), [projects]);
-  const otherProjects = useMemo(() => projects.filter(p => !p.is_featured), [projects]);
   const activeProjects = useMemo(() => projects.filter(p => p.is_active), [projects]);
-  const displayProjects = activeTab === 'featured' ? featuredProjects : otherProjects;
+  const displayProjects = activeTab === 'featured' ? featuredProjects : projects;
 
   const handleProjectClick = (project: ProjectItem) => {
     setSelectedProject(project);
@@ -518,7 +517,7 @@ const Projects = () => {
         >
           {[
             { key: 'featured', label: `Featured (${featuredProjects.length})` },
-            { key: 'all', label: `All Projects (${otherProjects.length})` },
+            { key: 'all', label: `All Projects (${projects.length})` },
           ].map(tab => (
             <button
               key={tab.key}
