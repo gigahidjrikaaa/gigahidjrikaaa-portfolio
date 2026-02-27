@@ -6,8 +6,8 @@
  */
 
 import { Suspense, useRef, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Sphere, useTexture } from "@react-three/drei";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { OrbitControls, Sphere } from "@react-three/drei";
 import * as THREE from "three";
 
 // ─── Location data ────────────────────────────────────────────────────────────
@@ -137,7 +137,8 @@ function Atmosphere() {
 
 function GlobeMesh() {
   const groupRef = useRef<THREE.Group>(null);
-  const earthTexture = useTexture('/earth-dark.jpg');
+  const earthTexture = useLoader(THREE.TextureLoader, '/earth-dark.jpg');
+  earthTexture.colorSpace = THREE.SRGBColorSpace;
 
   useFrame((_, delta) => {
     if (groupRef.current) {
@@ -220,9 +221,9 @@ export default function Globe3D({ className }: Globe3DProps) {
         dpr={[1, 2]}
       >
         {/* Ambient + directional light for the globe surface */}
-        <ambientLight intensity={0.15} />
-        <directionalLight position={[4, 3, 3]} intensity={0.8} color="#e0f2fe" />
-        <pointLight position={[-4, -2, -4]} intensity={0.3} color="#6366f1" />
+        <ambientLight intensity={0.6} />
+        <directionalLight position={[4, 3, 3]} intensity={1.4} color="#e0f2fe" />
+        <pointLight position={[-4, -2, -4]} intensity={0.4} color="#6366f1" />
 
         <Suspense fallback={null}>
           <GlobeMesh />
