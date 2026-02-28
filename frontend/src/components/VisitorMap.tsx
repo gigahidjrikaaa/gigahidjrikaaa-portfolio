@@ -178,7 +178,7 @@ const VisitorMap = () => {
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
             className="relative flex justify-center"
           >
-            <div className="relative h-[420px] w-full max-w-[420px] sm:h-[500px] sm:max-w-[500px]">
+            <div className="relative h-[560px] w-full max-w-[560px] sm:h-[680px] sm:max-w-[680px]">
               {/* Outer glow ring */}
               <div
                 aria-hidden
@@ -190,24 +190,7 @@ const VisitorMap = () => {
               <Globe3D className="h-full w-full" />
             </div>
 
-            {/* Floating location pills */}
-            {[
-              { label: "Jakarta, ID", style: "top-[18%] left-[2%]", delay: 0.2 },
-              { label: "San Francisco, US", style: "top-[30%] right-[0%]", delay: 0.35 },
-              { label: "London, UK", style: "top-[55%] right-[3%]", delay: 0.5 },
-              { label: "Tokyo, JP", style: "bottom-[22%] left-[4%]", delay: 0.45 },
-            ].map(({ label, style, delay }) => (
-              <motion.div
-                key={label}
-                initial={{ opacity: 0, y: 8 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.5, delay }}
-                className={`absolute ${style} flex items-center gap-1.5 rounded-full border border-white/10 bg-slate-900/80 px-3 py-1.5 text-[11px] font-medium text-slate-300 shadow-lg backdrop-blur-sm`}
-              >
-                <MapPin className="h-3 w-3 text-sky-400" />
-                {label}
-              </motion.div>
-            ))}
+
           </motion.div>
 
           {/* ── Stats panel ──────────────────────────────────────────────── */}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Loader2, AlertCircle, CheckCircle2, Link } from "lucide-react";
+import Image from "next/image";
+import { Sparkles, Loader2, AlertCircle, CheckCircle2, Link2, Info } from "lucide-react";
 import { adminApi, ScrapeResult } from "@/services/api";
 
 type ContentType = "press_mention" | "blog_article" | "project";
@@ -12,17 +13,89 @@ interface ImportFromUrlProps {
   className?: string;
 }
 
+// ─── Platform detection ───────────────────────────────────────────────────────
+
+interface Platform {
+  key: string;
+  name: string;
+  /** Tailwind bg class for the badge */
+  badgeBg: string;
+  badgeText: string;
+  /** Whether content is login-walled (admin must enter fields manually) */
+  loginWalled: boolean;
+  /** Whether content may be only partially accessible */
+  partial: boolean;
+}
+
+const PLATFORMS: { pattern: RegExp; info: Platform }[] = [
+  {
+    pattern: /(?:twitter\.com|x\.com)\/\w+\/status\//i,
+    info: { key: "twitter", name: "X (Twitter)", badgeBg: "bg-black", badgeText: "text-white", loginWalled: false, partial: true },
+  },
+  {
+    pattern: /linkedin\.com\/pulse\//i,
+    info: { key: "linkedin-article", name: "LinkedIn Article", badgeBg: "bg-[#0A66C2]", badgeText: "text-white", loginWalled: false, partial: true },
+  },
+  {
+    pattern: /linkedin\.com/i,
+    info: { key: "linkedin", name: "LinkedIn", badgeBg: "bg-[#0A66C2]", badgeText: "text-white", loginWalled: true, partial: false },
+  },
+  {
+    pattern: /medium\.com/i,
+    info: { key: "medium", name: "Medium", badgeBg: "bg-black", badgeText: "text-white", loginWalled: false, partial: false },
+  },
+  {
+    pattern: /dev\.to/i,
+    info: { key: "devto", name: "Dev.to", badgeBg: "bg-[#3B49DF]", badgeText: "text-white", loginWalled: false, partial: false },
+  },
+  {
+    pattern: /hashnode\.(com|dev)/i,
+    info: { key: "hashnode", name: "Hashnode", badgeBg: "bg-[#2962FF]", badgeText: "text-white", loginWalled: false, partial: false },
+  },
+  {
+    pattern: /substack\.com/i,
+    info: { key: "substack", name: "Substack", badgeBg: "bg-[#FF6719]", badgeText: "text-white", loginWalled: false, partial: false },
+  },
+  {
+    pattern: /instagram\.com/i,
+    info: { key: "instagram", name: "Instagram", badgeBg: "bg-gradient-to-r from-purple-500 to-pink-500", badgeText: "text-white", loginWalled: true, partial: false },
+  },
+  {
+    pattern: /github\.com/i,
+    info: { key: "github", name: "GitHub", badgeBg: "bg-[#24292E]", badgeText: "text-white", loginWalled: false, partial: false },
+  },
+];
+
+function detectPlatform(url: string): Platform | null {
+  for (const { pattern, info } of PLATFORMS) {
+    if (pattern.test(url)) return info;
+  }
+  return null;
+}
+
+// ─── Copy ─────────────────────────────────────────────────────────────────────
+
 const PLACEHOLDER: Record<ContentType, string> = {
   press_mention: "https://techcrunch.com/2024/01/article-about-you",
-  blog_article: "https://medium.com/@author/article-title",
-  project: "https://github.com/yourname/project",
+  blog_article:  "https://x.com/you/status/… or https://medium.com/@you/article",
+  project:       "https://github.com/yourname/project",
 };
 
 const LABEL: Record<ContentType, string> = {
   press_mention: "Import from article / news URL",
-  blog_article: "Import from blog / article URL",
-  project: "Import from project / GitHub URL",
+  blog_article:  "Import from blog / article URL",
+  project:       "Import from project / GitHub URL",
 };
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+interface ImportPreview {
+  title: string;
+  source: string;
+  imageUrl?: string;
+  isPartial?: boolean;
+  isLoginWalled?: boolean;
+}
 
 /**
  * Reusable "Import & Analyze" widget.
@@ -30,10 +103,12 @@ const LABEL: Record<ContentType, string> = {
  * pre-filled field data so the parent form can populate its fields.
  */
 export default function ImportFromUrl({ contentType, onImport, className = "" }: ImportFromUrlProps) {
-  const [url, setUrl] = useState("");
+  const [url, setUrl]         = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<{ title?: string; source?: string } | null>(null);
+  const [error, setError]     = useState<string | null>(null);
+  const [preview, setPreview] = useState<ImportPreview | null>(null);
+
+  const detectedPlatform = detectPlatform(url.trim());
 
   const handleImport = async () => {
     const trimmed = url.trim();
@@ -52,19 +127,26 @@ export default function ImportFromUrl({ contentType, onImport, className = "" }:
 
     try {
       const result = await adminApi.scrapeUrl(trimmed, contentType);
+      const d = result.data;
 
-      // Build a small preview so the admin can confirm before the form fills
-      const previewTitle =
-        (result.data.title as string) ||
-        (result.data.name as string) ||
-        "Untitled";
-      const previewSource =
-        (result.data.publication as string) ||
-        (result.data.external_source as string) ||
-        new URL(trimmed).hostname;
+      const title =
+        (d.title as string) || (d.name as string) || "Untitled";
+      const source =
+        (d.external_source as string) ||
+        (d.publication as string) ||
+        (detectedPlatform?.name ?? new URL(trimmed).hostname);
+      const imageUrl =
+        (d.cover_image_url as string) ||
+        (d.image_url as string) ||
+        undefined;
 
-      setPreview({ title: previewTitle, source: previewSource });
-      onImport(result.data);
+      // `_social_platform` being set means the backend hit a limited-access path
+      const hasSocialPlatformHint = Boolean(d._social_platform);
+      const isLoginWalled  = detectedPlatform?.loginWalled  ?? false;
+      const isPartial      = hasSocialPlatformHint && (detectedPlatform?.partial ?? false);
+
+      setPreview({ title, source, imageUrl, isPartial, isLoginWalled });
+      onImport(d);
     } catch (err: unknown) {
       const message =
         err instanceof Error
@@ -87,19 +169,38 @@ export default function ImportFromUrl({ contentType, onImport, className = "" }:
     <div className={`rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3 ${className}`}>
       {/* Header row */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2 flex-wrap">
           <Sparkles className="h-3.5 w-3.5 text-slate-400 shrink-0" />
           <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
             {LABEL[contentType]}
           </span>
+          {/* Platform badge — shown as soon as a URL is typed */}
+          {detectedPlatform && (
+            <span
+              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${detectedPlatform.badgeBg} ${detectedPlatform.badgeText}`}
+            >
+              {detectedPlatform.name}
+            </span>
+          )}
         </div>
-        <span className="text-xs text-slate-400 italic">Powered by Z.AI</span>
+        <span className="text-xs text-slate-400 italic shrink-0">Powered by Z.AI</span>
       </div>
+
+      {/* Login-walled warning (shown before import attempt) */}
+      {detectedPlatform?.loginWalled && !preview && !loading && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+          <Info className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+          <p className="text-xs text-amber-800 leading-snug">
+            <strong>{detectedPlatform.name}</strong> requires a login to access posts.
+            Auto-fill will be limited — you&apos;ll need to enter the title and content manually.
+          </p>
+        </div>
+      )}
 
       {/* URL input + button */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
           <input
             type="url"
             value={url}
@@ -137,22 +238,55 @@ export default function ImportFromUrl({ contentType, onImport, className = "" }:
         </button>
       </div>
 
-      {/* Success state */}
+      {/* ── Success state ── */}
       {preview && !loading && (
-        <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
-          <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
-          <div className="text-xs text-emerald-800 leading-snug">
-            <span>Fields filled from </span>
-            <span className="font-semibold">&ldquo;{preview.title}&rdquo;</span>
-            {preview.source && (
-              <span className="text-emerald-600"> — {preview.source}</span>
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 overflow-hidden">
+          <div className="flex items-start gap-3 px-3 py-2.5">
+            {/* Cover image thumbnail */}
+            {preview.imageUrl && (
+              <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-md border border-emerald-100">
+                <Image
+                  src={preview.imageUrl}
+                  alt="Article cover"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
             )}
-            <p className="mt-0.5 text-emerald-600">Review the form below and adjust as needed.</p>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                <span className="text-xs font-semibold text-emerald-700 truncate max-w-[260px]">
+                  {preview.title}
+                </span>
+                {preview.source && (
+                  <span className="text-[10px] font-medium text-emerald-600 bg-emerald-100 rounded-full px-2 py-0.5 shrink-0">
+                    {preview.source}
+                  </span>
+                )}
+              </div>
+
+              {preview.isPartial ? (
+                <p className="mt-1 text-[11px] text-amber-700 leading-snug">
+                  <strong>Partial import</strong> — title and metadata were auto-filled. Review the excerpt and content fields below.
+                </p>
+              ) : preview.isLoginWalled ? (
+                <p className="mt-1 text-[11px] text-amber-700 leading-snug">
+                  Content is login-walled — fill in the title and body manually.
+                </p>
+              ) : (
+                <p className="mt-1 text-[11px] text-emerald-600 leading-snug">
+                  Fields filled from source. Review and adjust as needed.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Error state */}
+      {/* ── Error state ── */}
       {error && (
         <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
           <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />

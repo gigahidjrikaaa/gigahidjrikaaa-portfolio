@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { XMarkIcon, DocumentCheckIcon, CalendarIcon, IdentificationIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { X, BadgeCheck, Calendar, Hash, ArrowUpRight } from 'lucide-react';
 
 type Certificate = {
   id: number;
@@ -24,16 +24,16 @@ type CertificateModalProps = {
   certificate: Certificate;
 };
 
-const modalVariants = {
-  hidden: { opacity: 0, scale: 0.95, y: 20 },
-  visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] } },
-  exit: { opacity: 0, scale: 0.95, y: 20, transition: { duration: 0.2 } },
-};
-
 const overlayVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.2 } },
-  exit: { opacity: 0, transition: { duration: 0.15 } },
+  visible: { opacity: 1, transition: { duration: 0.22 } },
+  exit: { opacity: 0, transition: { duration: 0.18 } },
+};
+
+const modalVariants = {
+  hidden: { opacity: 0, y: 28, scale: 0.97 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } },
+  exit: { opacity: 0, y: 20, scale: 0.97, transition: { duration: 0.2 } },
 };
 
 const CertificateModal: React.FC<CertificateModalProps> = ({ open, onClose, certificate }) => {
@@ -70,7 +70,7 @@ const CertificateModal: React.FC<CertificateModalProps> = ({ open, onClose, cert
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6"
+          className="fixed inset-0 z-[9999] flex items-end justify-center sm:items-center sm:p-4 md:p-6"
           initial="hidden"
           animate="visible"
           exit="exit"
@@ -78,95 +78,108 @@ const CertificateModal: React.FC<CertificateModalProps> = ({ open, onClose, cert
           {/* Overlay */}
           <motion.div
             variants={overlayVariants}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
 
           {/* Modal */}
           <motion.div
             variants={modalVariants}
-            className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl"
+            className="relative flex w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl dark:bg-zinc-900 sm:rounded-3xl"
+            style={{ maxHeight: 'min(92vh, 820px)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="relative bg-white px-6 sm:px-8 py-5 sm:py-6 text-gray-900 border-b border-gray-100">
-              <button
-                onClick={onClose}
-                className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-900"
-                aria-label="Close modal"
-              >
-                <XMarkIcon className="h-5 w-5" />
-              </button>
-
-              <div className="flex flex-col gap-3">
-                <h2 className="text-xl sm:text-2xl font-bold">{certificate.title}</h2>
-                {certificate.issuer && (
-                  <p className="text-base sm:text-lg text-gray-600">Issued by {certificate.issuer}</p>
-                )}
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                  {certificate.issue_date && (
-                    <span className="flex items-center gap-2">
-                      <CalendarIcon className="h-4 w-4" />
-                      {certificate.issue_date}
-                    </span>
-                  )}
-                  {certificate.credential_id && (
-                    <span className="flex items-center gap-2">
-                      <IdentificationIcon className="h-4 w-4" />
-                      ID: {certificate.credential_id}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Certificate Image */}
-            <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full bg-gray-50">
+            {/* ── CERTIFICATE IMAGE (hero) ───────────────────────────── */}
+            <div className="relative w-full shrink-0 overflow-hidden bg-zinc-100 dark:bg-zinc-800" style={{ aspectRatio: '4/3' }}>
               {certificate.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={certificate.image_url}
                   alt={certificate.title}
-                  className="h-full w-full object-contain p-4"
+                  className="h-full w-full object-contain"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
-                  <DocumentCheckIcon className="h-20 w-20 text-gray-300" />
+                  <BadgeCheck className="h-24 w-24 text-zinc-300 dark:text-zinc-600" />
                 </div>
               )}
+
+              {/* Top gradient band for close button legibility */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/30 to-transparent" />
+
+              {/* Close */}
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
 
-            {/* Content */}
-            <div className="px-6 sm:px-8 py-6 overflow-y-auto max-h-[45vh]">
-              {certificate.description && (
-                <div className="rounded-2xl bg-gray-50 p-6">
-                  <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
-                    Description
-                  </h3>
-                  <p className="text-gray-600 leading-relaxed">{certificate.description}</p>
-                </div>
-              )}
+            {/* ── SCROLLABLE BODY ───────────────────────────────────── */}
+            <div className="flex-1 overflow-y-auto">
+              {/* Header info */}
+              <div className="border-b border-zinc-100 px-6 py-5 dark:border-zinc-800">
+                <h2 className="text-lg font-bold leading-tight text-zinc-900 dark:text-white sm:text-xl">
+                  {certificate.title}
+                </h2>
+                {certificate.issuer && (
+                  <p className="mt-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                    Issued by <span className="text-zinc-700 dark:text-zinc-200">{certificate.issuer}</span>
+                  </p>
+                )}
 
-              {certificate.credential_url && (
-                <div className="mt-4">
+                {/* Meta chips */}
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {certificate.issue_date && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {certificate.issue_date}
+                    </span>
+                  )}
+                  {certificate.credential_id && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                      <Hash className="h-3.5 w-3.5" />
+                      {certificate.credential_id}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Description + CTA */}
+              <div className="space-y-4 px-6 py-5">
+                {certificate.description && (
+                  <div>
+                    <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
+                      About this credential
+                    </h3>
+                    <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+                      {certificate.description}
+                    </p>
+                  </div>
+                )}
+
+                {certificate.credential_url && (
                   <a
                     href={certificate.credential_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
+                    className="inline-flex items-center gap-2 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
                   >
+                    <BadgeCheck className="h-4 w-4" />
                     Verify Credential
-                    <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                    <ArrowUpRight className="h-3.5 w-3.5" />
                   </a>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Footer */}
-            <div className="border-t border-gray-100 px-6 sm:px-8 py-4">
+            <div className="shrink-0 border-t border-zinc-100 px-6 py-4 dark:border-zinc-800">
               <button
                 onClick={onClose}
-                className="w-full rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
+                className="w-full rounded-xl bg-zinc-100 px-6 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
               >
                 Close
               </button>

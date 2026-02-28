@@ -302,6 +302,9 @@ class BlogPostBase(BaseModel):
     is_featured: Optional[bool] = False
     status: str = "draft"
     scheduled_at: Optional[str] = None
+    is_external: Optional[bool] = False
+    external_url: Optional[str] = None
+    external_source: Optional[str] = None
 
 
 class BlogPostCreate(BlogPostBase):
@@ -325,6 +328,9 @@ class BlogPostUpdate(BaseModel):
     like_count: Optional[int] = None
     is_featured: Optional[bool] = None
     status: Optional[str] = None
+    is_external: Optional[bool] = None
+    external_url: Optional[str] = None
+    external_source: Optional[str] = None
 
 
 class BlogPostResponse(BlogPostBase):

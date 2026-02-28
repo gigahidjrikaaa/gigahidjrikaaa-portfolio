@@ -2,6 +2,7 @@ import bleach
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func, or_
+from sqlalchemy.exc import IntegrityError as SAIntegrityError
 from typing import List, cast
 from datetime import datetime
 import math
@@ -734,7 +735,36 @@ async def create_blog_post(
     setattr(post, "reading_time_minutes", reading_time)
     _apply_blog_status(post)
     db.add(post)
-    db.commit()
+    try:
+        db.commit()
+    except SAIntegrityError as exc:
+        db.rollback()
+        if "ix_blog_posts_slug" not in str(exc.orig):
+            raise HTTPException(status_code=409, detail="A blog post with these details already exists.")
+        # Auto-deduplicate the slug by appending -2, -3, …
+        base_slug = str(post.slug or "post")
+        new_slug: str | None = None
+        for n in range(2, 50):
+            candidate = f"{base_slug}-{n}"[:100]
+            exists = db.query(BlogPost).filter(BlogPost.slug == candidate).first()
+            if not exists:
+                new_slug = candidate
+                break
+        if new_slug is None:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Slug '{base_slug}' is already taken and no free variant was found. Please edit the slug manually.",
+            )
+        setattr(post, "slug", new_slug)
+        db.add(post)
+        try:
+            db.commit()
+        except SAIntegrityError:
+            db.rollback()
+            raise HTTPException(
+                status_code=409,
+                detail=f"Slug '{new_slug}' is already taken. Please choose a different slug.",
+            )
     db.refresh(post)
     return post
 

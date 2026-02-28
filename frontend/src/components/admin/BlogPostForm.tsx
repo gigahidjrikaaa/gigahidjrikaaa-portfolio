@@ -19,12 +19,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import AdminModal from "@/components/admin/AdminModal";
 import { useToast } from "@/components/ui/toast";
-import { adminApi, BlogPostBase, BlogPostResponse } from "@/services/api";
+import { adminApi, BlogPostBase, BlogPostResponse, ScrapeResult } from "@/services/api";
 import ImportFromUrl from "@/components/admin/ImportFromUrl";
 import { openGoogleDrivePicker } from "@/lib/googleDrivePicker";
 import { openMediaLibrary } from "@/lib/cloudinaryWidget";
 import Tooltip from "@/components/ui/tooltip";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import { ExternalLink, Loader2 } from "lucide-react";
 
 const copy = {
   addTitle: "Add Blog Post",
@@ -124,7 +125,9 @@ const FieldLabel = ({
 
 interface BlogPostFormProps {
   post?: BlogPostResponse | null;
-  onSave: (post: BlogPostBase) => void;
+  /** Pre-filled data from an external import (e.g. ImportPlatformModal). Applied once on mount when `post` is null. */
+  importedData?: ScrapeResult["data"] | null;
+  onSave: (post: BlogPostBase) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -173,7 +176,7 @@ const blogPostSchema = z
     { path: ["content"], message: copy.validation.contentRequired }
   );
 
-const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) => {
+const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave, onCancel }) => {
   const { toast } = useToast();
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isUploadingInline, setIsUploadingInline] = useState(false);
@@ -193,7 +196,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
     reset,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<BlogPostBase>({
     resolver: zodResolver(blogPostSchema),
     defaultValues: {
@@ -218,6 +221,26 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
       external_source: "",
     },
   });
+
+  // Apply data from an external import (only for new posts, not edits)
+  useEffect(() => {
+    if (!importedData || post) return;
+    const d = importedData;
+    if (d.title)           setValue("title",           d.title           as string, { shouldValidate: true });
+    if (d.slug)            setValue("slug",            d.slug            as string, { shouldValidate: true, shouldDirty: true });
+    if (d.excerpt)         setValue("excerpt",         d.excerpt         as string, { shouldValidate: true });
+    if (d.category)        setValue("category",        d.category        as string, { shouldValidate: true });
+    if (d.tags) {
+      const tags = Array.isArray(d.tags) ? (d.tags as string[]).join("; ") : (d.tags as string);
+      setValue("tags", tags, { shouldValidate: true });
+    }
+    if (d.cover_image_url) setValue("cover_image_url", d.cover_image_url as string, { shouldValidate: true });
+    if (d.is_external)     setValue("is_external",     true,                         { shouldValidate: true });
+    if (d.external_url)    setValue("external_url",    d.external_url    as string, { shouldValidate: true });
+    if (d.external_source) setValue("external_source", d.external_source as string, { shouldValidate: true });
+    setIsSlugEdited(true); // prevent auto-slug from overwriting the imported slug
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [importedData]);
 
   useEffect(() => {
     if (post) {
@@ -328,9 +351,12 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
     value
       .toLowerCase()
       .trim()
+      // normalise unicode dashes (em-dash, en-dash, etc.) to a regular hyphen
+      .replace(/[\u2012-\u2015\u2212\u2E3A\u2E3B\uFE58\uFE63\uFF0D]/g, "-")
       .replace(/[^a-z0-9\s-]/g, "")
       .replace(/\s+/g, "-")
-      .replace(/-+/g, "-");
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, ""); // strip leading/trailing dashes
 
   const parseDelimited = (value: string) =>
     value
@@ -640,8 +666,8 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
     }
   };
 
-  const onSubmit = (data: BlogPostBase) => {
-    onSave({
+  const onSubmit = async (data: BlogPostBase) => {
+    await onSave({
       ...data,
       excerpt: data.excerpt || undefined,
       content: data.content || undefined,
@@ -735,17 +761,30 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
             />
           </div>
           {watch("is_external") && (
-            <div className="grid gap-4 md:grid-cols-2 rounded-lg border border-gray-200 bg-gray-50 p-4">
-              <div>
-                <FieldLabel htmlFor="external_url" label={`${copy.fields.externalUrl} *`} />
-                <Input id="external_url" {...register("external_url")} className="mt-1" placeholder="https://medium.com/..." />
-                {errors.external_url && <p className="mt-1 text-xs text-red-600">{errors.external_url.message}</p>}
+            <>
+              {/* Info banner: explain redirect behaviour to the admin */}
+              <div className="flex items-start gap-2.5 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3">
+                <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-sky-500" />
+                <div>
+                  <p className="text-sm font-medium text-sky-800">External article — redirects to original URL</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-sky-700">
+                    Clicking this card on the blog will open the article on the original platform in a new tab.
+                    Fill in the metadata below so it appears correctly on the card.
+                  </p>
+                </div>
               </div>
-              <div>
-                <FieldLabel htmlFor="external_source" label={copy.fields.externalSource} />
-                <Input id="external_source" {...register("external_source")} className="mt-1" placeholder="e.g., Medium, LinkedIn" />
+              <div className="grid gap-4 md:grid-cols-2 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <div>
+                  <FieldLabel htmlFor="external_url" label={`${copy.fields.externalUrl} *`} />
+                  <Input id="external_url" {...register("external_url")} className="mt-1" placeholder="https://medium.com/..." />
+                  {errors.external_url && <p className="mt-1 text-xs text-red-600">{errors.external_url.message}</p>}
+                </div>
+                <div>
+                  <FieldLabel htmlFor="external_source" label={copy.fields.externalSource} />
+                  <Input id="external_source" {...register("external_source")} className="mt-1" placeholder="e.g., Medium, LinkedIn" />
+                </div>
               </div>
-            </div>
+            </>
           )}
           <div className="grid gap-4 md:grid-cols-2">
             <div>
@@ -1139,15 +1178,38 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, onSave, onCancel }) =
             <p className="mt-1 text-xs text-gray-500">{copy.hints.status}</p>
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+          {/* Validation error summary — shown near Save so users know why submit blocked */}
+          {Object.keys(errors).length > 0 && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+              <p className="text-sm font-medium text-red-700">Please fix the following before saving:</p>
+              <ul className="mt-2 list-disc pl-5 text-xs text-red-600 space-y-1">
+                {Object.entries(errors).map(([field, err]) => (
+                  <li key={field}>
+                    <span className="font-semibold capitalize">{field.replace(/_/g, " ")}</span>
+                    {(err as { message?: string })?.message ? `: ${(err as { message?: string }).message}` : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
             <p className="text-xs text-gray-500">
               {autosaveStatus === "saving" && "Autosaving draft…"}
               {autosaveStatus === "saved" && "Draft saved"}
               {autosaveStatus === "error" && "Autosave failed — saved locally"}
             </p>
             <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" onClick={onCancel}>{copy.actions.cancel}</Button>
-              <Button type="submit">{copy.actions.save}</Button>
+              <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+                {copy.actions.cancel}
+              </Button>
+              <Button type="submit" disabled={isSubmitting} className="min-w-[120px]">
+                {isSubmitting ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                ) : (
+                  copy.actions.save
+                )}
+              </Button>
             </div>
           </div>
         </div>

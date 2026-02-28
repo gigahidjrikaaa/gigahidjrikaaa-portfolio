@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import { apiService, BlogPostResponse } from "@/services/api";
 import LoadingAnimation from "@/components/ui/LoadingAnimation";
 import { ExternalLink } from "lucide-react";
@@ -30,6 +31,7 @@ const formatDate = (value?: string | null) => {
 export default function ArticlesPreview() {
   const [posts, setPosts] = useState<BlogPostResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     let cancelled = false;
@@ -49,15 +51,25 @@ export default function ArticlesPreview() {
 
     fetchPosts();
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
+
+  const fadeUp = (delay = 0) => ({
+    initial: reduceMotion ? false : { opacity: 0, y: 24 },
+    whileInView: reduceMotion ? undefined : { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.15 },
+    transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] as const },
+  });
 
   return (
     <section id="articles" className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32">
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 flex flex-wrap items-end justify-between gap-4">
+
+        {/* Header */}
+        <motion.div
+          className="mb-12 flex flex-wrap items-end justify-between gap-4"
+          {...fadeUp(0)}
+        >
           <div className="max-w-2xl">
             <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
               {copy.eyebrow}
@@ -70,25 +82,28 @@ export default function ArticlesPreview() {
 
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white"
+            className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-gray-700"
             aria-label={copy.openBlog}
           >
             {copy.cta}
           </Link>
-        </div>
+        </motion.div>
 
         {loading ? (
           <LoadingAnimation label={copy.loading} />
         ) : posts.length === 0 ? (
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-gray-600">
+          <motion.div
+            className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-gray-600"
+            {...fadeUp(0.1)}
+          >
             <p>{copy.empty}</p>
             <Link href="/blog" className="mt-3 inline-block text-sm font-semibold text-gray-900 hover:underline">
               {copy.cta} →
             </Link>
-          </div>
+          </motion.div>
         ) : (
           <div className="grid gap-6 md:grid-cols-3">
-            {posts.map((post) => {
+            {posts.map((post, index) => {
               const publishedAt = formatDate(post.published_at || post.created_at);
               const isExternal = post.is_external && post.external_url;
               const href = isExternal ? post.external_url! : `/blog/${post.slug}`;
@@ -114,26 +129,31 @@ export default function ArticlesPreview() {
                 </>
               );
 
-              return isExternal ? (
-                <a
-                  key={post.id}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block h-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
-                  aria-label={post.title}
-                >
-                  {CardContent}
-                </a>
-              ) : (
-                <Link
-                  key={post.id}
-                  href={href}
-                  className="group block h-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
-                  aria-label={post.title}
-                >
-                  {CardContent}
-                </Link>
+              const cardClasses =
+                "group block h-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg";
+
+              return (
+                <motion.div key={post.id} {...fadeUp(0.1 + index * 0.07)}>
+                  {isExternal ? (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cardClasses}
+                      aria-label={post.title}
+                    >
+                      {CardContent}
+                    </a>
+                  ) : (
+                    <Link
+                      href={href}
+                      className={cardClasses}
+                      aria-label={post.title}
+                    >
+                      {CardContent}
+                    </Link>
+                  )}
+                </motion.div>
               );
             })}
           </div>

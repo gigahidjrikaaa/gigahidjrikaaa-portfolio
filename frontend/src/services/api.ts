@@ -503,7 +503,13 @@ class ApiService {
     }
 
     if (!response.ok) {
-      throw new ApiError(`API Error: ${response.statusText}`, response.status);
+      // Try to extract the FastAPI `detail` field for a useful error message
+      let detail: string | undefined;
+      try {
+        const body = await response.json();
+        detail = typeof body?.detail === 'string' ? body.detail : undefined;
+      } catch { /* ignore parse errors */ }
+      throw new ApiError(detail || `API Error: ${response.statusText}`, response.status);
     }
 
     return response.json();

@@ -120,6 +120,50 @@ def _build_social_metadata(url: str, platform: str) -> dict[str, Any]:
     }
 
 
+async def _try_og_scrape(url: str) -> dict[str, Any]:
+    """
+    Quick best-effort OG metadata fetch, used to supplement platforms where
+    the primary API (e.g. Twitter oEmbed) returns only minimal information.
+    For X Articles the real headline lives in og:title even without JS.
+    Returns {} silently on any error.
+    """
+    try:
+        async with httpx.AsyncClient(
+            timeout=12.0,
+            follow_redirects=True,
+            headers=SCRAPER_HEADERS,
+            verify=False,
+        ) as client:
+            resp = await client.get(url)
+        if resp.status_code >= 400:
+            return {}
+        soup = BeautifulSoup(resp.text, "lxml")
+        ld   = _get_ld_json(soup)
+        site = (
+            _get_meta(soup, property="og:site_name")
+            or urlparse(url).netloc.replace("www.", "")
+        )
+        raw_title = (
+            _get_meta(soup, property="og:title")
+            or _get_meta(soup, name="twitter:title")
+            or str(ld.get("headline") or "")
+        )
+        return {
+            "title":          _clean_title(raw_title, site),
+            "description":    (
+                _get_meta(soup, property="og:description")
+                or _get_meta(soup, name="twitter:description")
+                or str(ld.get("description") or "")
+            ),
+            "image_url":      _get_meta(soup, property="og:image") or "",
+            "published_time": _extract_published_date(soup, ld),
+            "author":         _extract_author(soup, ld),
+        }
+    except Exception as exc:
+        logger.debug("OG scrape failed for %s: %s", url, exc)
+        return {}
+
+
 # ---------------------------------------------------------------------------
 # Scraping helpers
 # ---------------------------------------------------------------------------
@@ -440,29 +484,79 @@ async def scrape_url(url: str) -> dict[str, Any]:
     platform = detect_social_platform(url)
 
     if platform == "twitter":
-        oembed = await _fetch_twitter_oembed(url)
+        # 1. Get tweet / article preview via oEmbed (no auth needed)
+        oembed     = await _fetch_twitter_oembed(url)
+        tweet_text = ""
+        author     = ""
+        thumb      = ""
         if oembed:
             tweet_text = _extract_tweet_text(oembed.get("html", ""))
-            author      = oembed.get("author_name", "")
+            author     = oembed.get("author_name", "")
+            thumb      = oembed.get("thumbnail_url", "")
+
+        # 2. Also attempt an OG scrape so we capture the real headline for
+        #    X Articles — the oEmbed for long-form articles only returns the
+        #    attribution line ("— Author (@handle)"), not the article title.
+        og         = await _try_og_scrape(url)
+        og_title   = og.get("title", "")
+        og_desc    = og.get("description", "")
+        og_image   = og.get("image_url", "")
+
+        # X Article detected: OG title is a proper headline (longer / more
+        # informative than the tweet attribution text from oEmbed).
+        is_x_article = bool(
+            og_title
+            and len(og_title.strip()) > len(tweet_text.strip())
+            and og_title.strip() != author.strip()
+        )
+        title       = og_title   if is_x_article else (tweet_text[:140] or og_title)
+        description = og_desc    if og_desc    else tweet_text
+        image       = og_image   if og_image   else thumb
+
+        if title or description:   # we got something useful
             return {
                 "url":             url,
-                "title":           tweet_text[:140] or "",
-                "description":     tweet_text,
-                "image_url":       oembed.get("thumbnail_url", ""),
+                "title":           title,
+                "description":     description,
+                "image_url":       image,
                 "site_name":       "X (Twitter)",
-                "published_time":  "",
-                "author":          author,
+                "published_time":  og.get("published_time", ""),
+                "author":          og.get("author", "") or author,
                 "domain":          "x.com",
-                "content_snippet": tweet_text,
+                "content_snippet": description,
                 "keywords":        [],
-                "article_section": "",
-                # Frontend / fallback hints
+                "article_section": "article" if is_x_article else "",
                 "_social_platform": "twitter",
                 "_social_username":  ("@" + author) if author else "",
+                "_is_x_article":     is_x_article,
             }
-        # oEmbed unavailable — fall through to normal HTML scrape
+        # fall through to normal HTML scrape if both oEmbed and OG returned nothing
 
-    elif platform in ("instagram", "facebook", "linkedin"):
+    elif platform in ("instagram", "facebook"):
+        return _build_social_metadata(url, platform)
+
+    elif platform == "linkedin":
+        # LinkedIn Articles at /pulse/ are sometimes publicly accessible.
+        # Try an OG scrape first; fall back to empty social metadata if blocked.
+        if "/pulse/" in url:
+            og = await _try_og_scrape(url)
+            if og.get("title"):
+                domain  = urlparse(url).netloc.replace("www.", "")
+                return {
+                    "url":             url,
+                    "title":           og["title"],
+                    "description":     og.get("description", ""),
+                    "image_url":       og.get("image_url", ""),
+                    "site_name":       "LinkedIn",
+                    "published_time":  og.get("published_time", ""),
+                    "author":          og.get("author", ""),
+                    "domain":          domain,
+                    "content_snippet": og.get("description", ""),
+                    "keywords":        [],
+                    "article_section": "article",
+                    "_social_platform": "linkedin",
+                    "_social_username":  _social_username_from_url(url, "linkedin"),
+                }
         return _build_social_metadata(url, platform)
 
     # -----------------------------------------------------------------------
@@ -571,9 +665,12 @@ async def scrape_url(url: str) -> dict[str, Any]:
 
 def _slugify(text: str) -> str:
     slug = text.lower().strip()
+    # Normalise unicode dashes/punctuation that aren't caught by \w
+    slug = re.sub(r"[\u2012-\u2015\u2212\u2E3A\u2E3B\uFE58\uFE63\uFF0D]", "-", slug)
     slug = re.sub(r"[^\w\s-]", "", slug)
     slug = re.sub(r"[\s_]+", "-", slug)
-    return slug[:80]
+    slug = re.sub(r"-+", "-", slug)          # collapse multiple dashes
+    return slug.strip("-")[:80]              # remove leading/trailing dashes
 
 
 SYSTEM_PROMPTS: dict[ContentType, str] = {
@@ -591,16 +688,21 @@ Return ONLY the JSON object. No prose, no markdown fences.""",
 
     "blog_article": """You are a blog-content curator. Given scraped web page data, extract and return ONLY a JSON object with these exact fields:
 {
-  "title": "article title",
-  "slug": "url-friendly-slug-from-title",
-  "excerpt": "1-2 sentence hook for the article",
+  "title": "the FULL article headline — never use the author name, handle, or platform name as the title",
+  "slug": "url-friendly-slug-from-title (lowercase, dashes only)",
+  "excerpt": "1-2 sentence hook that captures the article's core value proposition",
   "category": "one category from: Technology, Engineering, Design, Career, Tutorial, Reflection, Other",
-  "tags": "semicolon-separated relevant tags",
+  "tags": "3-6 specific keywords separated by semicolons",
   "cover_image_url": "cover image URL or empty string",
   "is_external": true,
   "external_url": "the original article URL",
-  "external_source": "source platform name (e.g. Medium, LinkedIn, Dev.to, Hashnode)"
+  "external_source": "source platform name (e.g. X (Twitter), LinkedIn, Medium, Dev.to, Hashnode, Substack)"
 }
+Platform-specific rules:
+- X (Twitter) article: 'title' is the article headline shown on the page, NOT the author/handle. 'external_source' must be "X (Twitter)".
+- LinkedIn article: extract the article headline as 'title'. 'external_source' = "LinkedIn".
+- Medium: use the article headline; set 'external_source' to the publication name if present, otherwise "Medium".
+- Dev.to / Hashnode / Substack: tech/editorial platforms; category is usually Engineering or Tutorial.
 Return ONLY the JSON object. No prose, no markdown fences.""",
 
     "project": """You are a portfolio project analyzer. Given scraped web page data (typically a GitHub repo, project page, or case study), extract and return ONLY a JSON object with these exact fields:
@@ -649,9 +751,24 @@ async def analyze_with_ai(scraped: dict[str, Any], content_type: ContentType) ->
         timeout=float(settings.ZAI_SCRAPER_TIMEOUT),
     )
 
+    # Build a platform-context hint so the AI knows what kind of source this is.
+    _platform = scraped.get("_social_platform", "")
+    _is_x_article = scraped.get("_is_x_article", False)
+    if _platform == "twitter":
+        platform_note = "\nPlatform: X (Twitter)" + (
+            " — this is a long-form X Article (not a short tweet)"
+            if _is_x_article else " — short tweet"
+        )
+    elif _platform == "linkedin":
+        platform_note = "\nPlatform: LinkedIn Article"
+    elif _platform:
+        platform_note = f"\nPlatform: {_SOCIAL_NAMES.get(_platform, _platform.title())}"
+    else:
+        platform_note = ""
+
     user_message = f"""URL: {scraped["url"]}
 Title: {scraped["title"]}
-Site/Publication: {scraped["site_name"]}
+Site/Publication: {scraped["site_name"]}{platform_note}
 Published: {scraped["published_time"]}
 Author: {scraped["author"]}
 Description: {scraped["description"]}

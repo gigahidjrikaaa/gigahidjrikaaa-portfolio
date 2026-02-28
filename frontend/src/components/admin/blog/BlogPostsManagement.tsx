@@ -5,11 +5,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Plus, Edit, Trash2, Eye, UploadCloud, FileText } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, UploadCloud, FileText, Download } from "lucide-react";
 import Tooltip from "@/components/ui/tooltip";
 import { useToast } from "@/components/ui/toast";
-import { adminApi, BlogPostBase, BlogPostResponse } from "@/services/api";
+import { adminApi, BlogPostBase, BlogPostResponse, ScrapeResult } from "@/services/api";
 import BlogPostForm from "@/components/admin/BlogPostForm";
+import ImportPlatformModal from "@/components/admin/ImportPlatformModal";
 import LoadingAnimation from "@/components/ui/LoadingAnimation";
 
 const copy = {
@@ -52,7 +53,9 @@ const BlogPostsManagement = () => {
   const [posts, setPosts] = useState<BlogPostResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selected, setSelected] = useState<BlogPostResponse | null>(null);
+  const [importedData, setImportedData] = useState<ScrapeResult["data"] | null>(null);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -97,34 +100,64 @@ const BlogPostsManagement = () => {
     });
   }, [posts, statusFilter, categoryFilter, query]);
 
+  const toastForSave = (
+    action: "created" | "updated",
+    payload: BlogPostBase,
+  ) => {
+    const title = payload.title || "Post";
+    if (payload.status === "published") {
+      if (payload.is_external) {
+        toast({
+          title: action === "created" ? "External article added" : "External article updated",
+          description: `\u201c${title}\u201d is published \u2014 clicking the card will open the original ${payload.external_source ?? "article"}.`,
+          variant: "success",
+        });
+      } else {
+        toast({
+          title: action === "created" ? "Published \u2713" : "Published \u2713",
+          description: `\u201c${title}\u201d is now live on your blog.`,
+          variant: "success",
+        });
+      }
+    } else if (payload.status === "coming_soon") {
+      toast({
+        title: "Scheduled \u2014 Coming Soon",
+        description: `\u201c${title}\u201d is queued and will show as \u201cComing Soon\u201d to visitors.`,
+        variant: "success",
+      });
+    } else {
+      // draft
+      toast({
+        title: action === "created" ? "Draft saved" : "Draft updated",
+        description: `\u201c${title}\u201d has been saved as a draft. Publish it when you\u2019re ready.`,
+        variant: "success",
+      });
+    }
+  };
+
   const handleSave = async (payload: BlogPostBase) => {
     try {
       if (selected) {
         const updated = await adminApi.updateBlogPost(selected.id, payload);
         setPosts((prev) => prev.map((item) => (item.id === selected.id ? updated : item)));
-        toast({
-          title: "Post updated",
-          description: "Blog post saved successfully.",
-          variant: "success",
-        });
+        toastForSave("updated", payload);
       } else {
         const created = await adminApi.createBlogPost(payload);
         setPosts((prev) => [created, ...prev]);
-        toast({
-          title: "Post added",
-          description: "New blog post created.",
-          variant: "success",
-        });
+        toastForSave("created", payload);
       }
       setIsModalOpen(false);
       setSelected(null);
     } catch (error) {
       console.error("Failed to save blog post", error);
+      const message = error instanceof Error ? error.message : undefined;
       toast({
         title: "Unable to save post",
-        description: "Please review the fields and try again.",
+        description: message && !message.startsWith("API Error") ? message : "Please review the fields and try again.",
         variant: "error",
       });
+      // Re-throw so the form's isSubmitting resets and the button re-enables
+      throw error;
     }
   };
 
@@ -174,15 +207,25 @@ const BlogPostsManagement = () => {
           <h2 className="text-2xl font-semibold text-slate-900">{copy.title}</h2>
           <p className="mt-2 text-sm text-slate-500">{copy.subtitle}</p>
         </div>
-        <Button
-          onClick={() => {
-            setSelected(null);
-            setIsModalOpen(true);
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          {copy.add}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsImportModalOpen(true)}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Import
+          </Button>
+          <Button
+            onClick={() => {
+              setSelected(null);
+              setImportedData(null);
+              setIsModalOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {copy.add}
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -345,13 +388,27 @@ const BlogPostsManagement = () => {
         </CardContent>
       </Card>
 
+      {isImportModalOpen && (
+        <ImportPlatformModal
+          onImport={(_platform, data) => {
+            setSelected(null);
+            setImportedData(data);
+            setIsImportModalOpen(false);
+            setIsModalOpen(true);
+          }}
+          onClose={() => setIsImportModalOpen(false)}
+        />
+      )}
+
       {isModalOpen ? (
         <BlogPostForm
           post={selected}
+          importedData={importedData}
           onSave={handleSave}
           onCancel={() => {
             setIsModalOpen(false);
             setSelected(null);
+            setImportedData(null);
           }}
         />
       ) : null}

@@ -211,6 +211,9 @@ class BlogPost(Base):
     status = Column(String, default="draft")  # draft | published | coming_soon | scheduled
     published_at = Column(DateTime, nullable=True)
     scheduled_at = Column(DateTime, nullable=True)  # For scheduled publishing
+    is_external = Column(Boolean, default=False, nullable=False)
+    external_url = Column(String, nullable=True)  # URL of the original article on another platform
+    external_source = Column(String, nullable=True)  # e.g. "Medium", "LinkedIn", "X (Twitter)"
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
