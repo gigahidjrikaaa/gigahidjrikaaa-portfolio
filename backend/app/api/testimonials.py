@@ -127,8 +127,8 @@ def admin_approve(
     t = db.query(Testimonial).filter(Testimonial.id == testimonial_id).first()
     if not t:
         raise HTTPException(status_code=404, detail="Testimonial not found")
-    t.status = "approved"
-    t.is_featured = True
+    setattr(t, "status", "approved")
+    setattr(t, "is_featured", True)
     db.commit()
     db.refresh(t)
     return t
@@ -144,8 +144,8 @@ def admin_reject(
     t = db.query(Testimonial).filter(Testimonial.id == testimonial_id).first()
     if not t:
         raise HTTPException(status_code=404, detail="Testimonial not found")
-    t.status = "rejected"
-    t.is_featured = False
+    setattr(t, "status", "rejected")
+    setattr(t, "is_featured", False)
     db.commit()
     db.refresh(t)
     return t

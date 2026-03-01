@@ -92,10 +92,12 @@ const Skills = () => {
         >
           {/* Header */}
           <motion.div variants={itemVariants} className="mb-16 md:mb-24 flex flex-col items-center text-center">
-            <span className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-6">
+            <div className="flex items-center gap-2 mb-6 font-mono text-sm tracking-widest uppercase text-emerald-600 dark:text-emerald-400">
+              <span className="w-8 h-px bg-emerald-600/30 dark:bg-emerald-400/30" />
               <Layers className="h-4 w-4" />
-              {copy.eyebrow}
-            </span>
+              <span>{copy.eyebrow}</span>
+              <span className="w-8 h-px bg-emerald-600/30 dark:bg-emerald-400/30" />
+            </div>
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
               {copy.title}
             </h2>

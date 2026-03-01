@@ -114,7 +114,7 @@ def _upsert_visit(db: Session, session_id: str, ip: str, geo: dict[str, Any]) ->
 
         existing = db.query(PageVisit).filter(PageVisit.session_id == session_id).first()
         if existing:
-            existing.last_seen = now
+            setattr(existing, "last_seen", now)
         else:
             db.add(PageVisit(
                 session_id=session_id,

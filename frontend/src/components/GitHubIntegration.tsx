@@ -237,7 +237,7 @@ const GitHubIntegration = () => {
                     </p>
                   )}
 
-                  <div className="mt-4 flex flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     {repo.language && (
                       <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
                         {repo.language}

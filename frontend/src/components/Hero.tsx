@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { apiService, ProfileResponse } from '@/services/api';
+import HeroParticles from './HeroParticles';
 
 const heroVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -43,10 +44,11 @@ const Hero = () => {
 
   return (
     <section id="hero" className="relative min-h-[90vh] md:min-h-screen bg-zinc-50 flex items-center justify-center overflow-hidden pt-24 pb-16">
-      {/* Structural Minimal Background */}
+      {/* Structural Minimal Background with Interactive Particles */}
+      <HeroParticles />
       <div className="absolute inset-0 z-0 pointer-events-none">
          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 m-auto h-[400px] w-[400px] rounded-full bg-zinc-200/50 opacity-50 blur-[100px]"></div>
+         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 m-auto h-[400px] w-[400px] rounded-full bg-emerald-200/40 opacity-50 blur-[120px]"></div>
       </div>
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
@@ -145,32 +147,36 @@ const Hero = () => {
              {/* Back Card */}
              <motion.div 
                initial={reduceMotion ? { opacity: 1, rotate: -4, x: -30, y: 30 } : { opacity: 0, y: 100, rotate: -15, scale: 0.8 }}
-               animate={{ opacity: 1, y: 30, rotate: -4, x: -30, scale: 1 }}
+               animate={{ opacity: 1, y: 30, rotate: -2, x: -30, scale: 1 }}
                transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-               className="absolute w-[240px] md:w-[280px] aspect-[3/4] rounded-2xl bg-white shadow-2xl p-2.5 z-10 border border-zinc-100"
+               className="absolute w-[240px] md:w-[280px] aspect-[3/4] rounded-sm bg-white shadow-2xl p-3 z-10 border border-zinc-200"
              >
-               <div className="relative w-full h-full rounded-xl overflow-hidden bg-zinc-100 grayscale hover:grayscale-0 transition-all duration-700">
+               <div className="relative w-full h-[85%] overflow-hidden bg-zinc-100 grayscale hover:grayscale-0 transition-all duration-700">
                  <Image 
-                   src="/profile-2.jpg" 
+                   src="/giga-pics/giga-5.jpg" 
                    alt="Profile photo 2" 
                    fill 
                    className="object-cover"
                    sizes="(max-width: 768px) 240px, 280px"
                  />
                </div>
+               <div className="w-full flex items-center justify-between pt-3 px-1 text-zinc-400">
+                 <span className="text-[10px] font-mono uppercase tracking-wider">IMG_9042</span>
+                 <span className="text-[10px] font-mono">2024</span>
+               </div>
              </motion.div>
 
              {/* Front Card */}
              <motion.div 
                initial={reduceMotion ? { opacity: 1, rotate: 6, x: 20, y: -20 } : { opacity: 0, y: 150, rotate: 20, scale: 0.8 }}
-               animate={{ opacity: 1, y: -20, rotate: 6, x: 20, scale: 1 }}
+               animate={{ opacity: 1, y: -20, rotate: 4, x: 20, scale: 1 }}
                transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-               className="absolute w-[260px] md:w-[320px] aspect-[4/5] rounded-2xl bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-3 z-20 border border-zinc-100 pointer-events-auto cursor-pointer"
-               whileHover={{ scale: 1.05, rotate: 8, y: -30 }}
+               className="absolute w-[260px] md:w-[320px] aspect-[3/4] rounded-sm bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-3.5 z-20 border border-zinc-200 pointer-events-auto cursor-pointer"
+               whileHover={{ scale: 1.05, rotate: 6, y: -30 }}
              >
-               <div className="relative w-full h-full rounded-xl overflow-hidden bg-zinc-200">
+               <div className="relative w-full h-[85%] overflow-hidden bg-zinc-200">
                   <Image 
-                    src="/profile.jpg" 
+                    src="/giga-pics/giga-1.jpg" 
                     alt="Profile photo" 
                     fill 
                     priority
@@ -178,19 +184,24 @@ const Hero = () => {
                     sizes="(max-width: 768px) 260px, 320px"
                   />
                </div>
+               <div className="w-full flex items-center justify-between pt-4 px-1 text-zinc-400">
+                 <span className="text-[10px] font-mono uppercase tracking-wider">SYS_INIT_OK</span>
+                 <span className="text-[10px] font-mono">ACT_1</span>
+               </div>
              </motion.div>
 
-             {/* Little decorative badge */}
+             {/* Little decorative technical overlay (replacing generic chip) */}
              <motion.div
-               initial={reduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0 }}
-               animate={{ opacity: 1, scale: 1 }}
-               transition={{ delay: 1.2, duration: 0.5, type: 'spring' }}
-               className="absolute -right-4 md:right-8 bottom-24 md:bottom-32 z-30 bg-white rounded-full px-5 py-2.5 shadow-xl border border-zinc-100 pointer-events-auto"
-               whileHover={{ scale: 1.1 }}
+               initial={reduceMotion ? { opacity: 1 } : { opacity: 0, x: -20 }}
+               animate={{ opacity: 1, x: 0 }}
+               transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
+               className="absolute -left-6 md:-left-12 bottom-32 z-30 pointer-events-auto flex flex-col gap-1 backdrop-blur-sm bg-white/40 p-3 shadow-sm border-l-2 border-emerald-500"
              >
-               <span className="flex items-center gap-2 text-xs font-semibold text-zinc-800">
-                 ✨ Turning ideas into reality
+               <span className="flex items-center gap-2 text-[10px] uppercase font-mono tracking-widest text-zinc-600">
+                 <span className="w-1.5 h-1.5 bg-emerald-500 inline-block animate-pulse" />
+                 sys.status.online
                </span>
+               <span className="text-[9px] font-mono text-zinc-400">LOC: -43.20 106.8</span>
              </motion.div>
           </div>
 

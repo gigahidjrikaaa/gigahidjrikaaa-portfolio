@@ -137,18 +137,18 @@ const About = () => {
                   {bio}
                 </p>
                 
-                <div className="flex flex-wrap gap-3 pt-4">
-                  <span className="flex items-center gap-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300">
-                    <MapPin className="h-3.5 w-3.5" />
+                <div className="flex items-center flex-wrap gap-x-6 gap-y-3 pt-6 mt-2 border-t border-zinc-100 dark:border-zinc-800">
+                  <div className="flex items-center gap-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                    <MapPin className="h-4 w-4 text-emerald-500" />
                     {location}
-                  </span>
-                  <span className="flex items-center gap-2 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 px-4 py-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                  </div>
+                  <div className="flex items-center gap-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">
                     <span className="relative flex h-2 w-2">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                     </span>
                     {availability}
-                  </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -162,7 +162,7 @@ const About = () => {
             className="md:col-span-1 lg:col-span-1 md:row-span-2 relative overflow-hidden rounded-3xl h-[400px] md:h-auto group"
           >
             <Image
-              src={profile?.avatar_url || '/profile.jpg'}
+              src={profile?.avatar_url || '/giga-pics/giga-3.jpg'}
               alt="Profile"
               fill
               className="object-cover object-center transition-transform duration-700 group-hover:scale-105"

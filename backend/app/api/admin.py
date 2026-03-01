@@ -851,7 +851,7 @@ async def publish_scheduled_posts(
     now = dt.utcnow()
 
     for post in scheduled_posts:
-        if post.scheduled_at and post.scheduled_at <= now:
+        if post.scheduled_at and post.scheduled_at <= now:  # type: ignore
             setattr(post, "status", "published")
             setattr(post, "published_at", post.scheduled_at)
             setattr(post, "scheduled_at", None)
