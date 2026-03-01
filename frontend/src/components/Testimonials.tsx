@@ -196,7 +196,7 @@ const Testimonials = () => {
   return (
     <section
       id="testimonials"
-      className="relative overflow-hidden bg-slate-900 py-20 sm:py-28"
+      className="relative overflow-hidden bg-slate-900 py-24 md:py-32"
     >
       {/* Background accent blobs */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">

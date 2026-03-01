@@ -52,7 +52,7 @@ const techStack = [
 
 const TechStackMarquee = () => {
   return (
-    <section className="border-b border-gray-200 bg-white py-12 dark:bg-gray-900 dark:border-gray-700">
+    <section className="border-b border-gray-200 bg-white py-24 dark:bg-zinc-900 md:py-32 dark:border-gray-700">
       <motion.div
         initial="hidden"
         whileInView="visible"
@@ -62,12 +62,12 @@ const TechStackMarquee = () => {
       >
         <motion.div
           variants={itemVariants}
-          className="mb-8 text-center"
+          className="mb-12 text-center"
         >
           <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
-            TECH STACK
+            Tech Stack
           </span>
-          <h2 className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white sm:text-3xl">
+          <h2 className="mt-2 text-3xl font-semibold leading-tight text-gray-900 dark:text-white sm:text-4xl lg:text-5xl">
             Technologies I Work With
           </h2>
         </motion.div>

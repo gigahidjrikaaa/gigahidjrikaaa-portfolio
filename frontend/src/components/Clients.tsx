@@ -127,7 +127,7 @@ const Clients = () => {
 
   if (loading) {
     return (
-      <section className="bg-gray-50 py-24 dark:bg-zinc-900 md:py-32">
+      <section className="bg-white py-24 dark:bg-zinc-900 md:py-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <LoadingAnimation label="Loading clients…" />
         </div>
@@ -144,7 +144,7 @@ const Clients = () => {
     <section
       id="clients"
       ref={sectionRef}
-      className="relative overflow-hidden bg-gray-50 py-24 dark:bg-zinc-900 md:py-32"
+      className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32"
     >
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}

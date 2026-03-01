@@ -64,7 +64,7 @@ const Awards = () => {
   };
 
   return (
-    <section id="awards" className="relative overflow-hidden bg-gray-900 py-24 md:py-32">
+    <section id="awards" className="relative overflow-hidden bg-zinc-900 py-24 md:py-32">
       {/* Background pattern */}
       <div
         className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-10"

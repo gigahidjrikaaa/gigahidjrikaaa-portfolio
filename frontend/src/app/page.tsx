@@ -19,16 +19,11 @@ import Stories from '@/components/Stories';
 import Clients from '@/components/Clients';
 import PressMentions from '@/components/PressMentions';
 import VisitorMap from '@/components/VisitorMap';
-import VisitorCounter from '@/components/VisitorCounter';
 
 export default function Home() {
   return (
     <>
       <Hero />
-
-      <div className="fixed top-20 right-4 z-40 bg-white/90 backdrop-blur-md rounded-full px-6 py-3 shadow-lg border border-gray-200">
-        <VisitorCounter />
-      </div>
 
       <PressMentions />
 

@@ -454,7 +454,7 @@ const PressMentions = () => {
   const visibleGrid = regular.slice(0, REGULAR_PREVIEW);
 
   return (
-    <section id="press" className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32">
+    <section id="press" className="relative overflow-hidden bg-zinc-50 py-24 dark:bg-zinc-900 md:py-32">
       {/* Decorative background */}
       <div
         aria-hidden
@@ -474,7 +474,10 @@ const PressMentions = () => {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="mb-12 text-center"
         >
-          <h2 className="mt-4 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
+            Press & Media
+          </span>
+          <h2 className="mt-2 text-3xl font-semibold leading-tight text-slate-900 sm:text-4xl lg:text-5xl">
             Featured In
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-slate-500 leading-relaxed">

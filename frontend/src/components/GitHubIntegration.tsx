@@ -134,7 +134,7 @@ const GitHubIntegration = () => {
   ];
 
   return (
-    <section className="border-b border-gray-200 bg-white py-12 dark:bg-gray-900">
+    <section className="border-b border-gray-200 bg-zinc-50 py-24 dark:bg-zinc-900 md:py-32">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial="hidden"
@@ -144,15 +144,15 @@ const GitHubIntegration = () => {
           className="space-y-8"
         >
           {/* Header */}
-          <motion.div variants={itemVariants} className="flex items-center gap-6">
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div>
               <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
                 {copy.eyebrow}
               </span>
-              <h2 className="mt-3 text-2xl font-semibold text-gray-900 sm:text-3xl">
+              <h2 className="mt-2 text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
                 {copy.title}
               </h2>
-              <p className="mt-2 text-gray-600">{copy.subtitle}</p>
+              <p className="mt-4 text-gray-500 leading-relaxed max-w-xl">{copy.subtitle}</p>
             </div>
             {user && (
               <a

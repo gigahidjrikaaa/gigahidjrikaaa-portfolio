@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Bars3Icon, XMarkIcon, ArrowUpRightIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
@@ -103,38 +103,34 @@ const Navbar = () => {
 
   return (
     <motion.nav
-      className="fixed inset-x-0 top-0 z-50"
+      className="fixed inset-x-0 top-0 z-50 transition-all duration-300 ease-out"
       aria-label={copy.navLabel}
       initial={reduceMotion ? false : { y: -80, opacity: 0 }}
       animate={reduceMotion ? {} : (hidden ? navVariants.hidden : navVariants.visible)}
     >
-      <div className="mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Main pill */}
-        <div
-          className={[
-            'relative mt-4 flex items-center justify-between rounded-[28px] border px-4 transition-all duration-300',
-            scrolled
-              ? 'border-white/50 bg-white/90 py-2 shadow-[0_8px_32px_rgba(15,23,42,0.10)] backdrop-blur-2xl'
-              : 'border-white/40 bg-white/80 py-3 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl',
-          ].join(' ')}
-        >
+      <div
+        className={[
+          'mx-auto w-full transition-all duration-300',
+          scrolled
+            ? 'bg-white/85 backdrop-blur-xl border-b border-zinc-200/50 shadow-[0_4px_24px_rgba(0,0,0,0.02)]'
+            : 'bg-transparent border-b border-transparent'
+        ].join(' ')}
+      >
+        <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <motion.div
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-900 text-white text-xs font-bold tracking-tight"
-              whileHover={reduceMotion ? {} : { scale: 1.06 }}
-              whileTap={reduceMotion ? {} : { scale: 0.96 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            >
-              GH
-            </motion.div>
-            <Link href="/" className="text-base font-semibold text-gray-900 hover:text-gray-600 transition-colors">
-              {copy.brand}
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-white text-xs font-bold tracking-tight transition-transform group-hover:scale-105">
+                GH
+              </div>
+              <span className="text-[15px] font-medium tracking-tight text-zinc-900 transition-colors hidden sm:block">
+                {copy.brand}
+              </span>
             </Link>
           </div>
 
-          {/* Desktop center pill */}
-          <div className="hidden md:flex md:items-center absolute left-1/2 -translate-x-1/2 rounded-full border border-gray-100 bg-gray-50/80 px-2 py-1.5 gap-0.5">
+          {/* Desktop links */}
+          <div className="hidden md:flex items-center gap-8">
             {!isLoading && allLinks.map((link) => {
               const active = isLinkActive(link);
               return (
@@ -142,15 +138,18 @@ const Navbar = () => {
                   key={link.name}
                   href={link.href}
                   className={[
-                    'relative text-xs font-semibold uppercase tracking-[0.14em] px-3.5 py-1.5 rounded-full transition-colors duration-200 flex items-center gap-1',
+                    'relative text-[13px] font-medium uppercase tracking-[0.08em] transition-colors duration-200 flex items-center gap-1.5',
                     active
-                      ? 'text-gray-900 bg-white shadow-sm border border-gray-200/80'
-                      : 'text-gray-500 hover:text-gray-800 hover:bg-white/60',
+                      ? 'text-zinc-900'
+                      : 'text-zinc-500 hover:text-zinc-900',
                   ].join(' ')}
                 >
                   {link.name}
                   {link.isAdmin && (
-                    <ShieldCheckIcon className="h-3 w-3 text-emerald-600" aria-label={copy.adminBadge} />
+                    <ShieldCheckIcon className="h-3.5 w-3.5 text-emerald-600" aria-label={copy.adminBadge} />
+                  )}
+                  {active && (
+                    <span className="absolute -bottom-1.5 left-0 h-0.5 w-full bg-zinc-900 rounded-full" />
                   )}
                 </Link>
               );
@@ -158,50 +157,46 @@ const Navbar = () => {
           </div>
 
           {/* Desktop right side */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-4">
             {isAdmin && (
               <div
-                className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700"
+                className="flex items-center gap-1.5 rounded border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-widest text-emerald-700"
                 title={copy.adminBadge}
               >
                 <ShieldCheckIcon className="h-3.5 w-3.5" />
                 <span>Admin</span>
               </div>
             )}
-            <motion.div whileHover={reduceMotion ? {} : { scale: 1.02 }} whileTap={reduceMotion ? {} : { scale: 0.97 }}>
-              <Link
-                href="#contact"
-                className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white hover:bg-gray-700 transition-colors duration-150"
-              >
-                {copy.cta}
-                <ArrowUpRightIcon className="h-3.5 w-3.5" />
-              </Link>
-            </motion.div>
+            <Link
+              href="#contact"
+              className="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-5 py-2.5 text-[13px] font-medium uppercase tracking-[0.08em] text-white hover:bg-zinc-800 transition-colors duration-150"
+            >
+              {copy.cta}
+            </Link>
           </div>
 
           {/* Mobile hamburger */}
           <div className="flex items-center md:hidden">
-            <motion.button
+            <button
               onClick={() => setIsMobileMenuOpen((v) => !v)}
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 transition-colors"
+              className="inline-flex items-center justify-center p-2 rounded-md text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 focus:outline-none transition-colors"
               aria-controls="mobile-menu"
               aria-expanded={isMobileMenuOpen}
-              whileTap={reduceMotion ? {} : { scale: 0.92 }}
             >
               <span className="sr-only">{copy.openMenu}</span>
               <AnimatePresence mode="wait" initial={false}>
                 {isMobileMenuOpen ? (
-                  <motion.span key="close" initial={{ rotate: -45, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 45, opacity: 0 }} transition={{ duration: 0.15 }}>
-                    <XMarkIcon className="h-5 w-5" aria-hidden />
+                  <motion.span key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <XMarkIcon className="h-6 w-6" aria-hidden />
                   </motion.span>
                 ) : (
-                  <motion.span key="open" initial={{ rotate: 45, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -45, opacity: 0 }} transition={{ duration: 0.15 }}>
-                    <Bars3Icon className="h-5 w-5" aria-hidden />
+                  <motion.span key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <Bars3Icon className="h-6 w-6" aria-hidden />
                   </motion.span>
                 )}
               </AnimatePresence>
-            </motion.button>
+            </button>
           </div>
         </div>
       </div>
@@ -216,16 +211,16 @@ const Navbar = () => {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="md:hidden mx-4 mt-2"
+            className="md:hidden absolute top-full left-0 w-full border-b border-zinc-200 bg-white/95 backdrop-blur-xl shadow-lg"
           >
-            <div className="rounded-2xl border border-gray-200/70 bg-white/96 px-3 py-3 shadow-xl backdrop-blur-xl">
+            <div className="px-4 pb-6 pt-4 space-y-2">
               {isAdmin && (
-                <div className="mb-2 mx-1 flex items-center justify-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
-                  <ShieldCheckIcon className="h-3.5 w-3.5" />
+                <div className="mb-4 flex items-center gap-1.5 rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium uppercase tracking-[0.1em] text-emerald-700">
+                  <ShieldCheckIcon className="h-4 w-4" />
                   <span>Logged in as Admin</span>
                 </div>
               )}
-              <div className="space-y-0.5">
+              <div className="flex flex-col space-y-1">
                 {!isLoading && allLinks.map((link) => {
                   const active = isLinkActive(link);
                   return (
@@ -234,26 +229,27 @@ const Navbar = () => {
                       href={link.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={[
-                        'flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold uppercase tracking-[0.12em] transition-colors duration-150',
+                        'flex items-center gap-2 px-3 py-3 rounded-lg text-sm font-medium uppercase tracking-[0.1em] transition-colors duration-150',
                         active
-                          ? 'text-gray-900 bg-gray-100'
-                          : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50',
+                          ? 'text-zinc-900 bg-zinc-100/80'
+                          : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50',
                       ].join(' ')}
                     >
                       {link.name}
-                      {link.isAdmin && <ShieldCheckIcon className="h-3.5 w-3.5 text-emerald-600" />}
+                      {link.isAdmin && <ShieldCheckIcon className="h-4 w-4 text-emerald-600" />}
                     </Link>
                   );
                 })}
               </div>
-              <Link
-                href="#contact"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-gray-900 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:bg-gray-700 transition-colors"
-              >
-                {copy.cta}
-                <ArrowUpRightIcon className="h-3.5 w-3.5" />
-              </Link>
+              <div className="pt-4">
+                <Link
+                  href="#contact"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex w-full items-center justify-center rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium uppercase tracking-[0.1em] text-white hover:bg-zinc-800 transition-colors"
+                >
+                  {copy.cta}
+                </Link>
+              </div>
             </div>
           </motion.div>
         )}

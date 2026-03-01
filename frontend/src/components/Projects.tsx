@@ -429,7 +429,7 @@ const Projects = () => {
   };
 
   return (
-    <section id="projects" className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32" ref={sectionRef}>
+    <section id="projects" className="relative overflow-hidden bg-zinc-50 py-24 dark:bg-zinc-900 md:py-32" ref={sectionRef}>
       {/* Subtle grid background */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.03]"
@@ -447,15 +447,15 @@ const Projects = () => {
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           className="mb-14"
         >
-          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-400">
+          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
             Portfolio
           </span>
-          <h2 className="mt-3 text-4xl font-bold text-gray-900 sm:text-5xl">
+          <h2 className="mt-2 text-3xl font-semibold text-gray-900 sm:text-4xl lg:text-5xl">
             My{" "}
             <span className="relative inline-block">
               Projects
               <motion.span
-                className="absolute -bottom-1 left-0 h-0.5 bg-gray-900"
+                className="absolute -bottom-1 left-0 h-1 bg-gray-900"
                 initial={{ scaleX: 0 }}
                 animate={isInView ? { scaleX: 1 } : {}}
                 transition={{ duration: 0.6, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}

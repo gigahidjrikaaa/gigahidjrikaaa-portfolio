@@ -60,10 +60,10 @@ const Highlights = () => {
           className="mb-16 grid gap-6 lg:grid-cols-2 lg:items-end"
         >
           <div>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-zinc-500">
+            <span className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
               Availability
             </span>
-            <h2 className="mt-3 text-4xl font-semibold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl">
+            <h2 className="mt-2 text-3xl font-semibold leading-tight text-white sm:text-4xl lg:text-5xl">
               Available now.
               <br />
               <span className="text-zinc-500">Three ways to work.</span>

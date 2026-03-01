@@ -35,7 +35,7 @@ const Education = () => {
   const close = () => { setModalOpen(false); setSelected(null); };
 
   return (
-    <section id="education" className="relative bg-zinc-50 py-24 dark:bg-zinc-950 md:py-32">
+    <section id="education" className="relative bg-white py-24 dark:bg-zinc-900 md:py-32">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── Header ─────────────────────────────────────────────── */}
@@ -46,14 +46,14 @@ const Education = () => {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="mb-14"
         >
-          <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-500">
+          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
             Background
           </span>
-          <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-            <h2 className="text-4xl font-semibold leading-tight text-zinc-900 dark:text-white sm:text-5xl">
+          <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+            <h2 className="text-3xl font-semibold leading-tight text-gray-900 dark:text-white sm:text-4xl lg:text-5xl">
               Education
             </h2>
-            <p className="max-w-md text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <p className="max-w-md text-sm leading-relaxed text-gray-600 dark:text-zinc-400">
               Academic foundation in engineering, computer science, and emerging technologies.
             </p>
           </div>

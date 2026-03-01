@@ -49,7 +49,7 @@ const Services = () => {
   }, [services]);
 
   return (
-    <section id="services" className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32">
+    <section id="services" className="relative overflow-hidden bg-zinc-50 py-24 dark:bg-zinc-900 md:py-32">
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 20 }}
@@ -79,12 +79,14 @@ const Services = () => {
 
           {/* Right: Text content */}
           <div className="space-y-6">
-            <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
-              {copy.eyebrow}
-            </span>
-            <h2 className="text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
-              {copy.title}
-            </h2>
+            <div className="space-y-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
+                {copy.eyebrow}
+              </span>
+              <h2 className="text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
+                {copy.title}
+              </h2>
+            </div>
             <p className="text-gray-500 leading-relaxed">{copy.subtitle}</p>
 
             {/* Checklist */}
