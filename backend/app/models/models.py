@@ -229,6 +229,7 @@ class Profile(Base):
     availability = Column(String, nullable=True)
     avatar_url = Column(String, nullable=True)
     resume_url = Column(String, nullable=True)
+    cv_url = Column(String, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

@@ -246,6 +246,7 @@ export interface ProfileBase {
   availability?: string;
   avatar_url?: string;
   resume_url?: string;
+  cv_url?: string;
 }
 
 export type ProfileUpdate = Partial<ProfileBase>;
@@ -464,6 +465,28 @@ class ApiService {
     return headers;
   }
 
+  protected getFilenameFromDisposition(headerValue: string | null, fallback: string): string {
+    if (!headerValue) {
+      return fallback;
+    }
+
+    const utf8Match = headerValue.match(/filename\*=UTF-8''([^;]+)/i);
+    if (utf8Match?.[1]) {
+      try {
+        return decodeURIComponent(utf8Match[1].replace(/["']/g, ''));
+      } catch {
+        return utf8Match[1].replace(/["']/g, '');
+      }
+    }
+
+    const plainMatch = headerValue.match(/filename="?([^";]+)"?/i);
+    if (plainMatch?.[1]) {
+      return plainMatch[1];
+    }
+
+    return fallback;
+  }
+
   protected async request<T>(
     endpoint: string,
     options: RequestInit = {},
@@ -582,6 +605,36 @@ class ApiService {
   // Public Profile
   async getProfile(): Promise<ProfileResponse> {
     return this.request<ProfileResponse>('/profile');
+  }
+
+  async downloadPortfolioPdf(): Promise<{ blob: Blob; filename: string }> {
+    const response = await fetch(`${NEXT_PUBLIC_API_BASE_URL}/portfolio/export`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        Accept: 'application/pdf',
+      },
+    });
+
+    if (!response.ok) {
+      let detail: string | undefined;
+      try {
+        const body = await response.json();
+        detail = typeof body?.detail === 'string' ? body.detail : undefined;
+      } catch {
+        detail = undefined;
+      }
+
+      throw new ApiError(detail || `API Error: ${response.statusText}`, response.status);
+    }
+
+    const blob = await response.blob();
+    const filename = this.getFilenameFromDisposition(
+      response.headers.get('content-disposition'),
+      'portfolio.pdf'
+    );
+
+    return { blob, filename };
   }
 
   // Awards

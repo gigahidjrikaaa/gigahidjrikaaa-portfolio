@@ -387,6 +387,7 @@ class ProfileBase(BaseModel):
     availability: Optional[str] = None
     avatar_url: Optional[HttpUrl] = None
     resume_url: Optional[HttpUrl] = None
+    cv_url: Optional[HttpUrl] = None
 
 
 class ProfileUpdate(ProfileBase):

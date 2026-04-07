@@ -1,9 +1,11 @@
 // src/components/Contact.tsx
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { FaGithub, FaLinkedinIn, FaTwitter, FaEnvelope, FaFilePdf, FaDownload } from 'react-icons/fa';
+import { apiService, ProfileResponse } from '@/services/api';
+import { toDirectDownloadUrl } from '@/utils/googleDrive';
 
 const copy = {
   eyebrow: 'GET IN TOUCH',
@@ -29,20 +31,80 @@ const copy = {
     email: 'Email',
   },
   downloads: {
-    title: 'Resume & CV',
-    subtitle: 'Download my resume or view more details.',
+    title: 'Resume, CV & Portfolio',
+    subtitle: 'Download my latest resume, CV, and portfolio export.',
     resume: 'Download Resume (PDF)',
     cv: 'Download CV (PDF)',
+    portfolio: 'Download Portfolio (PDF)',
+    resumeUnavailable: 'Resume Link Not Set',
+    cvUnavailable: 'CV Link Not Set',
+    portfolioLoading: 'Preparing Portfolio PDF...',
+    portfolioError: 'Unable to generate portfolio PDF right now. Please try again.',
   },
 };
 
 const Contact = () => {
   const [status, setStatus] = useState<string | null>(null);
+  const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  const [isPortfolioDownloading, setIsPortfolioDownloading] = useState(false);
+  const [portfolioError, setPortfolioError] = useState<string | null>(null);
   const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    apiService
+      .getProfile()
+      .then((data) => {
+        if (isMounted) {
+          setProfile(data);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setProfile(null);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const resumeDownloadUrl = toDirectDownloadUrl(profile?.resume_url);
+  const cvDownloadUrl = toDirectDownloadUrl(profile?.cv_url);
+
+  const getDownloadButtonClass = (isEnabled: boolean) =>
+    `flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium ${
+      isEnabled
+        ? 'border border-gray-300 bg-white text-gray-900 transition hover:border-gray-400 hover:shadow-md'
+        : 'cursor-not-allowed border border-gray-200 bg-gray-100 text-gray-500'
+    }`;
 
   const handleSubmit = (event: { preventDefault: () => void }) => {
     event.preventDefault();
     setStatus(copy.statusPending);
+  };
+
+  const handlePortfolioDownload = async () => {
+    setPortfolioError(null);
+    setIsPortfolioDownloading(true);
+
+    try {
+      const { blob, filename } = await apiService.downloadPortfolioPdf();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setPortfolioError(copy.downloads.portfolioError);
+    } finally {
+      setIsPortfolioDownloading(false);
+    }
   };
 
   return (
@@ -116,24 +178,56 @@ const Contact = () => {
                   </h3>
                 </div>
                 <p className="mb-4 text-sm text-gray-600">{copy.downloads.subtitle}</p>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   <a
-                    href="/resume.pdf"
-                    download
-                    className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-900 transition hover:border-gray-400 hover:shadow-md"
+                    href={resumeDownloadUrl ?? '#'}
+                    target={resumeDownloadUrl ? '_blank' : undefined}
+                    rel={resumeDownloadUrl ? 'noopener noreferrer' : undefined}
+                    aria-disabled={!resumeDownloadUrl}
+                    tabIndex={resumeDownloadUrl ? 0 : -1}
+                    className={getDownloadButtonClass(Boolean(resumeDownloadUrl))}
+                    onClick={(event) => {
+                      if (!resumeDownloadUrl) {
+                        event.preventDefault();
+                      }
+                    }}
                   >
                     <FaDownload className="h-4 w-4" />
-                    {copy.downloads.resume}
+                    {resumeDownloadUrl ? copy.downloads.resume : copy.downloads.resumeUnavailable}
                   </a>
                   <a
-                    href="/cv.pdf"
-                    download
-                    className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-900 transition hover:border-gray-400 hover:shadow-md"
+                    href={cvDownloadUrl ?? '#'}
+                    target={cvDownloadUrl ? '_blank' : undefined}
+                    rel={cvDownloadUrl ? 'noopener noreferrer' : undefined}
+                    aria-disabled={!cvDownloadUrl}
+                    tabIndex={cvDownloadUrl ? 0 : -1}
+                    className={getDownloadButtonClass(Boolean(cvDownloadUrl))}
+                    onClick={(event) => {
+                      if (!cvDownloadUrl) {
+                        event.preventDefault();
+                      }
+                    }}
                   >
                     <FaDownload className="h-4 w-4" />
-                    {copy.downloads.cv}
+                    {cvDownloadUrl ? copy.downloads.cv : copy.downloads.cvUnavailable}
                   </a>
+
+                  <button
+                    type="button"
+                    disabled={isPortfolioDownloading}
+                    className={getDownloadButtonClass(!isPortfolioDownloading)}
+                    onClick={handlePortfolioDownload}
+                  >
+                    <FaDownload className="h-4 w-4" />
+                    {isPortfolioDownloading ? copy.downloads.portfolioLoading : copy.downloads.portfolio}
+                  </button>
                 </div>
+
+                {portfolioError ? (
+                  <p className="mt-3 text-xs text-red-600" role="status" aria-live="polite">
+                    {portfolioError}
+                  </p>
+                ) : null}
               </div>
             </div>
 

@@ -13,7 +13,7 @@ from .config import settings
 from .init_db import init_db
 import uvicorn
 
-from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog, profile, testimonials, comments, seo, scraper, press_mentions, clients, stories, analytics
+from .api import auth, projects, admin, experience, education, skills, contact, awards, certificates, services, blog, profile, testimonials, comments, seo, scraper, press_mentions, clients, stories, analytics, portfolio_export
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -183,6 +183,7 @@ app.include_router(press_mentions.router, prefix=f"{settings.API_V1_STR}/press-m
 app.include_router(clients.router, prefix=f"{settings.API_V1_STR}/clients", tags=["clients"])
 app.include_router(stories.router, prefix=f"{settings.API_V1_STR}/stories", tags=["stories"])
 app.include_router(analytics.router, prefix=f"{settings.API_V1_STR}/analytics", tags=["analytics"])
+app.include_router(portfolio_export.router, prefix=f"{settings.API_V1_STR}/portfolio", tags=["portfolio"])
 
 
 @app.get("/docs", include_in_schema=False)

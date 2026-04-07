@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { adminApi, ProfileResponse, ProfileUpdate } from "@/services/api";
+import { toDirectDownloadUrl } from "@/utils/googleDrive";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -60,12 +61,15 @@ const copy = {
   toggles: {
     enableAvatar: "Enable avatar",
     enableResume: "Enable resume link",
+    enableCv: "Enable CV link",
   },
   hints: {
     avatar:
       "Use an absolute URL (e.g. GitHub, Cloudinary, LinkedIn). Leave disabled to hide.",
     resume:
       "Link to your resume PDF or portfolio page. Leave disabled to hide.",
+    cv:
+      "Link to your CV PDF. Google Drive share links are converted automatically.",
     availability:
       "Pick a preset for consistency, or choose Custom to type your own.",
     location:
@@ -79,6 +83,7 @@ const copy = {
     availability: "Availability",
     avatar_url: "Avatar URL",
     resume_url: "Resume URL",
+    cv_url: "CV URL",
   },
   placeholders: {
     full_name: "Your full name",
@@ -88,12 +93,14 @@ const copy = {
     availability: "Open for freelance, full-time, etc.",
     avatar_url: "https://...",
     resume_url: "https://...",
+    cv_url: "https://...",
   },
   preview: {
     title: "Landing preview",
     hint: "This is a quick preview of how the profile may appear on the site.",
     noAvatar: "No avatar",
     viewResume: "View resume",
+    viewCv: "View CV",
     emptyName: "Your name",
     emptyHeadline: "Your headline",
     emptyBio: "Your bio",
@@ -112,6 +119,7 @@ const profileSchema = z.object({
   availability: z.string().max(200).optional().or(z.literal("")),
   avatar_url: z.string().url(copy.invalidUrl).optional().or(z.literal("")),
   resume_url: z.string().url(copy.invalidUrl).optional().or(z.literal("")),
+  cv_url: z.string().url(copy.invalidUrl).optional().or(z.literal("")),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -121,6 +129,15 @@ const normalizeField = (value?: string) => {
   return trimmed ? trimmed : undefined;
 };
 
+const normalizeDownloadUrl = (value?: string) => {
+  const normalized = normalizeField(value);
+  if (!normalized) {
+    return undefined;
+  }
+
+  return toDirectDownloadUrl(normalized);
+};
+
 const normalizePayload = (values: ProfileFormValues): ProfileUpdate => ({
   full_name: normalizeField(values.full_name),
   headline: normalizeField(values.headline),
@@ -128,7 +145,8 @@ const normalizePayload = (values: ProfileFormValues): ProfileUpdate => ({
   location: normalizeField(values.location),
   availability: normalizeField(values.availability),
   avatar_url: normalizeField(values.avatar_url),
-  resume_url: normalizeField(values.resume_url),
+  resume_url: normalizeDownloadUrl(values.resume_url),
+  cv_url: normalizeDownloadUrl(values.cv_url),
 });
 
 const toFormValues = (profile: ProfileResponse): ProfileFormValues => ({
@@ -139,6 +157,7 @@ const toFormValues = (profile: ProfileResponse): ProfileFormValues => ({
   availability: profile.availability ?? "",
   avatar_url: profile.avatar_url ?? "",
   resume_url: profile.resume_url ?? "",
+  cv_url: profile.cv_url ?? "",
 });
 
 type AvailabilityPresetId = "open" | "freelance" | "collab" | "unavailable" | "custom";
@@ -205,6 +224,7 @@ const ProfileManagement = () => {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [avatarEnabled, setAvatarEnabled] = useState(true);
   const [resumeEnabled, setResumeEnabled] = useState(true);
+  const [cvEnabled, setCvEnabled] = useState(true);
   const [availabilityPreset, setAvailabilityPreset] = useState<AvailabilityPresetId>("custom");
 
   const defaultValues = useMemo<ProfileFormValues>(
@@ -216,6 +236,7 @@ const ProfileManagement = () => {
       availability: "",
       avatar_url: "",
       resume_url: "",
+      cv_url: "",
     }),
     []
   );
@@ -236,6 +257,7 @@ const ProfileManagement = () => {
 
   const avatarUrl = watch("avatar_url");
   const resumeUrl = watch("resume_url");
+  const cvUrl = watch("cv_url");
   const availability = watch("availability");
   const fullName = watch("full_name");
   const headline = watch("headline");
@@ -250,6 +272,7 @@ const ProfileManagement = () => {
         reset(values);
         setAvatarEnabled(Boolean(values.avatar_url?.trim()));
         setResumeEnabled(Boolean(values.resume_url?.trim()));
+        setCvEnabled(Boolean(values.cv_url?.trim()));
         setAvailabilityPreset(matchAvailabilityPreset(values.availability ?? ""));
       } catch {
         setStatus("error");
@@ -287,10 +310,12 @@ const ProfileManagement = () => {
           availability: result.profile.availability ?? current.availability,
           avatar_url: result.profile.avatar_url ?? current.avatar_url,
           resume_url: result.profile.resume_url ?? current.resume_url,
+          cv_url: result.profile.cv_url ?? current.cv_url,
         },
       }));
       setAvatarEnabled(Boolean((result.profile.avatar_url ?? avatarUrl)?.trim()));
       setResumeEnabled(Boolean((result.profile.resume_url ?? resumeUrl)?.trim()));
+      setCvEnabled(Boolean((result.profile.cv_url ?? cvUrl)?.trim()));
       setAvailabilityPreset(
         matchAvailabilityPreset(
           (result.profile.availability ?? availability ?? "").toString()
@@ -326,6 +351,13 @@ const ProfileManagement = () => {
     }
   };
 
+  const handleCvEnabledChange = (next: boolean) => {
+    setCvEnabled(next);
+    if (!next) {
+      setValue("cv_url", "", { shouldDirty: true, shouldTouch: true });
+    }
+  };
+
   const handleClearAll = () => {
     reset(defaultValues);
     setStatus("idle");
@@ -333,6 +365,7 @@ const ProfileManagement = () => {
     setPdfFile(null);
     setAvatarEnabled(false);
     setResumeEnabled(false);
+    setCvEnabled(false);
     setAvailabilityPreset("custom");
   };
 
@@ -607,6 +640,38 @@ const ProfileManagement = () => {
                       ) : null}
                     </div>
                   </div>
+
+                  <div className="rounded-lg border p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="grid gap-1">
+                        <div className="text-sm font-medium">{copy.fields.cv_url}</div>
+                        <p className="text-xs text-muted-foreground">{copy.hints.cv}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="cv-enabled" className="text-sm">
+                          {copy.toggles.enableCv}
+                        </Label>
+                        <Switch
+                          id="cv-enabled"
+                          checked={cvEnabled}
+                          onCheckedChange={handleCvEnabledChange}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid gap-2">
+                      <Input
+                        id="cv_url"
+                        placeholder={copy.placeholders.cv_url}
+                        disabled={!cvEnabled}
+                        {...register("cv_url")}
+                        aria-invalid={Boolean(errors.cv_url)}
+                      />
+                      {errors.cv_url ? (
+                        <p className="text-xs text-destructive">{errors.cv_url.message}</p>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
 
@@ -658,6 +723,19 @@ const ProfileManagement = () => {
                             rel="noreferrer"
                           >
                             {copy.preview.viewResume}
+                          </a>
+                        </div>
+                      ) : null}
+
+                      {cvEnabled && cvUrl?.trim() ? (
+                        <div className="mt-2">
+                          <a
+                            className="text-sm text-primary underline underline-offset-4"
+                            href={cvUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {copy.preview.viewCv}
                           </a>
                         </div>
                       ) : null}
