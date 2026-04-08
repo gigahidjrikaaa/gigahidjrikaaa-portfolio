@@ -21,6 +21,46 @@ from jose import JWTError, jwt
 router = APIRouter()
 
 
+def _set_auth_cookies(
+    response: Response,
+    access_token: str,
+    refresh_token: str,
+    csrf_token: str,
+    access_max_age: int,
+    refresh_max_age: int,
+) -> None:
+    secure_cookie = settings.auth_cookie_secure
+    samesite_policy = settings.auth_cookie_samesite
+
+    response.set_cookie(
+        key=ACCESS_TOKEN_COOKIE_NAME,
+        value=access_token,
+        httponly=True,
+        secure=secure_cookie,
+        samesite=samesite_policy,
+        max_age=access_max_age,
+        path="/",
+    )
+    response.set_cookie(
+        key=REFRESH_TOKEN_COOKIE_NAME,
+        value=refresh_token,
+        httponly=True,
+        secure=secure_cookie,
+        samesite=samesite_policy,
+        max_age=refresh_max_age,
+        path="/",
+    )
+    response.set_cookie(
+        key=CSRF_COOKIE_NAME,
+        value=csrf_token,
+        httponly=False,
+        secure=secure_cookie,
+        samesite=samesite_policy,
+        max_age=refresh_max_age,
+        path="/",
+    )
+
+
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
     response: Response,
@@ -41,36 +81,16 @@ async def login_for_access_token(
     refresh_token = create_refresh_token(data={"sub": user.username}, expires_delta=refresh_token_expires)
 
     csrf_token = generate_csrf_token()
-    secure_cookie = not settings.is_development
     max_age = int(access_token_expires.total_seconds())
     refresh_max_age = int(refresh_token_expires.total_seconds())
 
-    response.set_cookie(
-        key=ACCESS_TOKEN_COOKIE_NAME,
-        value=access_token,
-        httponly=True,
-        secure=secure_cookie,
-        samesite="lax",
-        max_age=max_age,
-        path="/",
-    )
-    response.set_cookie(
-        key=REFRESH_TOKEN_COOKIE_NAME,
-        value=refresh_token,
-        httponly=True,
-        secure=secure_cookie,
-        samesite="lax",
-        max_age=refresh_max_age,
-        path="/",
-    )
-    response.set_cookie(
-        key=CSRF_COOKIE_NAME,
-        value=csrf_token,
-        httponly=False,
-        secure=secure_cookie,
-        samesite="lax",
-        max_age=refresh_max_age,
-        path="/",
+    _set_auth_cookies(
+        response=response,
+        access_token=access_token,
+        refresh_token=refresh_token,
+        csrf_token=csrf_token,
+        access_max_age=max_age,
+        refresh_max_age=refresh_max_age,
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -95,36 +115,16 @@ async def login_json(
     refresh_token = create_refresh_token(data={"sub": user.username}, expires_delta=refresh_token_expires)
 
     csrf_token = generate_csrf_token()
-    secure_cookie = not settings.is_development
     max_age = int(access_token_expires.total_seconds())
     refresh_max_age = int(refresh_token_expires.total_seconds())
 
-    response.set_cookie(
-        key=ACCESS_TOKEN_COOKIE_NAME,
-        value=access_token,
-        httponly=True,
-        secure=secure_cookie,
-        samesite="lax",
-        max_age=max_age,
-        path="/",
-    )
-    response.set_cookie(
-        key=REFRESH_TOKEN_COOKIE_NAME,
-        value=refresh_token,
-        httponly=True,
-        secure=secure_cookie,
-        samesite="lax",
-        max_age=refresh_max_age,
-        path="/",
-    )
-    response.set_cookie(
-        key=CSRF_COOKIE_NAME,
-        value=csrf_token,
-        httponly=False,
-        secure=secure_cookie,
-        samesite="lax",
-        max_age=refresh_max_age,
-        path="/",
+    _set_auth_cookies(
+        response=response,
+        access_token=access_token,
+        refresh_token=refresh_token,
+        csrf_token=csrf_token,
+        access_max_age=max_age,
+        refresh_max_age=refresh_max_age,
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -176,36 +176,16 @@ async def refresh_access_token(
     rotated_refresh_token = create_refresh_token(data={"sub": username}, expires_delta=refresh_token_expires)
 
     csrf_token = generate_csrf_token()
-    secure_cookie = not settings.is_development
     max_age = int(access_token_expires.total_seconds())
     refresh_max_age = int(refresh_token_expires.total_seconds())
 
-    response.set_cookie(
-        key=ACCESS_TOKEN_COOKIE_NAME,
-        value=access_token,
-        httponly=True,
-        secure=secure_cookie,
-        samesite="lax",
-        max_age=max_age,
-        path="/",
-    )
-    response.set_cookie(
-        key=REFRESH_TOKEN_COOKIE_NAME,
-        value=rotated_refresh_token,
-        httponly=True,
-        secure=secure_cookie,
-        samesite="lax",
-        max_age=refresh_max_age,
-        path="/",
-    )
-    response.set_cookie(
-        key=CSRF_COOKIE_NAME,
-        value=csrf_token,
-        httponly=False,
-        secure=secure_cookie,
-        samesite="lax",
-        max_age=refresh_max_age,
-        path="/",
+    _set_auth_cookies(
+        response=response,
+        access_token=access_token,
+        refresh_token=rotated_refresh_token,
+        csrf_token=csrf_token,
+        access_max_age=max_age,
+        refresh_max_age=refresh_max_age,
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
@@ -216,6 +196,7 @@ async def read_users_me(current_user: UserResponse = Depends(get_current_user)):
     return current_user
 
 
+@router.get("/verify-token", response_model=TokenVerificationResponse)
 @router.post("/verify-token", response_model=TokenVerificationResponse)
 async def verify_token(current_user: UserResponse = Depends(get_current_user)):
     return {"valid": True, "user": current_user}
@@ -224,7 +205,22 @@ async def verify_token(current_user: UserResponse = Depends(get_current_user)):
 @router.post("/logout")
 async def logout(response: Response):
     # Clear cookies.
-    response.delete_cookie(key=ACCESS_TOKEN_COOKIE_NAME, path="/")
-    response.delete_cookie(key=REFRESH_TOKEN_COOKIE_NAME, path="/")
-    response.delete_cookie(key=CSRF_COOKIE_NAME, path="/")
+    response.delete_cookie(
+        key=ACCESS_TOKEN_COOKIE_NAME,
+        path="/",
+        secure=settings.auth_cookie_secure,
+        samesite=settings.auth_cookie_samesite,
+    )
+    response.delete_cookie(
+        key=REFRESH_TOKEN_COOKIE_NAME,
+        path="/",
+        secure=settings.auth_cookie_secure,
+        samesite=settings.auth_cookie_samesite,
+    )
+    response.delete_cookie(
+        key=CSRF_COOKIE_NAME,
+        path="/",
+        secure=settings.auth_cookie_secure,
+        samesite=settings.auth_cookie_samesite,
+    )
     return {"success": True}

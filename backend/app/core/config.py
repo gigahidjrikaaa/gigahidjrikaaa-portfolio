@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = Field(default="HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30)
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=14)
+    AUTH_COOKIE_SAMESITE: str = Field(default="")  # auto: development=lax, non-dev=none
+    AUTH_COOKIE_SECURE: Optional[bool] = Field(default=None)  # auto: non-dev=true
 
     # Admin credentials (optional; if provided, must be complete)
     ADMIN_USERNAME: str = Field(default="")
@@ -81,12 +83,33 @@ class Settings(BaseSettings):
     def is_development(self) -> bool:
         return self.ENVIRONMENT.lower() == "development"
 
+    @property
+    def auth_cookie_samesite(self) -> str:
+        explicit = (self.AUTH_COOKIE_SAMESITE or "").strip().lower()
+        if explicit:
+            return explicit
+        return "lax" if self.is_development else "none"
+
+    @property
+    def auth_cookie_secure(self) -> bool:
+        if self.AUTH_COOKIE_SECURE is None:
+            return not self.is_development
+        return bool(self.AUTH_COOKIE_SECURE)
+
     @field_validator("ENVIRONMENT")
     @classmethod
     def _validate_environment(cls, value: str) -> str:
         normalized = (value or "").strip().lower()
         if normalized not in {"development", "staging", "production"}:
             raise ValueError("ENVIRONMENT must be one of: development, staging, production")
+        return normalized
+
+    @field_validator("AUTH_COOKIE_SAMESITE")
+    @classmethod
+    def _validate_auth_cookie_samesite(cls, value: str) -> str:
+        normalized = (value or "").strip().lower()
+        if normalized and normalized not in {"lax", "strict", "none"}:
+            raise ValueError("AUTH_COOKIE_SAMESITE must be one of: lax, strict, none")
         return normalized
 
     @field_validator("SECRET_KEY")

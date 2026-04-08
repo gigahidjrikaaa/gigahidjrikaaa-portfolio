@@ -561,7 +561,7 @@ class ApiService {
   async verifyToken(): Promise<{ valid: boolean; user?: UserResponse | null }> {
     try {
       return await this.request<{ valid: boolean; user?: UserResponse | null }>('/auth/verify-token', {
-        method: 'POST'
+        method: 'GET'
       });
     } catch (error) {
       if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
