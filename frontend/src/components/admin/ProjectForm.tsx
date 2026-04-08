@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import Image from 'next/image';
 import AdminModal from '@/components/admin/AdminModal';
+import ImageMediaField from '@/components/admin/ImageMediaField';
 import { useToast } from '@/components/ui/toast';
 import { ProjectBase, ProjectResponse } from '@/services/api';
 import ImportFromUrl from '@/components/admin/ImportFromUrl';
@@ -229,26 +229,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
     setDragIndex(null);
   };
 
-  const openMediaPicker = async (onSelect: (url: string) => void) => {
-    if (!cloudName || !cloudApiKey) {
-      alert("Cloudinary Media Library is not configured. Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_API_KEY.");
-      return;
-    }
-    await openMediaLibrary(
-      {
-        cloud_name: cloudName,
-        api_key: cloudApiKey,
-        multiple: false,
-      },
-      (assets) => {
-        const asset = assets[0];
-        if (asset?.secure_url || asset?.url) {
-          onSelect(asset.secure_url || asset.url || "");
-        }
-      }
-    );
-  };
-
   const openGalleryPicker = async () => {
     if (!cloudName || !cloudApiKey) {
       alert("Cloudinary Media Library is not configured. Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_API_KEY.");
@@ -438,85 +418,45 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               placeholder="Quantify outcomes (users, revenue, performance)"
             />
           </div>
-          <div>
-            <Label htmlFor="image_url" className="text-gray-700">Image URL (Optional)</Label>
-            <Input
-              id="image_url"
-              value={formData.image_url || ''}
-              onChange={handleChange}
-              className="mt-1"
-              placeholder="https://..."
-            />
-            {/* Future: Add actual image upload functionality here */}
-            <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => openMediaPicker((url) => setFormData((prev) => ({ ...prev, image_url: url })))}>
-              Pick from Cloudinary
-            </Button>
-            <Button type="button" variant="outline" size="sm" className="mt-2 ml-2" onClick={() => openGooglePicker((url) => setFormData((prev) => ({ ...prev, image_url: url })))}>
-              Pick from Google Drive
-            </Button>
-            {formData.image_url ? (
-              <Image
-                src={formData.image_url}
-                alt="Project"
-                width={640}
-                height={240}
-                unoptimized
-                className="mt-2 h-24 w-full rounded-md object-cover"
-              />
-            ) : null}
-          </div>
-          <div>
-            <Label htmlFor="thumbnail_url" className="text-gray-700">Thumbnail URL (Optional)</Label>
-            <Input
-              id="thumbnail_url"
-              value={formData.thumbnail_url || ''}
-              onChange={handleChange}
-              className="mt-1"
-              placeholder="https://..."
-            />
-            <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => openMediaPicker((url) => setFormData((prev) => ({ ...prev, thumbnail_url: url })))}>
-              Pick from Cloudinary
-            </Button>
-            <Button type="button" variant="outline" size="sm" className="mt-2 ml-2" onClick={() => openGooglePicker((url) => setFormData((prev) => ({ ...prev, thumbnail_url: url })))}>
-              Pick from Google Drive
-            </Button>
-            {formData.thumbnail_url ? (
-              <Image
-                src={formData.thumbnail_url}
-                alt="Thumbnail"
-                width={640}
-                height={240}
-                unoptimized
-                className="mt-2 h-24 w-full rounded-md object-cover"
-              />
-            ) : null}
-          </div>
-          <div>
-            <Label htmlFor="ui_image_url" className="text-gray-700">UI Image URL (Optional)</Label>
-            <Input
-              id="ui_image_url"
-              value={formData.ui_image_url || ''}
-              onChange={handleChange}
-              className="mt-1"
-              placeholder="https://..."
-            />
-            <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => openMediaPicker((url) => setFormData((prev) => ({ ...prev, ui_image_url: url })))}>
-              Pick from Cloudinary
-            </Button>
-            <Button type="button" variant="outline" size="sm" className="mt-2 ml-2" onClick={() => openGooglePicker((url) => setFormData((prev) => ({ ...prev, ui_image_url: url })))}>
-              Pick from Google Drive
-            </Button>
-            {formData.ui_image_url ? (
-              <Image
-                src={formData.ui_image_url}
-                alt="UI preview"
-                width={640}
-                height={240}
-                unoptimized
-                className="mt-2 h-24 w-full rounded-md object-cover"
-              />
-            ) : null}
-          </div>
+          <ImageMediaField
+            id="image_url"
+            label="Image URL (Optional)"
+            value={formData.image_url || ''}
+            onChange={(nextValue) => setFormData((prev) => ({ ...prev, image_url: nextValue }))}
+            previewAlt="Project"
+            uploadFolder="projects"
+            previewWidth={640}
+            previewHeight={240}
+            previewImageClassName="h-24 w-full rounded-md object-cover"
+            previewContainerClassName="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3"
+            previewHint="Wide screenshots usually look best."
+          />
+          <ImageMediaField
+            id="thumbnail_url"
+            label="Thumbnail URL (Optional)"
+            value={formData.thumbnail_url || ''}
+            onChange={(nextValue) => setFormData((prev) => ({ ...prev, thumbnail_url: nextValue }))}
+            previewAlt="Thumbnail"
+            uploadFolder="projects"
+            previewWidth={640}
+            previewHeight={240}
+            previewImageClassName="h-24 w-full rounded-md object-cover"
+            previewContainerClassName="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3"
+            previewHint="Keep enough contrast for smaller card sizes."
+          />
+          <ImageMediaField
+            id="ui_image_url"
+            label="UI Image URL (Optional)"
+            value={formData.ui_image_url || ''}
+            onChange={(nextValue) => setFormData((prev) => ({ ...prev, ui_image_url: nextValue }))}
+            previewAlt="UI preview"
+            uploadFolder="projects"
+            previewWidth={640}
+            previewHeight={240}
+            previewImageClassName="h-24 w-full rounded-md object-cover"
+            previewContainerClassName="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3"
+            previewHint="Use interface-focused images for this field."
+          />
           <div className="md:col-span-2">
             <div className="flex items-center justify-between">
               <Label className="text-gray-700">Project Gallery Images</Label>
@@ -542,25 +482,21 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
                     onDrop={() => handleDrop(index)}
                   >
                     <div className="md:col-span-2">
-                      <Label htmlFor={`image-url-${index}`} className="text-gray-700">Image URL</Label>
-                      <Input
+                      <ImageMediaField
                         id={`image-url-${index}`}
+                        label="Image URL"
                         value={image.url}
-                        onChange={(e) => updateImageField(index, 'url', e.target.value)}
-                        className="mt-1"
-                        placeholder="https://..."
+                        onChange={(nextValue) => updateImageField(index, 'url', nextValue)}
+                        previewAlt={image.caption ?? 'Project image'}
+                        uploadFolder="projects/gallery"
                         required
+                        buttonSize="sm"
+                        previewWidth={480}
+                        previewHeight={160}
+                        previewImageClassName="h-20 w-full rounded-md object-cover"
+                        previewContainerClassName="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3"
+                        previewHint="Drag cards to reorder gallery images."
                       />
-                      {image.url ? (
-                        <Image
-                          src={image.url}
-                          alt={image.caption ?? 'Project image'}
-                          width={480}
-                          height={160}
-                          unoptimized
-                          className="mt-2 h-20 w-full rounded-md object-cover"
-                        />
-                      ) : null}
                     </div>
                     <div>
                       <Label htmlFor={`image-kind-${index}`} className="text-gray-700">Kind</Label>

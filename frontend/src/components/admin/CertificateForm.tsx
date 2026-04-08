@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import AdminModal from "@/components/admin/AdminModal";
+import ImageMediaField from "@/components/admin/ImageMediaField";
 import { useToast } from "@/components/ui/toast";
 import { CertificateBase, CertificateResponse } from "@/services/api";
 
@@ -117,26 +117,15 @@ const CertificateForm: React.FC<CertificateFormProps> = ({ certificate, onSave, 
             <Label htmlFor="credential_url" className="text-gray-700">{copy.fields.credentialUrl}</Label>
             <Input id="credential_url" value={formData.credential_url || ""} onChange={handleChange} className="mt-1" placeholder="https://..." />
           </div>
-          <div>
-            <Label htmlFor="image_url" className="text-gray-700">{copy.fields.imageUrl}</Label>
-            <Input id="image_url" value={formData.image_url || ""} onChange={handleChange} className="mt-1" placeholder="https://..." />
-            {formData.image_url ? (
-              <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                <Image
-                  src={formData.image_url}
-                  alt="Certificate preview"
-                  width={60}
-                  height={60}
-                  unoptimized
-                  className="h-14 w-14 rounded-md object-cover"
-                />
-                <div>
-                  <p className="text-xs font-semibold text-gray-700">Image preview</p>
-                  <p className="text-xs text-gray-500">Use clear, readable images.</p>
-                </div>
-              </div>
-            ) : null}
-          </div>
+          <ImageMediaField
+            id="image_url"
+            label={copy.fields.imageUrl}
+            value={formData.image_url || ""}
+            onChange={(nextValue) => setFormData((prev) => ({ ...prev, image_url: nextValue }))}
+            previewAlt="Certificate preview"
+            uploadFolder="certificates"
+            previewHint="Use clear, readable images."
+          />
           <div>
             <Label htmlFor="description" className="text-gray-700">{copy.fields.description}</Label>
             <Textarea

@@ -1,10 +1,10 @@
 "use client";
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AdminModal from '@/components/admin/AdminModal';
+import ImageMediaField from '@/components/admin/ImageMediaField';
 import { useToast } from '@/components/ui/toast';
 import { SkillBase, SkillResponse } from '@/services/api';
 
@@ -146,26 +146,18 @@ const SkillForm: React.FC<SkillFormProps> = ({ skill, onSave, onCancel }) => {
             </select>
             <p className="mt-1 text-xs text-gray-500">Tip: use “Expert/Master” only for your strongest skills.</p>
           </div>
-          <div>
-            <Label htmlFor="icon_url" className="text-gray-700">Icon URL (Optional)</Label>
-            <Input id="icon_url" value={formData.icon_url || ''} onChange={handleChange} className="mt-1" placeholder="https://..." />
-            {formData.icon_url ? (
-              <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                <Image
-                  src={formData.icon_url}
-                  alt="Skill icon preview"
-                  width={36}
-                  height={36}
-                  unoptimized
-                  className="h-10 w-10 rounded-md object-contain bg-white"
-                />
-                <div>
-                  <p className="text-xs font-semibold text-gray-700">Icon preview</p>
-                  <p className="text-xs text-gray-500">Square icons look best.</p>
-                </div>
-              </div>
-            ) : null}
-          </div>
+          <ImageMediaField
+            id="icon_url"
+            label="Icon URL (Optional)"
+            value={formData.icon_url || ''}
+            onChange={(nextValue) => setFormData((prev) => ({ ...prev, icon_url: nextValue }))}
+            previewAlt="Skill icon preview"
+            uploadFolder="skills/icons"
+            previewWidth={36}
+            previewHeight={36}
+            previewImageClassName="h-10 w-10 rounded-md object-contain bg-white"
+            previewHint="Square icons look best."
+          />
 
           <div className="flex justify-end gap-4 mt-6">
             <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>

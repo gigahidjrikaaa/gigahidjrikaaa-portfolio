@@ -1,12 +1,12 @@
 "use client";
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import AdminModal from '@/components/admin/AdminModal';
+import ImageMediaField from '@/components/admin/ImageMediaField';
 import { useToast } from '@/components/ui/toast';
 import { ExperienceBase, ExperienceResponse } from '@/services/api';
 
@@ -233,32 +233,18 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ experience, onSave, onC
               placeholder="Summarize scope, impact, and achievements"
             />
           </div>
-          <div>
-            <Label htmlFor="company_logo_url" className="text-gray-700">Company Logo URL (Optional)</Label>
-            <Input
-              id="company_logo_url"
-              value={formData.company_logo_url || ''}
-              onChange={handleChange}
-              className="mt-1"
-              placeholder="https://..."
-            />
-            {formData.company_logo_url ? (
-              <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                <Image
-                  src={formData.company_logo_url}
-                  alt="Company logo preview"
-                  width={48}
-                  height={48}
-                  unoptimized
-                  className="h-12 w-12 rounded-md object-contain bg-white"
-                />
-                <div>
-                  <p className="text-xs font-semibold text-gray-700">Logo preview</p>
-                  <p className="text-xs text-gray-500">Check aspect ratio and clarity.</p>
-                </div>
-              </div>
-            ) : null}
-          </div>
+          <ImageMediaField
+            id="company_logo_url"
+            label="Company Logo URL (Optional)"
+            value={formData.company_logo_url || ''}
+            onChange={(nextValue) => setFormData((prev) => ({ ...prev, company_logo_url: nextValue }))}
+            previewAlt="Company logo preview"
+            uploadFolder="experience/logos"
+            previewWidth={48}
+            previewHeight={48}
+            previewImageClassName="h-12 w-12 rounded-md object-contain bg-white"
+            previewHint="Check aspect ratio and clarity."
+          />
           <div className="flex items-center space-x-2">
             <Checkbox id="is_current" checked={formData.is_current} onCheckedChange={handleCheckboxChange} />
             <Label htmlFor="is_current" className="text-gray-700">Current Role</Label>

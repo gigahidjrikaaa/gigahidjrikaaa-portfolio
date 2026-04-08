@@ -38,7 +38,7 @@ const copy = {
     category: "Category",
     tags: "Tags",
     coverImage: "Cover Image",
-    coverImageHint: "Upload a wide image (1200x630 recommended) or paste a URL.",
+    coverImageHint: "Upload a wide image (1200x630 recommended), paste a URL, or press Ctrl+V to paste an image.",
     ogImage: "Open Graph Image",
     seoTitle: "SEO Title",
     seoDescription: "SEO Description",
@@ -179,6 +179,9 @@ const blogPostSchema = z
 const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave, onCancel }) => {
   const { toast } = useToast();
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isUploadingOg, setIsUploadingOg] = useState(false);
+  const [isCoverDragOver, setIsCoverDragOver] = useState(false);
+  const [isOgDragOver, setIsOgDragOver] = useState(false);
   const [isUploadingInline, setIsUploadingInline] = useState(false);
   const [isSlugEdited, setIsSlugEdited] = useState(false);
   const [categorySuggestions, setCategorySuggestions] = useState<string[]>([]);
@@ -188,6 +191,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isCreatingDraftRef = useRef(false);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
+  const ogInputRef = useRef<HTMLInputElement | null>(null);
   const inlineImageInputRef = useRef<HTMLInputElement | null>(null);
 
   const {
@@ -600,6 +604,72 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
     }
   };
 
+  const handleOgUpload = async (file: File) => {
+    try {
+      setIsUploadingOg(true);
+      const uploaded = await adminApi.uploadMediaAsset(file, {
+        title: file.name,
+        folder: "blog",
+      });
+      setValue("og_image_url", uploaded.url, { shouldValidate: true });
+      toast({ title: "OG image uploaded", description: "Image ready for social sharing cards." });
+    } catch (error) {
+      console.error("Failed to upload OG image", error);
+      toast({
+        title: "Upload failed",
+        description: "Could not upload the OG image. Please try again.",
+        variant: "error",
+      });
+    } finally {
+      setIsUploadingOg(false);
+    }
+  };
+
+  const handleImagePaste = (
+    event: React.ClipboardEvent<HTMLInputElement>,
+    field: "cover" | "og"
+  ) => {
+    const imageItem = Array.from(event.clipboardData.items).find((item) => item.type.startsWith("image/"));
+    if (!imageItem) return;
+    const file = imageItem.getAsFile();
+    if (!file) return;
+    event.preventDefault();
+    if (field === "cover") {
+      void handleCoverUpload(file);
+      return;
+    }
+    void handleOgUpload(file);
+  };
+
+  const handleImageDrop = (
+    event: React.DragEvent<HTMLDivElement>,
+    field: "cover" | "og"
+  ) => {
+    event.preventDefault();
+    if (field === "cover") {
+      setIsCoverDragOver(false);
+    } else {
+      setIsOgDragOver(false);
+    }
+
+    const file = Array.from(event.dataTransfer.files).find((item) => item.type.startsWith("image/"));
+    if (!file) {
+      toast({
+        title: "Invalid file",
+        description: "Drop an image file (PNG, JPG, WEBP, GIF).",
+        variant: "error",
+      });
+      return;
+    }
+
+    if (field === "cover") {
+      void handleCoverUpload(file);
+      return;
+    }
+
+    void handleOgUpload(file);
+  };
+
   const openGooglePicker = (onSelect: (url: string) => void) => {
     if (!canOpenGoogleDrive) {
       toast({
@@ -860,6 +930,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
                   id="cover_image_url"
                   placeholder="https://..."
                   {...register("cover_image_url")}
+                  onPaste={(event) => handleImagePaste(event, "cover")}
                   className="flex-1"
                 />
                 <input
@@ -895,6 +966,30 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
                   Pick from Google Drive
                 </Button>
               </div>
+              <div
+                className={`rounded-md border border-dashed px-3 py-2 text-xs transition ${
+                  isCoverDragOver
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-gray-300 text-gray-500"
+                }`}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "copy";
+                  if (!isCoverDragOver) {
+                    setIsCoverDragOver(true);
+                  }
+                }}
+                onDragEnter={(event) => {
+                  event.preventDefault();
+                  if (!isCoverDragOver) {
+                    setIsCoverDragOver(true);
+                  }
+                }}
+                onDragLeave={() => setIsCoverDragOver(false)}
+                onDrop={(event) => handleImageDrop(event, "cover")}
+              >
+                Drag and drop an image file here to upload.
+              </div>
               <p className="text-xs text-gray-500">{copy.hints.coverImage}</p>
             </div>
             {coverImageUrl ? (
@@ -920,7 +1015,31 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
           <div>
             <FieldLabel htmlFor="og_image_url" label={copy.fields.ogImage} tooltip={copy.hints.ogImage} />
             <div className="mt-1 flex flex-wrap items-center gap-3">
-              <Input id="og_image_url" {...register("og_image_url")} className="flex-1" placeholder="https://..." />
+              <Input
+                id="og_image_url"
+                {...register("og_image_url")}
+                onPaste={(event) => handleImagePaste(event, "og")}
+                className="flex-1"
+                placeholder="https://..."
+              />
+              <input
+                ref={ogInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleOgUpload(file);
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => ogInputRef.current?.click()}
+                disabled={isUploadingOg}
+              >
+                {isUploadingOg ? copy.actions.uploading : copy.actions.upload}
+              </Button>
               <Button
                 type="button"
                 variant="outline"
@@ -936,6 +1055,31 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
                 Pick from Google Drive
               </Button>
             </div>
+            <div
+              className={`mt-2 rounded-md border border-dashed px-3 py-2 text-xs transition ${
+                isOgDragOver
+                  ? "border-primary bg-primary/5 text-primary"
+                  : "border-gray-300 text-gray-500"
+              }`}
+              onDragOver={(event) => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "copy";
+                if (!isOgDragOver) {
+                  setIsOgDragOver(true);
+                }
+              }}
+              onDragEnter={(event) => {
+                event.preventDefault();
+                if (!isOgDragOver) {
+                  setIsOgDragOver(true);
+                }
+              }}
+              onDragLeave={() => setIsOgDragOver(false)}
+              onDrop={(event) => handleImageDrop(event, "og")}
+            >
+              Drag and drop an image file here to upload.
+            </div>
+            <p className="mt-1 text-xs text-gray-500">Tip: focus the URL field and press Ctrl+V to paste an image from clipboard.</p>
             {errors.og_image_url && (
               <p className="mt-1 text-xs text-red-600">{errors.og_image_url.message}</p>
             )}

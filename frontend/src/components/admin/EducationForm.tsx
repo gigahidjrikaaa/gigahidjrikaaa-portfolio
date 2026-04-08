@@ -1,12 +1,12 @@
 "use client";
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import AdminModal from '@/components/admin/AdminModal';
+import ImageMediaField from '@/components/admin/ImageMediaField';
 import { useToast } from '@/components/ui/toast';
 import { EducationBase, EducationResponse } from '@/services/api';
 
@@ -240,57 +240,33 @@ const EducationForm: React.FC<EducationFormProps> = ({ education, onSave, onCanc
             <Label htmlFor="gpa" className="text-gray-700">GPA (Optional)</Label>
             <Input id="gpa" value={formData.gpa || ''} onChange={handleChange} className="mt-1" placeholder="e.g., 3.8/4.0" />
           </div>
-          <div>
-            <Label htmlFor="institution_logo_url" className="text-gray-700">Institution Logo URL (Optional)</Label>
-            <Input
-              id="institution_logo_url"
-              value={formData.institution_logo_url || ''}
-              onChange={handleChange}
-              className="mt-1"
-              placeholder="https://..."
-            />
-            {formData.institution_logo_url ? (
-              <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                <Image
-                  src={formData.institution_logo_url}
-                  alt="Institution logo preview"
-                  width={48}
-                  height={48}
-                  unoptimized
-                  className="h-12 w-12 rounded-md object-contain bg-white"
-                />
-                <div>
-                  <p className="text-xs font-semibold text-gray-700">Logo preview</p>
-                  <p className="text-xs text-gray-500">Check aspect ratio and clarity.</p>
-                </div>
-              </div>
-            ) : null}
-          </div>
-          <div>
-            <Label htmlFor="institution_background_url" className="text-gray-700">Institution Background Image URL (Optional)</Label>
-            <Input
-              id="institution_background_url"
-              value={formData.institution_background_url || ''}
-              onChange={handleChange}
-              className="mt-1"
-              placeholder="https://... (landscape photo of the campus)"
-            />
-            <p className="mt-1 text-xs text-gray-400">
-              Used as the card background on the Education section. Use a wide/landscape campus or banner photo for best results.
-            </p>
-            {formData.institution_background_url ? (
-              <div className="mt-3 overflow-hidden rounded-lg border border-gray-200">
-                <Image
-                  src={formData.institution_background_url}
-                  alt="Background preview"
-                  width={400}
-                  height={160}
-                  unoptimized
-                  className="h-32 w-full object-cover"
-                />
-              </div>
-            ) : null}
-          </div>
+          <ImageMediaField
+            id="institution_logo_url"
+            label="Institution Logo URL (Optional)"
+            value={formData.institution_logo_url || ''}
+            onChange={(nextValue) => setFormData((prev) => ({ ...prev, institution_logo_url: nextValue }))}
+            previewAlt="Institution logo preview"
+            uploadFolder="education/logos"
+            previewWidth={48}
+            previewHeight={48}
+            previewImageClassName="h-12 w-12 rounded-md object-contain bg-white"
+            previewHint="Check aspect ratio and clarity."
+          />
+          <ImageMediaField
+            id="institution_background_url"
+            label="Institution Background Image URL (Optional)"
+            value={formData.institution_background_url || ''}
+            onChange={(nextValue) => setFormData((prev) => ({ ...prev, institution_background_url: nextValue }))}
+            previewAlt="Background preview"
+            placeholder="https://... (landscape photo of the campus)"
+            helperText="Used as the card background on the Education section. Use a wide/landscape campus or banner photo for best results."
+            uploadFolder="education/backgrounds"
+            previewWidth={400}
+            previewHeight={160}
+            previewContainerClassName="mt-3 overflow-hidden rounded-lg border border-gray-200"
+            previewImageClassName="h-32 w-full object-cover"
+            previewHint="Landscape images produce the best card composition."
+          />
           <div className="flex items-center space-x-2">
             <Checkbox id="is_current" checked={formData.is_current} onCheckedChange={handleCheckboxChange} />
             <Label htmlFor="is_current" className="text-gray-700">Currently Studying Here</Label>
