@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { motion } from "framer-motion";
-import { FaGithub, FaStar, FaCodeBranch, FaUser } from "react-icons/fa";
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { motion, useReducedMotion } from "framer-motion";
+import { FaCodeBranch, FaExternalLinkAlt, FaGithub, FaStar } from "react-icons/fa";
 import LoadingAnimation from "@/components/ui/LoadingAnimation";
+import LanguageDecoration from "@/components/github/LanguageDecoration";
+import { apiService, HighlightedGitHubRepoResponse } from "@/services/api";
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+    transition: { staggerChildren: 0.1, delayChildren: 0.15 },
   },
 };
 
@@ -18,27 +21,34 @@ const itemVariants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
   },
 };
 
 const copy = {
-  eyebrow: "OPEN SOURCE",
-  title: "GitHub Activity",
-  subtitle: "A live snapshot of the code I publish, maintain, and iterate in public.",
-  loading: "Loading GitHub stats...",
-  error: "Unable to fetch GitHub stats.",
+  eyebrow: "LIVE GITHUB SIGNAL",
+  title: "Open Source Footprint",
+  subtitle: "A split view of curated highlights and latest repository momentum.",
+  loading: "Loading GitHub signal...",
+  error: "Unable to load GitHub data right now.",
+  fallback: "The feed is temporarily unavailable, but the full profile is still accessible.",
+  profilePanelTitle: "Public Profile",
+  profileFallbackName: "GitHub Profile",
+  profileCta: "Explore Full Profile",
+  highlightedRepos: "Highlighted Repositories",
+  topRepos: "Top Repositories",
+  noHighlightedRepos: "No highlighted repositories selected yet.",
+  noTopRepos: "No repositories available right now.",
   stats: {
     repositories: "Repositories",
-    stars: "Total Stars",
+    stars: "Stars",
+    forks: "Forks",
     followers: "Followers",
-    contributions: "Contributions (2024)",
+    activity: "Recent Push Events",
   },
-  viewProfile: "View Full Profile",
-  topRepos: "Top Repositories",
-  viewRepo: "View Repository",
-  language: "Language",
-  stars: "stars",
+  updated: "Updated",
+  noBio: "Building practical products with clear engineering signals.",
+  defaultRepoDescription: "No description provided yet.",
 };
 
 interface GitHubUser {
@@ -51,24 +61,125 @@ interface GitHubUser {
   html_url: string;
 }
 
+interface GitHubRepoOwner {
+  login: string;
+}
+
 interface GitHubRepo {
   id: number;
   name: string;
-  description: string;
-  language: string;
+  full_name: string;
+  description: string | null;
+  language: string | null;
   stargazers_count: number;
   forks_count: number;
   html_url: string;
   topics: string[];
   updated_at: string;
+  owner: GitHubRepoOwner;
+}
+
+interface GitHubEvent {
+  type: string;
 }
 
 const GITHUB_USERNAME = "gigahidjrikaaa";
 
+const formatDate = (isoDate: string): string => {
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  }).format(date);
+};
+
+const getRepoKey = (owner: string, repoName: string): string =>
+  `${owner.toLowerCase()}/${repoName.toLowerCase()}`;
+
+interface RepositoryCardProps {
+  repo: GitHubRepo;
+  emphasized?: boolean;
+  shouldReduceMotion: boolean;
+}
+
+const RepositoryCard = ({ repo, emphasized = false, shouldReduceMotion }: RepositoryCardProps) => {
+  return (
+    <motion.a
+      href={repo.html_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      variants={itemVariants}
+      whileHover={shouldReduceMotion ? undefined : { y: -4 }}
+      className={`group relative block overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-gray-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 ${
+        emphasized ? "sm:p-6" : ""
+      }`}
+      aria-label={`Open repository ${repo.full_name} in a new tab`}
+    >
+      <LanguageDecoration language={repo.language} className={emphasized ? "h-28 w-52" : "h-24 w-48"} />
+
+      <div className="relative z-10">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">{repo.owner.login}</p>
+            <h4 className="mt-1 line-clamp-2 text-base font-semibold text-gray-900">{repo.name}</h4>
+          </div>
+          <FaExternalLinkAlt className="mt-1 h-3 w-3 shrink-0 text-gray-400 transition group-hover:text-gray-700" />
+        </div>
+
+        <p className={`mt-3 text-sm leading-relaxed text-gray-600 ${emphasized ? "line-clamp-4" : "line-clamp-3"}`}>
+          {repo.description || copy.defaultRepoDescription}
+        </p>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 font-medium text-gray-700">
+            <span className="h-1.5 w-1.5 rounded-full bg-gray-500" />
+            {repo.language || "Unknown"}
+          </span>
+
+          {repo.topics?.slice(0, emphasized ? 3 : 2).map((topic) => (
+            <span
+              key={topic}
+              className="rounded-full border border-gray-200 bg-white px-2.5 py-1 font-medium text-gray-600"
+            >
+              {topic}
+            </span>
+          ))}
+        </div>
+
+        <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center gap-1">
+              <FaStar className="h-3 w-3 text-amber-500" />
+              {repo.stargazers_count}
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <FaCodeBranch className="h-3 w-3" />
+              {repo.forks_count}
+            </span>
+          </div>
+          <span>
+            {copy.updated} {formatDate(repo.updated_at)}
+          </span>
+        </div>
+      </div>
+    </motion.a>
+  );
+};
+
 const GitHubIntegration = () => {
+  const shouldReduceMotion = useReducedMotion();
+  const reduceMotion = Boolean(shouldReduceMotion);
+
   const [user, setUser] = useState<GitHubUser | null>(null);
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
-  const [contributions, setContributions] = useState<number>(0);
+  const [highlightedRepos, setHighlightedRepos] = useState<GitHubRepo[]>([]);
+  const [highlightedConfig, setHighlightedConfig] = useState<HighlightedGitHubRepoResponse[]>([]);
+  const [contributions, setContributions] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -77,31 +188,90 @@ const GitHubIntegration = () => {
 
     const fetchGitHubData = async () => {
       try {
-        const userResponse = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}`);
-        const userData: GitHubUser = await userResponse.json();
-        if (!cancelled) setUser(userData);
+        const [userResponse, reposResponse, highlightedResponse] = await Promise.all([
+          fetch(`https://api.github.com/users/${GITHUB_USERNAME}`),
+          fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=30&type=owner`),
+          apiService.getHighlightedGitHubRepos().catch(() => []),
+        ]);
 
-        const reposResponse = await fetch(
-          `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=6&type=owner`
-        );
-        const reposData: GitHubRepo[] = await reposResponse.json();
-        if (!cancelled) setRepos(reposData);
+        if (!userResponse.ok || !reposResponse.ok) {
+          throw new Error("GitHub API request failed");
+        }
+
+        const userData: GitHubUser = await userResponse.json();
+        const repoData: GitHubRepo[] = await reposResponse.json();
+
+        if (!cancelled) {
+          setUser(userData);
+          setRepos(repoData);
+        }
+
+        const activeHighlighted = highlightedResponse
+          .filter((item) => item.is_active)
+          .sort((a, b) => a.display_order - b.display_order);
+
+        if (!cancelled) {
+          setHighlightedConfig(activeHighlighted);
+        }
+
+        if (activeHighlighted.length > 0) {
+          const highlightedResults = await Promise.all(
+            activeHighlighted.map(async (item) => {
+              const response = await fetch(
+                `https://api.github.com/repos/${encodeURIComponent(item.owner)}/${encodeURIComponent(item.repo_name)}`
+              );
+              if (!response.ok) {
+                return null;
+              }
+              const repo: GitHubRepo = await response.json();
+              return repo;
+            })
+          );
+
+          const highlightedMap = new Map<string, GitHubRepo>();
+          highlightedResults.forEach((repo) => {
+            if (!repo) {
+              return;
+            }
+            highlightedMap.set(getRepoKey(repo.owner.login, repo.name), repo);
+          });
+
+          const orderedHighlighted = activeHighlighted
+            .map((item) => highlightedMap.get(getRepoKey(item.owner, item.repo_name)))
+            .filter((repo): repo is GitHubRepo => Boolean(repo));
+
+          if (!cancelled) {
+            setHighlightedRepos(orderedHighlighted);
+          }
+        } else if (!cancelled) {
+          setHighlightedRepos([]);
+        }
 
         try {
-          const contribResponse = await fetch(
+          const contributionResponse = await fetch(
             `https://api.github.com/users/${GITHUB_USERNAME}/events/public?per_page=100`
           );
-          const events = await contribResponse.json();
-          const pushEvents = events.filter((e: { type: string }) => e.type === "PushEvent");
-          if (!cancelled) setContributions(pushEvents.length);
+          if (contributionResponse.ok) {
+            const events: GitHubEvent[] = await contributionResponse.json();
+            const pushEvents = events.filter((event) => event.type === "PushEvent");
+            if (!cancelled) {
+              setContributions(pushEvents.length);
+            }
+          }
         } catch {
-          console.log("Could not fetch contributions");
+          if (!cancelled) {
+            setContributions(0);
+          }
         }
-      } catch (error) {
-        console.error("Failed to fetch GitHub data:", error);
-        if (!cancelled) setError(true);
+      } catch (requestError) {
+        console.error("Failed to fetch GitHub data:", requestError);
+        if (!cancelled) {
+          setError(true);
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
@@ -112,157 +282,205 @@ const GitHubIntegration = () => {
     };
   }, []);
 
-  const statCards = [
-    {
-      label: copy.stats.repositories,
-      value: user?.public_repos || 0,
-      icon: FaCodeBranch,
-      color: "bg-blue-50 text-blue-600",
-    },
-    {
-      label: copy.stats.followers,
-      value: user?.followers || 0,
-      icon: FaUser,
-      color: "bg-purple-50 text-purple-600",
-    },
-    {
-      label: copy.stats.contributions,
-      value: contributions,
-      icon: FaGithub,
-      color: "bg-gray-50 text-gray-600",
-    },
-  ];
+  const highlightedKeys = useMemo(
+    () => new Set(highlightedRepos.map((repo) => getRepoKey(repo.owner.login, repo.name))),
+    [highlightedRepos]
+  );
+
+  const topRepos = useMemo(
+    () => repos.filter((repo) => !highlightedKeys.has(getRepoKey(repo.owner.login, repo.name))).slice(0, 6),
+    [highlightedKeys, repos]
+  );
+
+  const stats = useMemo(() => {
+    const totalStars = repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
+    const totalForks = repos.reduce((sum, repo) => sum + repo.forks_count, 0);
+
+    return {
+      repositories: user?.public_repos || 0,
+      stars: totalStars,
+      forks: totalForks,
+      followers: user?.followers || 0,
+    };
+  }, [repos, user]);
+
+  const profileUrl = user?.html_url ?? `https://github.com/${GITHUB_USERNAME}`;
+  const profileName = user?.name || copy.profileFallbackName;
+
+  const animationContainer = reduceMotion
+    ? { hidden: { opacity: 1 }, visible: { opacity: 1 } }
+    : containerVariants;
+
+  const animationItem = reduceMotion
+    ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0 } }
+    : itemVariants;
+
+  if (loading) {
+    return (
+      <section className="border-b border-gray-200 bg-zinc-50 py-24 md:py-32">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <LoadingAnimation label={copy.loading} />
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="border-b border-gray-200 bg-zinc-50 py-24 md:py-32">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+            <h2 className="text-2xl font-semibold text-gray-900">{copy.error}</h2>
+            <p className="mt-3 text-sm leading-relaxed text-gray-600">{copy.fallback}</p>
+            <a
+              href={profileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
+              aria-label="Open GitHub profile in a new tab"
+            >
+              <FaGithub className="h-4 w-4" />
+              {copy.profileCta}
+            </a>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <section className="border-b border-gray-200 bg-zinc-50 py-24 dark:bg-zinc-900 md:py-32">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section aria-labelledby="github-section-title" className="relative overflow-hidden border-b border-gray-200 bg-zinc-50 py-24 md:py-32">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 top-8 h-72 w-72 rounded-full bg-gray-200/70 blur-3xl" />
+        <div className="absolute right-0 top-32 h-72 w-72 rounded-full bg-gray-300/40 blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:46px_46px]" />
+      </div>
+
+      <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={containerVariants}
-          className="space-y-8"
+          initial={reduceMotion ? false : "hidden"}
+          whileInView={reduceMotion ? undefined : "visible"}
+          viewport={{ once: true, amount: 0.25 }}
+          variants={animationContainer}
+          className="space-y-10"
         >
-          {/* Header */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <motion.div variants={animationItem} className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
-                {copy.eyebrow}
-              </span>
-              <h2 className="mt-2 text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
+              <span className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">{copy.eyebrow}</span>
+              <h2 id="github-section-title" className="mt-3 text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
                 {copy.title}
               </h2>
-              <p className="mt-4 text-gray-500 leading-relaxed max-w-xl">{copy.subtitle}</p>
+              <p className="mt-4 max-w-2xl text-gray-600">{copy.subtitle}</p>
             </div>
-            {user && (
-              <a
-                href={user.html_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800"
-              >
-                <FaGithub className="h-5 w-5" />
-                {copy.viewProfile} →
-              </a>
-            )}
+
+            <a
+              href={profileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 self-start rounded-full bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 lg:self-auto"
+              aria-label="Open GitHub profile in a new tab"
+            >
+              <FaGithub className="h-4 w-4" />
+              {copy.profileCta}
+              <FaExternalLinkAlt className="h-3 w-3" />
+            </a>
           </motion.div>
 
-          {/* Stats Grid */}
-          <motion.div
-            variants={containerVariants}
-            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-          >
-            {statCards.map((stat) => (
-              <motion.div
-                key={stat.label}
-                variants={itemVariants}
-                whileHover={{ scale: 1.02, y: -4 }}
-                className={`rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md ${stat.color}`}
-              >
-                <stat.icon className="h-6 w-6" />
-                <div>
-                  <div className="text-3xl font-bold">{stat.value.toLocaleString()}</div>
-                  <div className="mt-1 text-sm font-medium text-gray-500">
-                    {stat.label}
-                  </div>
+          <motion.div variants={animationContainer} className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+            <motion.article variants={animationItem} className="rounded-3xl border border-gray-200 bg-white/95 p-6 shadow-sm backdrop-blur-sm sm:p-8">
+              <div className="flex items-start gap-4 sm:gap-5">
+                <Image
+                  src={user?.avatar_url || "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"}
+                  alt={`${profileName} avatar`}
+                  width={80}
+                  height={80}
+                  className="h-16 w-16 rounded-2xl border border-gray-200 object-cover sm:h-20 sm:w-20"
+                />
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{copy.profilePanelTitle}</p>
+                  <h3 className="mt-2 truncate text-2xl font-semibold text-gray-900">{profileName}</h3>
+                  <p className="mt-1 text-sm text-gray-500">@{user?.login || GITHUB_USERNAME}</p>
                 </div>
+              </div>
+
+              <p className="mt-5 text-sm leading-relaxed text-gray-600">{user?.bio || copy.noBio}</p>
+
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-xs uppercase tracking-[0.14em] text-gray-500">{copy.stats.followers}</p>
+                  <p className="mt-2 text-2xl font-semibold text-gray-900">{stats.followers.toLocaleString()}</p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-xs uppercase tracking-[0.14em] text-gray-500">{copy.stats.activity}</p>
+                  <p className="mt-2 text-2xl font-semibold text-gray-900">{contributions.toLocaleString()}</p>
+                </div>
+              </div>
+            </motion.article>
+
+            <motion.div variants={animationContainer} className="grid gap-4 sm:grid-cols-2">
+              <motion.div variants={animationItem} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.14em] text-gray-500">{copy.stats.repositories}</p>
+                <p className="mt-3 text-3xl font-semibold text-gray-900">{stats.repositories.toLocaleString()}</p>
               </motion.div>
-            ))}
+              <motion.div variants={animationItem} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.14em] text-gray-500">{copy.stats.stars}</p>
+                <p className="mt-3 text-3xl font-semibold text-gray-900">{stats.stars.toLocaleString()}</p>
+              </motion.div>
+              <motion.div variants={animationItem} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.14em] text-gray-500">{copy.stats.forks}</p>
+                <p className="mt-3 text-3xl font-semibold text-gray-900">{stats.forks.toLocaleString()}</p>
+              </motion.div>
+              <motion.div variants={animationItem} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.14em] text-gray-500">{copy.highlightedRepos}</p>
+                <p className="mt-3 text-3xl font-semibold text-gray-900">{highlightedConfig.length}</p>
+              </motion.div>
+            </motion.div>
           </motion.div>
 
-          {/* Top Repositories */}
-          <motion.div
-            variants={containerVariants}
-          >
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {copy.topRepos}
-              </h3>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {repos.slice(0, 6).map((repo) => (
-                <motion.a
-                  key={repo.id}
-                  href={repo.html_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variants={itemVariants}
-                  className="block rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-gray-300"
-                >
-                  <div className="mb-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="flex-1 font-semibold text-gray-900 line-clamp-2">
-                        {repo.name}
-                      </h4>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        {repo.stargazers_count > 0 && (
-                          <span className="flex items-center gap-1">
-                            <FaStar className="h-3 w-3 text-yellow-500" />
-                            {repo.stargazers_count}
-                          </span>
-                        )}
-                        {repo.forks_count > 0 && (
-                          <span className="flex items-center gap-1">
-                            <FaCodeBranch className="h-3 w-3" />
-                            {repo.forks_count}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+          <motion.div variants={animationContainer} className="space-y-8">
+            <motion.div variants={animationItem}>
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <h3 className="text-xl font-semibold text-gray-900">{copy.highlightedRepos}</h3>
+                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Curated from admin</span>
+              </div>
 
-                  {repo.description && (
-                    <p className="mb-3 line-clamp-2 text-sm text-gray-600">
-                      {repo.description}
-                    </p>
-                  )}
+              {highlightedRepos.length === 0 ? (
+                <p className="text-sm text-gray-500">{copy.noHighlightedRepos}</p>
+              ) : (
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {highlightedRepos.map((repo) => (
+                    <RepositoryCard
+                      key={getRepoKey(repo.owner.login, repo.name)}
+                      repo={repo}
+                      emphasized
+                      shouldReduceMotion={reduceMotion}
+                    />
+                  ))}
+                </div>
+              )}
+            </motion.div>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {repo.language && (
-                      <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
-                        {repo.language}
-                      </span>
-                    )}
+            <motion.div variants={animationItem}>
+              <div className="mb-5">
+                <h3 className="text-xl font-semibold text-gray-900">{copy.topRepos}</h3>
+              </div>
 
-                    {repo.topics && repo.topics.slice(0, 3).map((topic) => (
-                      <span
-                        key={topic}
-                        className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600"
-                      >
-                        {topic}
-                      </span>
-                    ))}
-                  </div>
-                </motion.a>
-              ))}
-            </div>
+              {topRepos.length === 0 ? (
+                <p className="text-sm text-gray-500">{copy.noTopRepos}</p>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {topRepos.map((repo) => (
+                    <RepositoryCard
+                      key={getRepoKey(repo.owner.login, repo.name)}
+                      repo={repo}
+                      shouldReduceMotion={reduceMotion}
+                    />
+                  ))}
+                </div>
+              )}
+            </motion.div>
           </motion.div>
-
-          {loading ? (
-            <LoadingAnimation label={copy.loading} />
-          ) : error ? (
-            <div className="text-center text-red-600">{copy.error}</div>
-          ) : null}
         </motion.div>
       </div>
     </section>

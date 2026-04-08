@@ -31,6 +31,7 @@ const copy = {
   clients: "Client Logos",
   pressMentions: "Press & Media",
   testimonials: "Testimonials",
+  githubRepos: "GitHub Highlights",
 };
 
 const navSections = [
@@ -50,6 +51,7 @@ const navSections = [
       { href: "/admin/services", label: copy.services },
       { href: "/admin/blog", label: copy.blog },
       { href: "/admin/stories", label: copy.stories },
+      { href: "/admin/github-repos", label: copy.githubRepos },
       { href: "/admin/clients", label: copy.clients },
       { href: "/admin/press-mentions", label: copy.pressMentions },
       { href: "/admin/testimonials", label: copy.testimonials },

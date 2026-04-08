@@ -14,6 +14,8 @@ Supported content_type values:
 import json
 import logging
 import re
+import base64
+import asyncio
 from typing import Any, Literal
 from urllib.parse import urlparse
 
@@ -45,6 +47,217 @@ _SOCIAL_NAMES: dict[str, str] = {
     "facebook":  "Facebook",
     "linkedin":  "LinkedIn",
 }
+
+_GITHUB_RESERVED_PATHS = {
+    "about",
+    "account",
+    "codespaces",
+    "collections",
+    "contact",
+    "events",
+    "explore",
+    "features",
+    "issues",
+    "login",
+    "marketplace",
+    "new",
+    "notifications",
+    "orgs",
+    "organizations",
+    "pricing",
+    "pulls",
+    "search",
+    "security",
+    "settings",
+    "signup",
+    "sponsors",
+    "topics",
+    "trending",
+}
+
+
+def _build_github_api_headers() -> dict[str, str]:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "gigahidjrikaaa-portfolio-importer",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    token = (settings.GITHUB_TOKEN or "").strip()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
+def _parse_github_repo_url(url: str) -> tuple[str, str] | None:
+    parsed = urlparse(url)
+    netloc = parsed.netloc.lower()
+    if netloc not in {"github.com", "www.github.com"}:
+        return None
+
+    parts = [segment for segment in parsed.path.split("/") if segment]
+    if len(parts) < 2:
+        return None
+
+    owner, repo = parts[0].strip(), parts[1].strip()
+    if not owner or not repo:
+        return None
+
+    if owner.lower() in _GITHUB_RESERVED_PATHS:
+        return None
+
+    if repo.endswith(".git"):
+        repo = repo[:-4]
+
+    if not repo or repo.lower() in _GITHUB_RESERVED_PATHS:
+        return None
+
+    return owner, repo
+
+
+def _decode_base64_to_text(content: str) -> str:
+    if not content:
+        return ""
+    try:
+        normalized = content.replace("\n", "")
+        return base64.b64decode(normalized).decode("utf-8", errors="ignore")
+    except Exception:
+        return ""
+
+
+def _infer_project_role(primary_language: str, languages: list[str]) -> str:
+    lang_set = {lang.lower() for lang in languages if lang}
+    if primary_language:
+        lang_set.add(primary_language.lower())
+
+    if not lang_set:
+        return "Full-Stack Developer"
+
+    frontend_langs = {
+        "javascript",
+        "typescript",
+        "html",
+        "css",
+        "vue",
+        "svelte",
+    }
+    backend_langs = {
+        "python",
+        "go",
+        "java",
+        "c#",
+        "php",
+        "ruby",
+        "rust",
+        "elixir",
+        "kotlin",
+    }
+    mobile_langs = {"swift", "kotlin", "dart", "objective-c"}
+
+    has_frontend = bool(lang_set & frontend_langs)
+    has_backend = bool(lang_set & backend_langs)
+    has_mobile = bool(lang_set & mobile_langs)
+
+    if has_mobile and not (has_frontend or has_backend):
+        return "Mobile Developer"
+    if has_frontend and has_backend:
+        return "Full-Stack Developer"
+    if has_frontend:
+        return "Frontend Developer"
+    if has_backend:
+        return "Backend Developer"
+    if has_mobile:
+        return "Mobile Developer"
+    return "Full-Stack Developer"
+
+
+async def _fetch_github_repo_metadata(url: str) -> dict[str, Any] | None:
+    parsed = _parse_github_repo_url(url)
+    if not parsed:
+        return None
+
+    owner, repo = parsed
+    base_url = f"https://api.github.com/repos/{owner}/{repo}"
+    headers = _build_github_api_headers()
+
+    async with httpx.AsyncClient(
+        timeout=float(settings.GITHUB_API_TIMEOUT),
+        follow_redirects=True,
+        headers=headers,
+    ) as client:
+        repo_response = await client.get(base_url)
+        if repo_response.status_code >= 400:
+            repo_response.raise_for_status()
+
+        repo_data = repo_response.json()
+
+        readme_response, languages_response, topics_response = await asyncio.gather(
+            client.get(f"{base_url}/readme"),
+            client.get(f"{base_url}/languages"),
+            client.get(f"{base_url}/topics"),
+            return_exceptions=True,
+        )
+
+    readme_text = ""
+    if isinstance(readme_response, httpx.Response) and readme_response.status_code == 200:
+        readme_payload = readme_response.json()
+        if readme_payload.get("encoding") == "base64":
+            readme_text = _decode_base64_to_text(str(readme_payload.get("content") or ""))
+
+    languages: list[str] = []
+    if isinstance(languages_response, httpx.Response) and languages_response.status_code == 200:
+        languages_json = languages_response.json()
+        if isinstance(languages_json, dict):
+            languages = [str(name) for name in languages_json.keys() if str(name).strip()]
+
+    topics: list[str] = []
+    if isinstance(topics_response, httpx.Response) and topics_response.status_code == 200:
+        topics_json = topics_response.json()
+        names = topics_json.get("names", []) if isinstance(topics_json, dict) else []
+        if isinstance(names, list):
+            topics = [str(name) for name in names if str(name).strip()]
+
+    if not topics:
+        fallback_topics = repo_data.get("topics", [])
+        if isinstance(fallback_topics, list):
+            topics = [str(name) for name in fallback_topics if str(name).strip()]
+
+    primary_language = str(repo_data.get("language") or "").strip()
+    if primary_language and primary_language not in languages:
+        languages = [primary_language, *languages]
+
+    description = str(repo_data.get("description") or "").strip()
+    content_snippet = (readme_text or description or "").strip()[:6000]
+
+    # Keep keyword list deterministic and stable in order.
+    seen: set[str] = set()
+    keywords: list[str] = []
+    for candidate in [*topics, *languages]:
+        normalized = candidate.strip().lower()
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        keywords.append(candidate.strip())
+
+    owner_data = repo_data.get("owner") or {}
+    homepage = str(repo_data.get("homepage") or "").strip()
+
+    return {
+        "url": url,
+        "title": str(repo_data.get("name") or repo).strip(),
+        "description": description,
+        "image_url": str(owner_data.get("avatar_url") or "").strip(),
+        "site_name": "GitHub",
+        "published_time": str(repo_data.get("pushed_at") or repo_data.get("updated_at") or "").strip(),
+        "author": str(owner_data.get("login") or owner).strip(),
+        "domain": "github.com",
+        "content_snippet": content_snippet,
+        "keywords": keywords,
+        "article_section": "repository",
+        "github_homepage": homepage,
+        "github_primary_language": primary_language,
+        "github_languages": languages,
+        "github_topics": topics,
+    }
 
 
 def detect_social_platform(url: str) -> str | None:
@@ -477,7 +690,22 @@ async def scrape_url(url: str) -> dict[str, Any]:
       - Instagram / Facebook / LinkedIn: blocked by login walls; returns an
         empty-field dict with `_social_platform` and `_social_username` keys
         so the frontend can show a specialised entry form.
+
+    For GitHub repository URLs:
+      - Uses GitHub's API directly (optionally authenticated with GITHUB_TOKEN)
+        for deterministic metadata and better rate limits than HTML scraping.
     """
+    try:
+        github_repo_data = await _fetch_github_repo_metadata(url)
+        if github_repo_data is not None:
+            return github_repo_data
+    except Exception as exc:
+        logger.warning(
+            "GitHub API extraction failed for %s: %s. Falling back to HTML scrape.",
+            url,
+            exc,
+        )
+
     # -----------------------------------------------------------------------
     # Social-platform short-circuit
     # -----------------------------------------------------------------------
@@ -880,14 +1108,35 @@ def _fallback_extraction(scraped: dict[str, Any], content_type: ContentType) -> 
 
     # --- project ------------------------------------------------------------
     is_github = "github.com" in url
-    tagline = description.strip()[:80] if description else title[:80]
+    homepage = str(scraped.get("github_homepage") or "").strip()
+    primary_language = str(scraped.get("github_primary_language") or "").strip()
+    github_languages = [str(lang) for lang in (scraped.get("github_languages") or []) if str(lang).strip()]
+    github_topics = [str(topic) for topic in (scraped.get("github_topics") or []) if str(topic).strip()]
+
+    role = _infer_project_role(primary_language, github_languages)
+
+    tagline_source = description or title
+    tagline = tagline_source.strip()[:80] if tagline_source else title[:80]
+    if not tagline and github_topics:
+        tagline = " / ".join(github_topics[:3])[:80]
+
+    detail_points: list[str] = []
+    if primary_language:
+        detail_points.append(f"Primary language: {primary_language}.")
+    if github_topics:
+        detail_points.append(f"Topics: {', '.join(github_topics[:6])}.")
+
+    project_description = excerpt or description or title
+    if detail_points:
+        project_description = f"{project_description}\n\n{' '.join(detail_points)}".strip()
+
     return {
         "title":       title,
         "tagline":     tagline,
-        "description": excerpt,
+        "description": project_description,
         "github_url":  url if is_github else "",
-        "live_url":    url if not is_github else "",
-        "role":        "Full-Stack Developer",
+        "live_url":    homepage or (url if not is_github else ""),
+        "role":        role,
         "challenges":  "",
         "solutions":   "",
         "impact":      "",

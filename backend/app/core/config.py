@@ -74,6 +74,10 @@ class Settings(BaseSettings):
     # Set ZAI_SCRAPER_TIMEOUT to control per-request AI timeout (seconds)
     ZAI_SCRAPER_TIMEOUT: int = Field(default=60)
 
+    # GitHub Integration
+    GITHUB_TOKEN: str = Field(default="")  # Optional fine-grained PAT for higher API limits/private repos
+    GITHUB_API_TIMEOUT: int = Field(default=20)
+
     # Basic rate limiting (in-memory; suitable for single-process dev)
     RATE_LIMIT_WINDOW_SECONDS: int = Field(default=60)
     RATE_LIMIT_LOGIN_PER_WINDOW: int = Field(default=10)

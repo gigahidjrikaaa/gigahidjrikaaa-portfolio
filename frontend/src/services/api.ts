@@ -353,6 +353,23 @@ export interface SeoSettingsResponse extends SeoSettingsBase {
   updated_at: string;
 }
 
+export interface GitHubImportStatusResponse {
+  token_configured: boolean;
+  token_source: string;
+  authentication_mode: 'authenticated' | 'unauthenticated';
+  recommendation: string;
+}
+
+export interface GitHubImportTestResponse {
+  ok: boolean;
+  authenticated: boolean;
+  message: string;
+  core_limit?: number | null;
+  core_remaining?: number | null;
+  core_used?: number | null;
+  core_reset_at?: number | null;
+}
+
 export interface StoryBase {
   title?: string;
   caption?: string;
@@ -402,6 +419,21 @@ export type PressMentionUpdate = Partial<PressMentionBase>;
 export interface PressMentionResponse extends PressMentionBase {
   id: number;
   created_at: string;
+}
+
+export interface HighlightedGitHubRepoBase {
+  owner: string;
+  repo_name: string;
+  is_active: boolean;
+  display_order: number;
+}
+
+export type HighlightedGitHubRepoUpdate = Partial<HighlightedGitHubRepoBase>;
+
+export interface HighlightedGitHubRepoResponse extends HighlightedGitHubRepoBase {
+  id: number;
+  created_at: string;
+  updated_at: string;
 }
 
 // --- Analytics ---
@@ -712,6 +744,10 @@ class ApiService {
 
   async getPressMentions(): Promise<PressMentionResponse[]> {
     return this.request<PressMentionResponse[]>('/press-mentions');
+  }
+
+  async getHighlightedGitHubRepos(): Promise<HighlightedGitHubRepoResponse[]> {
+    return this.request<HighlightedGitHubRepoResponse[]>('/github-repos/highlighted');
   }
 
   async recordVisit(sessionId: string): Promise<void> {
@@ -1104,8 +1140,50 @@ class AdminApiService extends ApiService {
     });
   }
 
+  async getGitHubImportStatus(): Promise<GitHubImportStatusResponse> {
+    return this.request<GitHubImportStatusResponse>('/admin/settings/github-import/status');
+  }
+
+  async testGitHubImportConnection(): Promise<GitHubImportTestResponse> {
+    return this.request<GitHubImportTestResponse>('/admin/settings/github-import/test', {
+      method: 'POST'
+    });
+  }
+
   async getStories(): Promise<StoryResponse[]> {
     return this.request<StoryResponse[]>('/admin/stories');
+  }
+
+  async getAdminHighlightedGitHubRepos(): Promise<HighlightedGitHubRepoResponse[]> {
+    return this.request<HighlightedGitHubRepoResponse[]>('/admin/github-repos');
+  }
+
+  async createHighlightedGitHubRepo(payload: HighlightedGitHubRepoBase): Promise<HighlightedGitHubRepoResponse> {
+    return this.request<HighlightedGitHubRepoResponse>('/admin/github-repos', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async updateHighlightedGitHubRepo(id: number, payload: HighlightedGitHubRepoUpdate): Promise<HighlightedGitHubRepoResponse> {
+    return this.request<HighlightedGitHubRepoResponse>(`/admin/github-repos/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async deleteHighlightedGitHubRepo(id: number): Promise<void> {
+    const response = await fetch(`${NEXT_PUBLIC_API_BASE_URL}/admin/github-repos/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: {
+        ...this.getAuthHeaders(`/admin/github-repos/${id}`, 'DELETE')
+      }
+    });
+
+    if (!response.ok) {
+      throw new ApiError(`API Error: ${response.statusText}`, response.status);
+    }
   }
 
   async createStory(payload: StoryBase): Promise<StoryResponse> {

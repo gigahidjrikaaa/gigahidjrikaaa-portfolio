@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Table, Text
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Table, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -377,6 +377,21 @@ class PressMention(Base):
     display_order = Column(Integer, default=0)
     social_username = Column(String(100), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
+
+
+class HighlightedGitHubRepo(Base):
+    __tablename__ = "highlighted_github_repos"
+    __table_args__ = (
+        UniqueConstraint("owner", "repo_name", name="uq_highlighted_github_repos_owner_repo"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    owner = Column(String(100), nullable=False, default="gigahidjrikaaa")
+    repo_name = Column(String(200), nullable=False, index=True)
+    is_active = Column(Boolean, default=True)
+    display_order = Column(Integer, default=0)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
 
 class PageVisit(Base):

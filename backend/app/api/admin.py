@@ -3,11 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError as SAIntegrityError
-from typing import List, cast
+from typing import Any, List, cast
 from datetime import datetime
 import math
 import re
 import logging
+import httpx
 from ..services.pdf_import_service import extract_text_from_pdf_bytes, parse_linkedin_resume_text
 from ..database import (
     get_db,
@@ -30,6 +31,7 @@ from ..database import (
     BlogPost,
     )
 from ..auth import get_current_admin_user
+from ..config import settings
 from ..schemas import (
     ProjectCreate, ProjectUpdate, ProjectResponse,
     ExperienceCreate, ExperienceResponse, ExperienceUpdate,
@@ -38,6 +40,7 @@ from ..schemas import (
     ContactMessageResponse,
     ProfileResponse, ProfileUpdate,
     SiteSettingsResponse, SiteSettingsUpdate,
+    GitHubImportStatusResponse, GitHubImportTestResponse,
     SeoSettingsResponse, SeoSettingsUpdate,
     MediaAssetCreate, MediaAssetResponse, MediaAssetUpdate,
     MediaBulkDeleteRequest, MediaBulkDeleteResponse,
@@ -1054,6 +1057,102 @@ async def update_site_settings(
     db.commit()
     db.refresh(settings_row)
     return settings_row
+
+
+def _build_github_probe_headers() -> dict[str, str]:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "gigahidjrikaaa-admin-settings",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    token = (settings.GITHUB_TOKEN or "").strip()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
+@router.get("/settings/github-import/status", response_model=GitHubImportStatusResponse)
+async def get_github_import_status(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_user),
+):
+    _ = db
+    _ = current_user
+
+    has_token = bool((settings.GITHUB_TOKEN or "").strip())
+    return GitHubImportStatusResponse(
+        token_configured=has_token,
+        token_source="environment",
+        authentication_mode="authenticated" if has_token else "unauthenticated",
+        recommendation=(
+            "GitHub token is configured. Imports can use higher API limits and private-repo access."
+            if has_token
+            else "Set GITHUB_TOKEN in backend environment for higher API limits and private-repo access."
+        ),
+    )
+
+
+@router.post("/settings/github-import/test", response_model=GitHubImportTestResponse)
+async def test_github_import_connection(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_user),
+):
+    _ = db
+    _ = current_user
+
+    has_token = bool((settings.GITHUB_TOKEN or "").strip())
+    headers = _build_github_probe_headers()
+
+    try:
+        async with httpx.AsyncClient(timeout=float(settings.GITHUB_API_TIMEOUT), follow_redirects=True) as client:
+            response = await client.get("https://api.github.com/rate_limit", headers=headers)
+    except httpx.TimeoutException:
+        return GitHubImportTestResponse(
+            ok=False,
+            authenticated=has_token,
+            message="GitHub API request timed out. Check network or GITHUB_API_TIMEOUT.",
+        )
+    except Exception as exc:
+        return GitHubImportTestResponse(
+            ok=False,
+            authenticated=has_token,
+            message=f"GitHub API test failed: {exc}",
+        )
+
+    if response.status_code >= 400:
+        detail = f"GitHub API returned HTTP {response.status_code}."
+        if response.status_code == 401:
+            detail = "GitHub token is invalid or expired."
+        elif response.status_code == 403:
+            detail = "GitHub API access is forbidden or rate-limited."
+
+        return GitHubImportTestResponse(
+            ok=False,
+            authenticated=has_token,
+            message=detail,
+        )
+
+    payload: dict[str, Any] = response.json() if response.content else {}
+    resources = payload.get("resources", {}) if isinstance(payload, dict) else {}
+    core = resources.get("core", {}) if isinstance(resources, dict) else {}
+
+    core_limit = core.get("limit") if isinstance(core, dict) else None
+    core_remaining = core.get("remaining") if isinstance(core, dict) else None
+    core_used = core.get("used") if isinstance(core, dict) else None
+    core_reset_at = core.get("reset") if isinstance(core, dict) else None
+
+    mode_label = "authenticated" if has_token else "unauthenticated"
+    message = f"GitHub API test succeeded in {mode_label} mode."
+
+    return GitHubImportTestResponse(
+        ok=True,
+        authenticated=has_token,
+        message=message,
+        core_limit=core_limit,
+        core_remaining=core_remaining,
+        core_used=core_used,
+        core_reset_at=core_reset_at,
+    )
 
 # =============================================================================
 # SEO SETTINGS (singleton)

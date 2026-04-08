@@ -426,6 +426,23 @@ class SiteSettingsResponse(SiteSettingsBase):
         from_attributes = True
 
 
+class GitHubImportStatusResponse(BaseModel):
+    token_configured: bool
+    token_source: str
+    authentication_mode: str
+    recommendation: str
+
+
+class GitHubImportTestResponse(BaseModel):
+    ok: bool
+    authenticated: bool
+    message: str
+    core_limit: Optional[int] = None
+    core_remaining: Optional[int] = None
+    core_used: Optional[int] = None
+    core_reset_at: Optional[int] = None
+
+
 # SEO settings schemas
 class SeoSettingsBase(BaseModel):
     site_title: Optional[str] = None
@@ -729,6 +746,52 @@ class PressMentionUpdate(BaseModel):
 class PressMentionResponse(PressMentionBase):
     id: int
     created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Highlighted GitHub repository schemas
+class HighlightedGitHubRepoBase(BaseModel):
+    owner: str = Field("gigahidjrikaaa", min_length=1, max_length=100)
+    repo_name: str = Field(..., min_length=1, max_length=200)
+    is_active: bool = True
+    display_order: int = 0
+
+    @field_validator("owner", "repo_name")
+    @classmethod
+    def validate_identifier(cls, value: str) -> str:
+        normalized = value.strip()
+        if not re.fullmatch(r"[A-Za-z0-9_.-]+", normalized):
+            raise ValueError("Only letters, numbers, dots, dashes, and underscores are allowed")
+        return normalized
+
+
+class HighlightedGitHubRepoCreate(HighlightedGitHubRepoBase):
+    pass
+
+
+class HighlightedGitHubRepoUpdate(BaseModel):
+    owner: Optional[str] = Field(None, min_length=1, max_length=100)
+    repo_name: Optional[str] = Field(None, min_length=1, max_length=200)
+    is_active: Optional[bool] = None
+    display_order: Optional[int] = None
+
+    @field_validator("owner", "repo_name")
+    @classmethod
+    def validate_optional_identifier(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not re.fullmatch(r"[A-Za-z0-9_.-]+", normalized):
+            raise ValueError("Only letters, numbers, dots, dashes, and underscores are allowed")
+        return normalized
+
+
+class HighlightedGitHubRepoResponse(HighlightedGitHubRepoBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
