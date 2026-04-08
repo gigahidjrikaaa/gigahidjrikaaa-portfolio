@@ -25,7 +25,12 @@ import { openGoogleDrivePicker } from "@/lib/googleDrivePicker";
 import { openMediaLibrary } from "@/lib/cloudinaryWidget";
 import Tooltip from "@/components/ui/tooltip";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
-import { ExternalLink, Loader2 } from "lucide-react";
+import { ExternalLink, Loader2, Trash2, X } from "lucide-react";
+
+type ManagedAssetRef = {
+  id: number;
+  url: string;
+};
 
 const copy = {
   addTitle: "Add Blog Post",
@@ -180,6 +185,10 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
   const { toast } = useToast();
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isUploadingOg, setIsUploadingOg] = useState(false);
+  const [isDeletingCover, setIsDeletingCover] = useState(false);
+  const [isDeletingOg, setIsDeletingOg] = useState(false);
+  const [coverManagedAsset, setCoverManagedAsset] = useState<ManagedAssetRef | null>(null);
+  const [ogManagedAsset, setOgManagedAsset] = useState<ManagedAssetRef | null>(null);
   const [isCoverDragOver, setIsCoverDragOver] = useState(false);
   const [isOgDragOver, setIsOgDragOver] = useState(false);
   const [isUploadingInline, setIsUploadingInline] = useState(false);
@@ -590,6 +599,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
         title: file.name,
         folder: "blog",
       });
+      setCoverManagedAsset({ id: uploaded.id, url: uploaded.url });
       setValue("cover_image_url", uploaded.url, { shouldValidate: true });
       toast({ title: "Cover image uploaded", description: "Image ready for the post." });
     } catch (error) {
@@ -611,6 +621,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
         title: file.name,
         folder: "blog",
       });
+      setOgManagedAsset({ id: uploaded.id, url: uploaded.url });
       setValue("og_image_url", uploaded.url, { shouldValidate: true });
       toast({ title: "OG image uploaded", description: "Image ready for social sharing cards." });
     } catch (error) {
@@ -668,6 +679,71 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
     }
 
     void handleOgUpload(file);
+  };
+
+  const resolveMediaAssetId = async (url: string, managedAsset: ManagedAssetRef | null): Promise<number | null> => {
+    if (managedAsset?.url === url) {
+      return managedAsset.id;
+    }
+
+    const response = await adminApi.getMediaAssets({ q: url, page_size: 50 });
+    const exactMatch = response.items.find((item) => item.url === url);
+    return exactMatch?.id ?? null;
+  };
+
+  const handleDeleteImage = async (field: "cover" | "og") => {
+    const targetUrl = field === "cover" ? coverImageUrl : ogImageUrl;
+    if (!targetUrl) return;
+
+    const confirmed = window.confirm("Delete this image from Cloudinary and clear this field?");
+    if (!confirmed) return;
+
+    try {
+      if (field === "cover") {
+        setIsDeletingCover(true);
+      } else {
+        setIsDeletingOg(true);
+      }
+
+      const managedAsset = field === "cover" ? coverManagedAsset : ogManagedAsset;
+      const assetId = await resolveMediaAssetId(targetUrl, managedAsset);
+
+      if (assetId) {
+        await adminApi.deleteMediaAsset(assetId);
+        toast({
+          title: "Image deleted",
+          description: "Removed from Cloudinary and cleared from the form.",
+          variant: "success",
+        });
+      } else {
+        toast({
+          title: "No managed media record found",
+          description: "Field was cleared, but no matching media record was found to delete.",
+          variant: "info",
+        });
+      }
+
+      if (field === "cover") {
+        setCoverManagedAsset(null);
+        setValue("cover_image_url", "", { shouldValidate: true });
+      } else {
+        setOgManagedAsset(null);
+        setValue("og_image_url", "", { shouldValidate: true });
+      }
+    } catch (error) {
+      console.error("Failed to delete media image", error);
+      toast({
+        title: "Delete failed",
+        description: "Could not remove image from Cloudinary.",
+        variant: "error",
+      });
+    } finally {
+      if (field === "cover") {
+        setIsDeletingCover(false);
+      } else {
+        setIsDeletingOg(false);
+      }
+    }
   };
 
   const openGooglePicker = (onSelect: (url: string) => void) => {
@@ -955,6 +1031,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
                   type="button"
                   variant="outline"
                   onClick={() => openCloudinaryPicker((url) => setValue("cover_image_url", url, { shouldValidate: true }))}
+                  className="bg-white"
                 >
                   Pick from Cloudinary
                 </Button>
@@ -962,8 +1039,41 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
                   type="button"
                   variant="outline"
                   onClick={() => openGooglePicker((url) => setValue("cover_image_url", url, { shouldValidate: true }))}
+                  className="bg-white"
                 >
                   Pick from Google Drive
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setCoverManagedAsset(null);
+                    setValue("cover_image_url", "", { shouldValidate: true });
+                  }}
+                  disabled={!coverImageUrl || isUploadingCover || isDeletingCover}
+                >
+                  <X className="h-4 w-4" />
+                  Clear
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => {
+                    void handleDeleteImage("cover");
+                  }}
+                  disabled={!coverImageUrl || isUploadingCover || isDeletingCover}
+                >
+                  {isDeletingCover ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </>
+                  )}
                 </Button>
               </div>
               <div
@@ -1044,6 +1154,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
                 type="button"
                 variant="outline"
                 onClick={() => openCloudinaryPicker((url) => setValue("og_image_url", url, { shouldValidate: true }))}
+                className="bg-white"
               >
                 Pick from Cloudinary
               </Button>
@@ -1051,8 +1162,41 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ post, importedData, onSave,
                 type="button"
                 variant="outline"
                 onClick={() => openGooglePicker((url) => setValue("og_image_url", url, { shouldValidate: true }))}
+                className="bg-white"
               >
                 Pick from Google Drive
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setOgManagedAsset(null);
+                  setValue("og_image_url", "", { shouldValidate: true });
+                }}
+                disabled={!ogImageUrl || isUploadingOg || isDeletingOg}
+              >
+                <X className="h-4 w-4" />
+                Clear
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => {
+                  void handleDeleteImage("og");
+                }}
+                disabled={!ogImageUrl || isUploadingOg || isDeletingOg}
+              >
+                {isDeletingOg ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </>
+                )}
               </Button>
             </div>
             <div

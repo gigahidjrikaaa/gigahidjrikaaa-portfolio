@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/toast";
 import { adminApi } from "@/services/api";
 import { openMediaLibrary } from "@/lib/cloudinaryWidget";
 import { openGoogleDrivePicker } from "@/lib/googleDrivePicker";
+import { Cloud, Loader2, Trash2, Upload, X } from "lucide-react";
 
 interface ImageMediaFieldProps {
   id: string;
@@ -29,6 +30,11 @@ interface ImageMediaFieldProps {
   previewImageClassName?: string;
   containerClassName?: string;
 }
+
+type ManagedAssetRef = {
+  id: number;
+  url: string;
+};
 
 const ImageMediaField: React.FC<ImageMediaFieldProps> = ({
   id,
@@ -52,7 +58,9 @@ const ImageMediaField: React.FC<ImageMediaFieldProps> = ({
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [managedAsset, setManagedAsset] = useState<ManagedAssetRef | null>(null);
 
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "";
   const cloudApiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || "";
@@ -75,6 +83,7 @@ const ImageMediaField: React.FC<ImageMediaFieldProps> = ({
         title: normalizedFile.name,
         folder: uploadFolder,
       });
+      setManagedAsset({ id: uploaded.id, url: uploaded.url });
       onChange(uploaded.url);
       toast({
         title: "Image uploaded",
@@ -164,6 +173,7 @@ const ImageMediaField: React.FC<ImageMediaFieldProps> = ({
         (assets) => {
           const asset = assets?.[0];
           if (asset?.secure_url || asset?.url) {
+            setManagedAsset(null);
             onChange(asset.secure_url || asset.url || "");
           }
         }
@@ -191,7 +201,10 @@ const ImageMediaField: React.FC<ImageMediaFieldProps> = ({
     void openGoogleDrivePicker({
       clientId: googleClientId,
       apiKey: googleApiKey,
-      onPick: onChange,
+      onPick: (url) => {
+        setManagedAsset(null);
+        onChange(url);
+      },
       onError: (message) =>
         toast({
           title: "Google Drive error",
@@ -199,6 +212,62 @@ const ImageMediaField: React.FC<ImageMediaFieldProps> = ({
           variant: "error",
         }),
     });
+  };
+
+  const resolveMediaAssetId = async (url: string): Promise<number | null> => {
+    if (managedAsset?.url === url) {
+      return managedAsset.id;
+    }
+
+    const response = await adminApi.getMediaAssets({ q: url, page_size: 50 });
+    const exactMatch = response.items.find((item) => item.url === url);
+    return exactMatch?.id ?? null;
+  };
+
+  const handleClear = () => {
+    setManagedAsset(null);
+    onChange("");
+  };
+
+  const handleDelete = async () => {
+    if (!value) return;
+
+    const shouldDelete = window.confirm(
+      "Delete this image from Cloudinary and remove it from this field?"
+    );
+    if (!shouldDelete) return;
+
+    try {
+      setIsDeleting(true);
+      const assetId = await resolveMediaAssetId(value);
+
+      if (assetId) {
+        await adminApi.deleteMediaAsset(assetId);
+        toast({
+          title: "Image deleted",
+          description: "Image was removed from Cloudinary and cleared from this field.",
+          variant: "success",
+        });
+      } else {
+        toast({
+          title: "No managed media record found",
+          description: "Field was cleared, but no matching media record was found to delete.",
+          variant: "info",
+        });
+      }
+
+      setManagedAsset(null);
+      onChange("");
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "Could not delete image.";
+      toast({
+        title: "Delete failed",
+        description: detail,
+        variant: "error",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -209,54 +278,119 @@ const ImageMediaField: React.FC<ImageMediaFieldProps> = ({
       <Input
         id={id}
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => {
+          const nextValue = event.target.value;
+          if (managedAsset?.url !== nextValue) {
+            setManagedAsset(null);
+          }
+          onChange(nextValue);
+        }}
         onPaste={handlePaste}
         className="mt-1"
         placeholder={placeholder}
         required={required}
       />
 
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handlePickerUpload}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size={buttonSize}
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isUploading}
-        >
-          {isUploading ? "Uploading..." : "Upload image"}
-        </Button>
-        <Button type="button" variant="outline" size={buttonSize} onClick={openCloudinaryPicker}>
-          Pick from Cloudinary
-        </Button>
-        <Button type="button" variant="outline" size={buttonSize} onClick={openGooglePicker}>
-          Pick from Google Drive
-        </Button>
-      </div>
+      <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handlePickerUpload}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size={buttonSize}
+            className="bg-white"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading || isDeleting}
+          >
+            {isUploading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4" />
+                Upload
+              </>
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size={buttonSize}
+            className="bg-white"
+            onClick={openCloudinaryPicker}
+            disabled={isUploading || isDeleting}
+          >
+            <Cloud className="h-4 w-4" />
+            Cloudinary
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size={buttonSize}
+            className="bg-white"
+            onClick={openGooglePicker}
+            disabled={isUploading || isDeleting}
+          >
+            Google Drive
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size={buttonSize}
+            onClick={handleClear}
+            disabled={!value || isUploading || isDeleting}
+          >
+            <X className="h-4 w-4" />
+            Clear
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            size={buttonSize}
+            onClick={() => {
+              void handleDelete();
+            }}
+            disabled={!value || isUploading || isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </>
+            )}
+          </Button>
+        </div>
 
-      <div
-        className={`mt-2 rounded-md border border-dashed px-3 py-2 text-xs transition ${
-          isDragOver
-            ? "border-primary bg-primary/5 text-primary"
-            : "border-gray-300 text-gray-500"
-        }`}
-        onDragOver={handleDragOver}
-        onDragEnter={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        Drag and drop an image file here to upload.
+        <div
+          className={`mt-2 rounded-md border border-dashed px-3 py-2 text-xs transition ${
+            isDragOver
+              ? "border-primary bg-primary/5 text-primary"
+              : "border-gray-300 text-gray-500"
+          }`}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          Drag and drop an image file here to upload.
+        </div>
       </div>
 
       <p className="mt-1 text-xs text-gray-500">
-        Tip: focus the URL field, then press Ctrl+V to paste an image from your clipboard.
+        Tip: focus the URL field and press Ctrl+V to paste from clipboard.
       </p>
       {helperText ? <p className="mt-1 text-xs text-gray-400">{helperText}</p> : null}
 
