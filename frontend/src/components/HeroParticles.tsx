@@ -3,10 +3,10 @@
 import { useMemo, useCallback } from "react";
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
+import type { Engine, ISourceOptions } from "tsparticles-engine";
 
 export default function HeroParticles() {
-  const particlesInit = useCallback(async (engine: unknown) => {
-    // @ts-expect-error tsparticles engine type
+  const particlesInit = useCallback(async (engine: Engine) => {
     await loadFull(engine);
   }, []);
 
@@ -14,7 +14,7 @@ export default function HeroParticles() {
     // Optional: You can do something once particles are loaded
   }, []);
 
-  const options = useMemo<unknown>(
+  const options = useMemo<ISourceOptions>(
     () => ({
       background: {
         color: {

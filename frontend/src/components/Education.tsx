@@ -8,6 +8,7 @@ import { MapPin, ArrowUpRight } from 'lucide-react';
 import { apiService, EducationResponse } from '@/services/api';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
 import EducationModal from './EducationModal';
+import { EducationGraphic } from './decorations/sections/EducationGraphic';
 
 // Fallback gradients when no background image is set
 const FALLBACK_GRADIENTS = [
@@ -44,8 +45,11 @@ const Education = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-14"
+          className="mb-14 relative z-10"
         >
+          <div className="absolute right-0 top-0 -translate-y-1/4 opacity-20 pointer-events-none -z-10 hidden md:block">
+             <EducationGraphic />
+          </div>
           <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
             Background
           </span>
@@ -54,7 +58,7 @@ const Education = () => {
               Education
             </h2>
             <p className="max-w-md text-sm leading-relaxed text-gray-600 dark:text-zinc-400">
-              Academic foundation in engineering, computer science, and emerging technologies.
+              Formal training that strengthened my fundamentals in software engineering, systems thinking, and product execution.
             </p>
           </div>
         </motion.div>

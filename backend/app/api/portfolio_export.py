@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from datetime import date
 import logging
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.concurrency import run_in_threadpool
@@ -24,10 +24,9 @@ async def export_portfolio_pdf(db: Session = Depends(get_db)) -> Response:
         logger.exception("Failed to generate portfolio export PDF")
         raise HTTPException(status_code=500, detail="Unable to generate portfolio export right now.")
 
-    filename = f"portfolio-{date.today().strftime('%Y%m%d')}.pdf"
+    filename = "Giga Hidjrika Aura Adkhy - Portfolio.pdf"
     headers = {
-        "Content-Disposition": f'attachment; filename="{filename}"',
+        "Content-Disposition": f'attachment; filename="{filename}"; filename*=UTF-8\'\'{quote(filename)}',
         "Cache-Control": "public, max-age=300",
     }
-
     return Response(content=pdf_bytes, media_type="application/pdf", headers=headers)

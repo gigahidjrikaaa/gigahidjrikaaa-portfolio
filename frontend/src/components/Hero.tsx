@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { apiService, ProfileResponse } from '@/services/api';
-import HeroParticles from './HeroParticles';
+import { BackgroundBlob } from './decorations/BackgroundBlob';
+import { GridPattern } from './decorations/GridPattern';
+import { HeroGraphic } from './decorations/sections/HeroGraphic';
 
 const heroVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -18,8 +20,8 @@ const heroVariants = {
 
 const copy = {
   name: 'Giga Hidjrika Aura Adkhy',
-  headline: 'Engineering scalable systems & intelligent products.',
-  subhead: 'I design and build robust full-stack applications, distributed systems, and AI-enabled tools with a focus on performance, clean architecture, and practical solutions.',
+  headline: 'Building dependable software for real users.',
+  subhead: 'I design and ship full-stack products, backend services, and AI features with an emphasis on reliability, maintainability, and clear product outcomes.',
   ctaPrimary: 'Explore Projects',
   ctaSecondary: 'Get in touch',
 };
@@ -44,12 +46,9 @@ const Hero = () => {
 
   return (
     <section id="hero" className="relative min-h-[90vh] md:min-h-screen bg-zinc-50 flex items-center justify-center overflow-hidden pt-24 pb-16">
-      {/* Structural Minimal Background with Interactive Particles */}
-      <HeroParticles />
-      <div className="absolute inset-0 z-0 pointer-events-none">
-         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 m-auto h-[400px] w-[400px] rounded-full bg-emerald-200/40 opacity-50 blur-[120px]"></div>
-      </div>
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.16),transparent_55%)]" />
+      <BackgroundBlob />
+      <GridPattern />
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-8 items-center max-w-6xl mx-auto">
@@ -142,7 +141,10 @@ const Hero = () => {
           </div>
 
           {/* Right Content - Floating Image Cards */}
-          <div className="relative w-full h-[500px] lg:h-[600px] flex items-center justify-center pointer-events-none perspective-[1000px]">
+          <div className="relative hidden w-full h-[560px] items-center justify-center pointer-events-none perspective-[1000px] lg:flex">
+             <div className="absolute inset-0 flex items-center justify-center -z-10 scale-150 opacity-50">
+               <HeroGraphic />
+             </div>
              
              {/* Back Card */}
              <motion.div 
@@ -153,7 +155,7 @@ const Hero = () => {
              >
                <div className="relative w-full h-[85%] overflow-hidden bg-zinc-100 grayscale hover:grayscale-0 transition-all duration-700">
                  <Image 
-                   src="/giga-pics/giga-5.jpg" 
+                   src="/giga-pics/giga-3.jpg" 
                    alt="Profile photo 2" 
                    fill 
                    className="object-cover"
@@ -190,19 +192,6 @@ const Hero = () => {
                </div>
              </motion.div>
 
-             {/* Little decorative technical overlay (replacing generic chip) */}
-             <motion.div
-               initial={reduceMotion ? { opacity: 1 } : { opacity: 0, x: -20 }}
-               animate={{ opacity: 1, x: 0 }}
-               transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
-               className="absolute -left-6 md:-left-12 bottom-32 z-30 pointer-events-auto flex flex-col gap-1 backdrop-blur-sm bg-white/40 p-3 shadow-sm border-l-2 border-emerald-500"
-             >
-               <span className="flex items-center gap-2 text-[10px] uppercase font-mono tracking-widest text-zinc-600">
-                 <span className="w-1.5 h-1.5 bg-emerald-500 inline-block animate-pulse" />
-                 sys.status.online
-               </span>
-               <span className="text-[9px] font-mono text-zinc-400">LOC: -43.20 106.8</span>
-             </motion.div>
           </div>
 
         </div>

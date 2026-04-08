@@ -29,7 +29,7 @@ const itemVariants = {
 const copy = {
   eyebrow: 'CREDENTIALS',
   title: 'Certifications',
-  subtitle: 'Professional certifications and credentials validating expertise across domains.',
+  subtitle: 'Certifications that support the stack I use in real client and product work.',
   loading: 'Loading certifications...',
   empty: 'Certifications coming soon.',
 };

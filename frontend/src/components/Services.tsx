@@ -2,16 +2,16 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { PlayIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import { apiService, ServiceResponse } from "@/services/api";
 
 const copy = {
   eyebrow: "WHY CHOOSE",
   title: "Why Work With Me",
   subtitle:
-    "A polished overview of capabilities, process, and outcomes — designed to help stakeholders align fast.",
+    "I work best with teams that want clear execution: strong architecture, honest trade-offs, and predictable delivery.",
   quote:
-    "The best projects happen when design, engineering, and strategy operate as one unified thread.",
+    "Good products are built in small, reliable steps. The process should feel clear for both engineering and product teams.",
   reasons: [
     "End-to-end product thinking",
     "Clear, async-friendly communication",
@@ -58,23 +58,18 @@ const Services = () => {
           transition={{ duration: 0.6 }}
           className="grid items-center gap-12 lg:grid-cols-2"
         >
-          {/* Left: Video card */}
+          {/* Left: Visual card */}
           <div className="relative aspect-[4/3] overflow-hidden rounded-[32px] bg-gray-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/hero-bg.jpg"
-              alt="Video preview"
+              src="/giga-pics/giga-4.jpg"
+              alt="Product planning and delivery workflow"
               className="h-full w-full object-cover"
             />
-            <div className="pointer-events-none absolute inset-0 bg-black/10" />
-            {/* Play button */}
-            <button
-              type="button"
-              aria-label="Play video"
-              className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow-lg backdrop-blur-sm transition hover:scale-105"
-            >
-              <PlayIcon className="h-7 w-7" />
-            </button>
+            <div className="pointer-events-none absolute inset-0 bg-black/20" />
+            <div className="absolute bottom-4 left-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-gray-900">
+              Delivery process
+            </div>
           </div>
 
           {/* Right: Text content */}

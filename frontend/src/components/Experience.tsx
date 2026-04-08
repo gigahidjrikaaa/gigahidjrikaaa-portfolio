@@ -8,6 +8,7 @@ import { MapPin, ArrowUpRight, Briefcase } from 'lucide-react';
 import { apiService, ExperienceResponse } from '@/services/api';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
 import ExperienceModal from './ExperienceModal';
+import { ExperienceGraphic } from './decorations/sections/ExperienceGraphic';
 
 // Pull a plain-text preview from markdown-ish description string
 function descriptionPreview(raw: string, maxLen = 160): string {
@@ -53,8 +54,11 @@ const Experience = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-14"
+          className="mb-14 relative z-10"
         >
+          <div className="absolute right-0 top-0 -translate-y-[15%] opacity-20 pointer-events-none -z-10 hidden md:block">
+             <ExperienceGraphic />
+          </div>
           <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
             Career
           </span>
@@ -63,7 +67,7 @@ const Experience = () => {
               Work Experience
             </h2>
             <p className="max-w-md text-sm leading-relaxed text-gray-600">
-              Building impactful software across startups, agencies, and enterprise teams.
+              I have worked with startup teams and client organizations to ship production features without losing quality.
             </p>
           </div>
         </motion.div>

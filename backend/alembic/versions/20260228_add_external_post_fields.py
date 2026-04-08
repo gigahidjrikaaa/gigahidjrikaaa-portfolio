@@ -15,13 +15,29 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Columns may already exist if added manually; use IF NOT EXISTS to be safe
-    op.execute("ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS is_external BOOLEAN NOT NULL DEFAULT false")
-    op.execute("ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS external_url VARCHAR")
-    op.execute("ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS external_source VARCHAR")
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    existing_columns = {column["name"] for column in inspector.get_columns("blog_posts")}
+
+    if "is_external" not in existing_columns:
+        op.add_column(
+            "blog_posts",
+            sa.Column("is_external", sa.Boolean(), nullable=False, server_default=sa.text("false")),
+        )
+    if "external_url" not in existing_columns:
+        op.add_column("blog_posts", sa.Column("external_url", sa.String(), nullable=True))
+    if "external_source" not in existing_columns:
+        op.add_column("blog_posts", sa.Column("external_source", sa.String(), nullable=True))
 
 
 def downgrade() -> None:
-    op.drop_column("blog_posts", "external_source")
-    op.drop_column("blog_posts", "external_url")
-    op.drop_column("blog_posts", "is_external")
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    existing_columns = {column["name"] for column in inspector.get_columns("blog_posts")}
+
+    if "external_source" in existing_columns:
+        op.drop_column("blog_posts", "external_source")
+    if "external_url" in existing_columns:
+        op.drop_column("blog_posts", "external_url")
+    if "is_external" in existing_columns:
+        op.drop_column("blog_posts", "is_external")

@@ -1,0 +1,67 @@
+{
+  "success": true,
+  "url": "http://127.0.0.1:3000",
+  "desktop": {
+    "horizontalOverflow": false,
+    "offenders": [
+      {
+        "selector": "div.blob-red.absolute.-right-40",
+        "left": 767.83,
+        "right": 1396.13,
+        "overflowLeft": 0,
+        "overflowRight": 116.13
+      },
+      {
+        "selector": "div.blob-blue.absolute.-left-24",
+        "left": -223.69,
+        "right": 413.39,
+        "overflowLeft": 223.69,
+        "overflowRight": 0
+      },
+      {
+        "selector": "div.absolute.left-[-4rem].top-12",
+        "left": -8,
+        "right": 184,
+        "overflowLeft": 8,
+        "overflowRight": 0
+      }
+    ]
+  },
+  "mobile": {
+    "horizontalOverflow": false,
+    "offenders": [
+      {
+        "selector": "div.blob-red.absolute.-right-40",
+        "left": -98.17,
+        "right": 519.92,
+        "overflowLeft": 98.17,
+        "overflowRight": 144.92
+      },
+      {
+        "selector": "div.blob-blue.absolute.-left-24",
+        "left": -13.87,
+        "right": 681.28,
+        "overflowLeft": 13.87,
+        "overflowRight": 306.28
+      },
+      {
+        "selector": "div.blob-green.absolute.bottom-8",
+        "left": -88.15,
+        "right": 326.35,
+        "overflowLeft": 88.15,
+        "overflowRight": 0
+      },
+      {
+        "selector": "ol",
+        "left": 16,
+        "right": 391,
+        "overflowLeft": 0,
+        "overflowRight": 16
+      }
+    ]
+  },
+  "screenshots": {
+    "desktop": "../qa/desktop-home.png",
+    "mobile": "../qa/mobile-home.png"
+  }
+}

@@ -25,7 +25,7 @@ const itemVariants = {
 const copy = {
   eyebrow: "OPEN SOURCE",
   title: "GitHub Activity",
-  subtitle: "Exploring code, contributions, and collaborative projects.",
+  subtitle: "A live snapshot of the code I publish, maintain, and iterate in public.",
   loading: "Loading GitHub stats...",
   error: "Unable to fetch GitHub stats.",
   stats: {

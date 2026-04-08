@@ -10,7 +10,7 @@ import { ExternalLink } from "lucide-react";
 const copy = {
   eyebrow: "BLOG",
   title: "Read my articles",
-  subtitle: "Short reads on engineering, product, and problem-solving.",
+  subtitle: "Notes from real projects: architecture decisions, mistakes, and what worked in production.",
   cta: "View all articles",
   loading: "Loading articles…",
   empty: "No articles published yet.",

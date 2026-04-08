@@ -14,6 +14,10 @@ depends_on = None
 
 
 def upgrade() -> None:
+    bind = op.get_bind()
+    if bind.dialect.name == 'sqlite':
+        return
+
     # Change publication_date from TIMESTAMP to VARCHAR(20) so YYYY-MM-DD strings work
     op.alter_column(
         'press_mentions',
@@ -26,6 +30,10 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    bind = op.get_bind()
+    if bind.dialect.name == 'sqlite':
+        return
+
     op.alter_column(
         'press_mentions',
         'publication_date',

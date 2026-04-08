@@ -17,7 +17,10 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute("ALTER TABLE alembic_version ALTER COLUMN version_num TYPE VARCHAR(64)")
+    # SQLite does not support ALTER COLUMN TYPE; other dialects can still apply it.
+    bind = op.get_bind()
+    if bind.dialect.name != "sqlite":
+        op.execute("ALTER TABLE alembic_version ALTER COLUMN version_num TYPE VARCHAR(64)")
 
     op.create_table(
         "awards",

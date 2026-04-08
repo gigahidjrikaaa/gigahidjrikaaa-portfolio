@@ -6,11 +6,13 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { FaGithub, FaLinkedinIn, FaTwitter, FaEnvelope, FaFilePdf, FaDownload } from 'react-icons/fa';
 import { apiService, ProfileResponse } from '@/services/api';
 import { toDirectDownloadUrl } from '@/utils/googleDrive';
+import { OrbitalRings } from './decorations/OrbitalRings';
+import { ContactGraphic } from './decorations/sections/ContactGraphic';
 
 const copy = {
   eyebrow: 'GET IN TOUCH',
   title: 'Contact Me',
-  subtitle: "Let's align on scope, timelines, and the right engagement model for your team.",
+  subtitle: "Tell me what you are building and where you are stuck. I will reply with a practical plan, timeline, and next steps.",
   form: {
     firstName: 'First Name',
     lastName: 'Last Name',
@@ -109,6 +111,7 @@ const Contact = () => {
 
   return (
     <section id="contact" className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32">
+      <OrbitalRings />
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 20 }}
@@ -120,7 +123,10 @@ const Contact = () => {
           <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.2fr]">
             {/* Left: Heading & socials */}
             <div className="flex flex-col">
-              <div className="mb-6 space-y-2">
+              <div className="mb-6 space-y-2 relative">
+                <div className="absolute right-0 top-0 -translate-y-1/4 translate-x-1/4 opacity-20 pointer-events-none hidden lg:block">
+                  <ContactGraphic />
+                </div>
                 <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
                   {copy.eyebrow}
                 </span>

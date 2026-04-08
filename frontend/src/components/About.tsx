@@ -3,9 +3,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { MapPin, Code2, GraduationCap, LayoutGrid } from 'lucide-react';
+import { MapPin, Code2, LayoutGrid } from 'lucide-react';
 import Image from 'next/image';
 import { apiService, ProfileResponse } from '@/services/api';
+import { CodeBrackets } from './decorations/CodeBrackets';
+import { AboutGraphic } from './decorations/sections/AboutGraphic';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -92,6 +94,7 @@ const About = () => {
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 right-0 h-[500px] w-[500px] rounded-full bg-emerald-500/5 blur-[120px]" />
         <div className="absolute bottom-0 left-1/4 h-80 w-80 rounded-full bg-sky-500/5 blur-[100px]" />
+        <CodeBrackets />
       </div>
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
@@ -199,8 +202,8 @@ const About = () => {
             variants={itemVariants}
             className="md:col-span-3 lg:col-span-4 relative overflow-hidden rounded-3xl p-8 bg-zinc-900 dark:bg-zinc-900/80 border border-zinc-800 group"
           >
-            <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-100 transition-opacity group-hover:-translate-y-2 group-hover:translate-x-2 duration-500">
-              <GraduationCap className="w-32 h-32 text-zinc-100" />
+            <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-100 transition-[opacity,transform] duration-700 ease-out group-hover:scale-110 pointer-events-none">
+              <AboutGraphic />
             </div>
             
             <h3 className="text-xl font-semibold text-white mb-8">My Journey</h3>

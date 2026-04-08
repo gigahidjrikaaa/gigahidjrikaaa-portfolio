@@ -1,0 +1,242 @@
+{
+  "url": "http://127.0.0.1:3001/",
+  "timestamp": "2026-04-07T22:36:31.233Z",
+  "desktop": {
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "horizontalOverflow": false,
+    "outOfViewport": [
+      {
+        "selector": "nav.fixed.inset-x-0",
+        "bounds": {
+          "left": 0,
+          "top": -80,
+          "right": 1280,
+          "bottom": -7,
+          "width": 1280,
+          "height": 73
+        }
+      },
+      {
+        "selector": "nav.fixed.inset-x-0 > div.mx-auto.w-full",
+        "bounds": {
+          "left": 0,
+          "top": -80,
+          "right": 1280,
+          "bottom": -7,
+          "width": 1280,
+          "height": 73
+        }
+      },
+      {
+        "selector": "nav.fixed.inset-x-0 > div.mx-auto.w-full > div.mx-auto.flex",
+        "bounds": {
+          "left": 0,
+          "top": -80,
+          "right": 1280,
+          "bottom": -8,
+          "width": 1280,
+          "height": 72
+        }
+      },
+      {
+        "selector": "nav.fixed.inset-x-0 > div.mx-auto.w-full > div.mx-auto.flex > div.flex.items-center:nth-of-type(1)",
+        "bounds": {
+          "left": 32,
+          "top": -60,
+          "right": 155.58,
+          "bottom": -28,
+          "width": 123.58,
+          "height": 32
+        }
+      },
+      {
+        "selector": "nav.fixed.inset-x-0 > div.mx-auto.w-full > div.mx-auto.flex > div.flex.items-center:nth-of-type(1) > a.flex.items-center",
+        "bounds": {
+          "left": 32,
+          "top": -60,
+          "right": 155.58,
+          "bottom": -28,
+          "width": 123.58,
+          "height": 32
+        }
+      },
+      {
+        "selector": "div.mx-auto.w-full > div.mx-auto.flex > div.flex.items-center:nth-of-type(1) > a.flex.items-center > div.flex.h-8",
+        "bounds": {
+          "left": 32,
+          "top": -60,
+          "right": 64,
+          "bottom": -28,
+          "width": 32,
+          "height": 32
+        }
+      },
+      {
+        "selector": "div.mx-auto.w-full > div.mx-auto.flex > div.flex.items-center:nth-of-type(1) > a.flex.items-center > span.text-\\[15px\\].font-medium",
+        "bounds": {
+          "left": 72,
+          "top": -55.25,
+          "right": 155.58,
+          "bottom": -32.75,
+          "width": 83.58,
+          "height": 22.5
+        }
+      },
+      {
+        "selector": "nav.fixed.inset-x-0 > div.mx-auto.w-full > div.mx-auto.flex > div.hidden.md\\:flex:nth-of-type(3)",
+        "bounds": {
+          "left": 1108.34,
+          "top": -63.75,
+          "right": 1248,
+          "bottom": -24.25,
+          "width": 139.66,
+          "height": 39.5
+        }
+      },
+      {
+        "selector": "nav.fixed.inset-x-0 > div.mx-auto.w-full > div.mx-auto.flex > div.hidden.md\\:flex:nth-of-type(3) > a.inline-flex.items-center",
+        "bounds": {
+          "left": 1108.34,
+          "top": -63.75,
+          "right": 1248,
+          "bottom": -24.25,
+          "width": 139.66,
+          "height": 39.5
+        }
+      },
+      {
+        "selector": "#main-content",
+        "bounds": {
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 11375.03,
+          "width": 1280,
+          "height": 11375.03
+        }
+      }
+    ]
+  },
+  "mobile": {
+    "viewport": {
+      "width": 375,
+      "height": 812
+    },
+    "horizontalOverflow": false,
+    "outOfViewport": [
+      {
+        "selector": "#main-content",
+        "bounds": {
+          "left": 0,
+          "top": 0,
+          "right": 375,
+          "bottom": 14640.89,
+          "width": 375,
+          "height": 14640.89
+        }
+      },
+      {
+        "selector": "#hero",
+        "bounds": {
+          "left": 0,
+          "top": 0,
+          "right": 375,
+          "bottom": 956.89,
+          "width": 375,
+          "height": 956.89
+        }
+      },
+      {
+        "selector": "main.flex-grow > section.relative.min-h-\\[90vh\\]:nth-of-type(1) > div.pointer-events-none.absolute:nth-of-type(1)",
+        "bounds": {
+          "left": 0,
+          "top": 0,
+          "right": 375,
+          "bottom": 956.89,
+          "width": 375,
+          "height": 956.89
+        }
+      },
+      {
+        "selector": "main.flex-grow > section.relative.min-h-\\[90vh\\]:nth-of-type(1) > div.absolute.inset-0:nth-of-type(2)",
+        "bounds": {
+          "left": 0,
+          "top": 0,
+          "right": 375,
+          "bottom": 956.89,
+          "width": 375,
+          "height": 956.89
+        }
+      },
+      {
+        "selector": "main.flex-grow > section.relative.min-h-\\[90vh\\]:nth-of-type(1) > div.absolute.inset-0:nth-of-type(2) > svg.absolute.top-1\\/2",
+        "bounds": {
+          "left": -332.22,
+          "top": -41.29,
+          "right": 707.22,
+          "bottom": 998.16,
+          "width": 1039.45,
+          "height": 1039.45
+        }
+      },
+      {
+        "selector": "main.flex-grow > section.relative.min-h-\\[90vh\\]:nth-of-type(1) > div.absolute.inset-0:nth-of-type(2) > svg.absolute.top-1\\/2 > path",
+        "bounds": {
+          "left": -129.9,
+          "top": 146.18,
+          "right": 545.75,
+          "bottom": 821.82,
+          "width": 675.64,
+          "height": 675.64
+        }
+      },
+      {
+        "selector": "main.flex-grow > section.relative.min-h-\\[90vh\\]:nth-of-type(1) > div.absolute.inset-0:nth-of-type(3)",
+        "bounds": {
+          "left": 0,
+          "top": 0,
+          "right": 375,
+          "bottom": 956.89,
+          "width": 375,
+          "height": 956.89
+        }
+      },
+      {
+        "selector": "main.flex-grow > section.relative.min-h-\\[90vh\\]:nth-of-type(1) > div.absolute.inset-0:nth-of-type(3) > svg.absolute.inset-0",
+        "bounds": {
+          "left": 0,
+          "top": 0,
+          "right": 375,
+          "bottom": 956.89,
+          "width": 375,
+          "height": 956.89
+        }
+      },
+      {
+        "selector": "main.flex-grow > section.relative.min-h-\\[90vh\\]:nth-of-type(1) > div.absolute.inset-0:nth-of-type(3) > svg.absolute.inset-0 > rect",
+        "bounds": {
+          "left": 0,
+          "top": 0,
+          "right": 375,
+          "bottom": 956.89,
+          "width": 375,
+          "height": 956.89
+        }
+      },
+      {
+        "selector": "main.flex-grow > section.relative.min-h-\\[90vh\\]:nth-of-type(1) > div.absolute.inset-0:nth-of-type(3) > div.absolute.inset-0:nth-of-type(1)",
+        "bounds": {
+          "left": 0,
+          "top": 0,
+          "right": 375,
+          "bottom": 956.89,
+          "width": 375,
+          "height": 956.89
+        }
+      }
+    ]
+  }
+}

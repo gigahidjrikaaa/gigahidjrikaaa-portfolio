@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { apiService, SkillResponse } from '@/services/api';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
-import { Layers, Database, Globe, Wrench, Cpu, Code, Terminal, Boxes } from 'lucide-react';
+import { Database, Globe, Wrench, Cpu, Code, Terminal, Boxes } from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -31,7 +31,7 @@ const clampProficiency = (value: number | null | undefined) => {
 const copy = {
   eyebrow: 'EXPERTISE',
   title: 'Skills & Technologies',
-  subtitle: 'A curated toolkit spanning languages, frameworks, tools, and methodologies.',
+  subtitle: 'Tools I use in production, grouped by where they help most in the build process.',
   loading: 'Loading skills...',
   empty: 'Skills coming soon.',
 };
@@ -78,11 +78,6 @@ const Skills = () => {
 
   return (
     <section id="skills" className="relative overflow-hidden bg-zinc-50 py-24 dark:bg-black md:py-32">
-      {/* Background Ambience */}
-      <div className="pointer-events-none absolute inset-0 -z-10 flex items-center justify-center opacity-30 dark:opacity-20">
-        <div className="h-[40rem] w-[40rem] rounded-full bg-gradient-to-tr from-emerald-500 to-sky-500 blur-[128px]" />
-      </div>
-
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial="hidden"
@@ -92,12 +87,9 @@ const Skills = () => {
         >
           {/* Header */}
           <motion.div variants={itemVariants} className="mb-16 md:mb-24 flex flex-col items-center text-center">
-            <div className="flex items-center gap-2 mb-6 font-mono text-sm tracking-widest uppercase text-emerald-600 dark:text-emerald-400">
-              <span className="w-8 h-px bg-emerald-600/30 dark:bg-emerald-400/30" />
-              <Layers className="h-4 w-4" />
-              <span>{copy.eyebrow}</span>
-              <span className="w-8 h-px bg-emerald-600/30 dark:bg-emerald-400/30" />
-            </div>
+            <span className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-gray-500 dark:text-zinc-400">
+              {copy.eyebrow}
+            </span>
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
               {copy.title}
             </h2>

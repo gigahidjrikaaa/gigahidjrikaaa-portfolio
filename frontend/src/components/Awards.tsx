@@ -28,7 +28,7 @@ const itemVariants = {
 const copy = {
   eyebrow: 'RECOGNITION',
   title: 'Awards & Achievements',
-  subtitle: 'Honors and recognitions from competitions, hackathons, and professional milestones.',
+  subtitle: 'A shortlist of competitions, programs, and milestones that mark the work I am most proud of.',
   loading: 'Loading awards...',
   empty: 'Awards coming soon.',
 };
@@ -68,7 +68,7 @@ const Awards = () => {
       {/* Background pattern */}
       <div
         className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-10"
-        style={{ backgroundImage: "url('/hero-bg.jpg')" }}
+        style={{ backgroundImage: "url('/giga-pics/giga-6.jpg')" }}
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-gray-900/90 via-gray-900/80 to-gray-900/90" />
 

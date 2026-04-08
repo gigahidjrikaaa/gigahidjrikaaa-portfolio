@@ -2,10 +2,12 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence, useInView, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { ArrowUpRight, Github, ExternalLink, ChevronLeft, ChevronRight, Layers, Star } from 'lucide-react';
+import { ArrowUpRight, Github, ExternalLink, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { apiService } from "@/services/api";
 import ProjectModal from './ProjectModal';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
+import { FloatingShapes } from './decorations/FloatingShapes';
+import { ProjectsGraphic } from './decorations/sections/ProjectsGraphic';
 
 interface ProjectItem {
   id: number;
@@ -34,6 +36,15 @@ interface ProjectItem {
   solo_contributions?: string;
   tech_decisions?: string;
 }
+
+const PROJECT_FALLBACK_IMAGES = [
+  '/giga-pics/giga-1.jpg',
+  '/giga-pics/giga-2.jpg',
+  '/giga-pics/giga-3.jpg',
+  '/giga-pics/giga-4.jpg',
+  '/giga-pics/giga-5.jpg',
+  '/giga-pics/giga-6.jpg',
+];
 
 // Tilt card hook
 function useTilt(maxTilt = 8) {
@@ -116,6 +127,7 @@ const Projects = () => {
     if (featuredProjects.length === 0) return null;
     const project = featuredProjects[carouselIndex];
     const imageUrl = getProjectImage(project);
+    const fallbackImage = PROJECT_FALLBACK_IMAGES[carouselIndex % PROJECT_FALLBACK_IMAGES.length];
 
     const slideVariants = {
       enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -230,9 +242,12 @@ const Projects = () => {
                     className="absolute inset-0 h-full w-full object-cover opacity-80"
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Layers className="h-24 w-24 text-white/10" />
-                  </div>
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={fallbackImage}
+                    alt={`${project.title} fallback visual`}
+                    className="absolute inset-0 h-full w-full object-cover opacity-80"
+                  />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/40 to-transparent" />
               </div>
@@ -277,6 +292,7 @@ const Projects = () => {
     const cardRef = useRef<HTMLDivElement>(null);
     const inView = useInView(cardRef, { once: true, margin: "-50px" });
     const imageUrl = getProjectImage(project);
+    const fallbackImage = PROJECT_FALLBACK_IMAGES[index % PROJECT_FALLBACK_IMAGES.length];
 
     return (
       <motion.div
@@ -305,9 +321,13 @@ const Projects = () => {
                 loading="lazy"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                <Layers className="h-12 w-12 text-gray-300" />
-              </div>
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={fallbackImage}
+                alt={`${project.title} fallback visual`}
+                className="h-full w-full object-cover grayscale-[0.1] transition-transform duration-700 ease-out group-hover:scale-105"
+                loading="lazy"
+              />
             )}
             {/* Dark vignette on hover */}
             <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />
@@ -430,6 +450,7 @@ const Projects = () => {
 
   return (
     <section id="projects" className="relative overflow-hidden bg-zinc-50 py-24 dark:bg-zinc-900 md:py-32" ref={sectionRef}>
+      <FloatingShapes />
       {/* Subtle grid background */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.03]"
@@ -445,8 +466,11 @@ const Projects = () => {
           initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-14"
+          className="mb-14 relative"
         >
+          <div className="absolute right-0 top-0 -translate-y-[20%] opacity-20 md:opacity-100 md:-translate-y-1/4 scale-75 md:scale-100 pointer-events-none -z-10">
+             <ProjectsGraphic />
+          </div>
           <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
             Portfolio
           </span>
