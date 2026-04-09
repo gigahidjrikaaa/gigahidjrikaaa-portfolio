@@ -37,14 +37,7 @@ interface ProjectItem {
   tech_decisions?: string;
 }
 
-const PROJECT_FALLBACK_IMAGES = [
-  '/giga-pics/giga-1.jpg',
-  '/giga-pics/giga-2.jpg',
-  '/giga-pics/giga-3.jpg',
-  '/giga-pics/giga-4.jpg',
-  '/giga-pics/giga-5.jpg',
-  '/giga-pics/giga-6.jpg',
-];
+const PROJECT_PLACEHOLDER_IMAGE = '/placeholder.png';
 
 // Tilt card hook
 function useTilt(maxTilt = 8) {
@@ -122,12 +115,18 @@ const Projects = () => {
   const getProjectImage = (p: ProjectItem) =>
     p.image_url || p.thumbnail_url || p.ui_image_url || null;
 
+  const handleImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const target = event.currentTarget;
+    if (target.src.endsWith(PROJECT_PLACEHOLDER_IMAGE)) return;
+    target.src = PROJECT_PLACEHOLDER_IMAGE;
+  };
+
   // ──────────────── Featured Carousel ────────────────
   const FeaturedHero = () => {
     if (featuredProjects.length === 0) return null;
     const project = featuredProjects[carouselIndex];
     const imageUrl = getProjectImage(project);
-    const fallbackImage = PROJECT_FALLBACK_IMAGES[carouselIndex % PROJECT_FALLBACK_IMAGES.length];
+    const fallbackImage = PROJECT_PLACEHOLDER_IMAGE;
 
     const slideVariants = {
       enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -240,6 +239,7 @@ const Projects = () => {
                     src={imageUrl}
                     alt={project.title}
                     className="absolute inset-0 h-full w-full object-cover opacity-80"
+                    onError={handleImageError}
                   />
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -292,7 +292,7 @@ const Projects = () => {
     const cardRef = useRef<HTMLDivElement>(null);
     const inView = useInView(cardRef, { once: true, margin: "-50px" });
     const imageUrl = getProjectImage(project);
-    const fallbackImage = PROJECT_FALLBACK_IMAGES[index % PROJECT_FALLBACK_IMAGES.length];
+    const fallbackImage = PROJECT_PLACEHOLDER_IMAGE;
 
     return (
       <motion.div
@@ -319,6 +319,7 @@ const Projects = () => {
                 alt={project.title}
                 className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 loading="lazy"
+                onError={handleImageError}
               />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
