@@ -65,6 +65,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
   const [roleCustom, setRoleCustom] = useState('');
   const [projectImages, setProjectImages] = useState<ProjectImageDraft[]>(images);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "";
   const cloudApiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || "";
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
@@ -94,6 +95,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
       });
       setRolePreset(preset);
       setRoleCustom(preset === 'Other' ? (project.role || '') : '');
+      setFieldErrors({});
     }
   }, [project]);
 
@@ -107,6 +109,61 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
       ...prev,
       [id]: type === 'number' ? Number(value) : value,
     }));
+    if (fieldErrors[id]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    }
+  };
+
+  const hasError = (field: string) => Boolean(fieldErrors[field]);
+
+  const clearError = (field: string) => {
+    if (!fieldErrors[field]) return;
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const getMissingRequiredFields = () => {
+    const missing: string[] = [];
+
+    if (!formData.title.trim()) missing.push('title');
+    if (!formData.tagline.trim()) missing.push('tagline');
+    if (!formData.description.trim()) missing.push('description');
+    if (!formData.github_url.trim()) missing.push('github_url');
+
+    if (rolePreset === 'Other') {
+      if (!roleCustom.trim()) {
+        missing.push('role_custom');
+      }
+    } else if (!formData.role.trim()) {
+      missing.push('role');
+    }
+
+    if (!formData.team_size || formData.team_size <= 0) missing.push('team_size');
+    if (!formData.challenges.trim()) missing.push('challenges');
+    if (!formData.solutions.trim()) missing.push('solutions');
+    if (!formData.impact.trim()) missing.push('impact');
+
+    return missing;
+  };
+
+  const requiredFieldLabels: Record<string, string> = {
+    title: 'Title',
+    tagline: 'Tagline',
+    description: 'Description',
+    github_url: 'GitHub URL',
+    role: 'Role',
+    role_custom: 'Custom Role',
+    team_size: 'Team Size',
+    challenges: 'Challenges',
+    solutions: 'Solutions',
+    impact: 'Impact',
   };
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -128,8 +185,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
     if (value !== 'Other') {
       setFormData((prev) => ({ ...prev, role: value }));
       setRoleCustom('');
+      clearError('role');
+      clearError('role_custom');
     } else {
       setFormData((prev) => ({ ...prev, role: roleCustom }));
+      clearError('role');
     }
   };
 
@@ -158,28 +218,43 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
   const handleRoleCustomChange = (value: string) => {
     setRoleCustom(value);
     setFormData((prev) => ({ ...prev, role: value }));
+    clearError('role_custom');
+  };
+
+  const handleTeamSizeChange = (value: number) => {
+    setFormData((prev) => ({ ...prev, team_size: value }));
+    clearError('team_size');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !formData.title ||
-      !formData.tagline ||
-      !formData.description ||
-      !formData.github_url ||
-      !formData.role ||
-      !formData.team_size ||
-      !formData.challenges ||
-      !formData.solutions ||
-      !formData.impact
-    ) {
+
+    const missingFields = getMissingRequiredFields();
+
+    if (missingFields.length > 0) {
+      const nextErrors = missingFields.reduce<Record<string, string>>((acc, field) => {
+        acc[field] = 'This field is required.';
+        return acc;
+      }, {});
+      setFieldErrors(nextErrors);
+
       toast({
         title: 'Missing required fields',
-        description: 'Please complete the required project details before saving.',
+        description: 'Please complete the highlighted project fields before saving.',
         variant: 'error',
       });
+
+      const firstMissing = missingFields[0];
+      requestAnimationFrame(() => {
+        const target = document.getElementById(firstMissing === 'role_custom' ? 'role_custom' : firstMissing);
+        target?.focus();
+      });
+
       return;
     }
+
+    setFieldErrors({});
+
     const normalizedImages = projectImages.map((image, index) => ({
       ...image,
       display_order: image.display_order ?? index,
@@ -275,6 +350,17 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
         className="mb-2"
       />
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          {Object.keys(fieldErrors).length > 0 ? (
+            <div className="md:col-span-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <p className="font-semibold">Please complete these required fields:</p>
+              <p className="mt-1">
+                {Object.keys(fieldErrors)
+                  .map((field) => requiredFieldLabels[field] ?? field)
+                  .join(', ')}
+              </p>
+            </div>
+          ) : null}
+
           <div>
             <Label htmlFor="title" className="text-gray-700">Title *</Label>
             <Input
@@ -282,9 +368,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               value={formData.title}
               onChange={handleChange}
               required
+              aria-invalid={hasError('title')}
               className="mt-1"
               placeholder="e.g., AI Portfolio Builder"
             />
+            {hasError('title') ? <p className="mt-1 text-xs text-red-600">Title is required.</p> : null}
           </div>
           <div>
             <Label htmlFor="tagline" className="text-gray-700">Tagline *</Label>
@@ -293,9 +381,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               value={formData.tagline}
               onChange={handleChange}
               required
+              aria-invalid={hasError('tagline')}
               className="mt-1"
               placeholder="One-line summary of the project"
             />
+            {hasError('tagline') ? <p className="mt-1 text-xs text-red-600">Tagline is required.</p> : null}
           </div>
           <div className="md:col-span-2">
             <Label htmlFor="description" className="text-gray-700">Description *</Label>
@@ -304,10 +394,12 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               value={formData.description}
               onChange={handleChange}
               required
+              aria-invalid={hasError('description')}
               rows={4}
               className="mt-1"
               placeholder="Describe the project goals, scope, and outcome"
             />
+            {hasError('description') ? <p className="mt-1 text-xs text-red-600">Description is required.</p> : null}
           </div>
           <div>
             <Label htmlFor="github_url" className="text-gray-700">GitHub URL *</Label>
@@ -317,9 +409,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               value={formData.github_url}
               onChange={handleChange}
               required
+              aria-invalid={hasError('github_url')}
               className="mt-1"
               placeholder="https://github.com/username/repo"
             />
+            {hasError('github_url') ? <p className="mt-1 text-xs text-red-600">GitHub URL is required.</p> : null}
           </div>
           <div>
             <Label htmlFor="live_url" className="text-gray-700">Live URL (Optional)</Label>
@@ -349,7 +443,10 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               id="role"
               value={rolePreset || 'Other'}
               onChange={(e) => handleRolePresetChange(e.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+              className={`mt-1 w-full rounded-md border px-3 py-2 text-sm ${
+                hasError('role') ? 'border-red-400 bg-red-50' : 'border-gray-200'
+              }`}
+              aria-invalid={hasError('role')}
               required
             >
               {roleOptions.map((option) => (
@@ -363,17 +460,23 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
                 onChange={(e) => handleRoleCustomChange(e.target.value)}
                 placeholder="e.g., Full-Stack Developer"
                 className="mt-2"
+                aria-invalid={hasError('role_custom')}
                 required
               />
             )}
+            {hasError('role') ? <p className="mt-1 text-xs text-red-600">Role is required.</p> : null}
+            {hasError('role_custom') ? <p className="mt-1 text-xs text-red-600">Custom role is required.</p> : null}
           </div>
           <div>
             <Label htmlFor="team_size" className="text-gray-700">Team Size *</Label>
             <select
               id="team_size"
               value={formData.team_size}
-              onChange={(e) => setFormData((prev) => ({ ...prev, team_size: Number(e.target.value) }))}
-              className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+              onChange={(e) => handleTeamSizeChange(Number(e.target.value))}
+              className={`mt-1 w-full rounded-md border px-3 py-2 text-sm ${
+                hasError('team_size') ? 'border-red-400 bg-red-50' : 'border-gray-200'
+              }`}
+              aria-invalid={hasError('team_size')}
               required
             >
               <option value="">Select team size</option>
@@ -381,6 +484,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
                 <option key={size} value={size}>{size}</option>
               ))}
             </select>
+            {hasError('team_size') ? <p className="mt-1 text-xs text-red-600">Team size is required.</p> : null}
           </div>
           <div className="md:col-span-2">
             <Label htmlFor="challenges" className="text-gray-700">Challenges *</Label>
@@ -389,10 +493,12 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               value={formData.challenges}
               onChange={handleChange}
               required
+              aria-invalid={hasError('challenges')}
               rows={3}
               className="mt-1"
               placeholder="Key technical or product challenges"
             />
+            {hasError('challenges') ? <p className="mt-1 text-xs text-red-600">Challenges are required.</p> : null}
           </div>
           <div className="md:col-span-2">
             <Label htmlFor="solutions" className="text-gray-700">Solutions *</Label>
@@ -401,10 +507,12 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               value={formData.solutions}
               onChange={handleChange}
               required
+              aria-invalid={hasError('solutions')}
               rows={3}
               className="mt-1"
               placeholder="How you solved them"
             />
+            {hasError('solutions') ? <p className="mt-1 text-xs text-red-600">Solutions are required.</p> : null}
           </div>
           <div className="md:col-span-2">
             <Label htmlFor="impact" className="text-gray-700">Impact *</Label>
@@ -413,10 +521,12 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, images = [], onSave,
               value={formData.impact}
               onChange={handleChange}
               required
+              aria-invalid={hasError('impact')}
               rows={3}
               className="mt-1"
               placeholder="Quantify outcomes (users, revenue, performance)"
             />
+            {hasError('impact') ? <p className="mt-1 text-xs text-red-600">Impact is required.</p> : null}
           </div>
           <ImageMediaField
             id="image_url"
