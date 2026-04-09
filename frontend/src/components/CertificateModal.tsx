@@ -5,23 +5,20 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { X, BadgeCheck, Calendar, Hash, ArrowUpRight } from 'lucide-react';
-
-type Certificate = {
-  id: number;
-  title: string;
-  issuer?: string;
-  issue_date?: string;
-  credential_id?: string;
-  credential_url?: string;
-  image_url?: string;
-  description?: string;
-  display_order: number;
-};
+import { Badge } from '@/components/ui/badge';
+import { CertificateResponse } from '@/services/api';
+import {
+  deriveCredentialStatus,
+  getCertificateTypeBadgeClassName,
+  getCertificateTypeLabel,
+  getCredentialStatusBadgeClassName,
+  getCredentialStatusLabel,
+} from '@/lib/certificateMeta';
 
 type CertificateModalProps = {
   open: boolean;
   onClose: () => void;
-  certificate: Certificate;
+  certificate: CertificateResponse;
 };
 
 const overlayVariants = {
@@ -38,6 +35,7 @@ const modalVariants = {
 
 const CertificateModal: React.FC<CertificateModalProps> = ({ open, onClose, certificate }) => {
   const [mounted, setMounted] = useState(false);
+  const resolvedStatus = deriveCredentialStatus(certificate);
 
   useEffect(() => {
     setMounted(true);
@@ -130,6 +128,21 @@ const CertificateModal: React.FC<CertificateModalProps> = ({ open, onClose, cert
                   </p>
                 )}
 
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Badge
+                    variant="outline"
+                    className={`rounded-full border ${getCertificateTypeBadgeClassName(certificate.certificate_type)}`}
+                  >
+                    {getCertificateTypeLabel(certificate.certificate_type, certificate.custom_type_label)}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className={`rounded-full border ${getCredentialStatusBadgeClassName(resolvedStatus)}`}
+                  >
+                    {getCredentialStatusLabel(resolvedStatus)}
+                  </Badge>
+                </div>
+
                 {/* Meta chips */}
                 <div className="mt-3 flex flex-wrap gap-3">
                   {certificate.issue_date && (
@@ -138,13 +151,54 @@ const CertificateModal: React.FC<CertificateModalProps> = ({ open, onClose, cert
                       {certificate.issue_date}
                     </span>
                   )}
+                  {certificate.expiry_date && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                      <Calendar className="h-3.5 w-3.5" />
+                      Expires {certificate.expiry_date}
+                    </span>
+                  )}
                   {certificate.credential_id && (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                       <Hash className="h-3.5 w-3.5" />
                       {certificate.credential_id}
                     </span>
                   )}
+                  {certificate.level && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                      Level: {certificate.level}
+                    </span>
+                  )}
+                  {certificate.result && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                      Result: {certificate.result}
+                    </span>
+                  )}
                 </div>
+
+                {(certificate.specialization || certificate.authority || certificate.region || certificate.learning_hours) && (
+                  <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-zinc-600 sm:grid-cols-2 dark:text-zinc-300">
+                    {certificate.specialization ? (
+                      <p>
+                        <span className="font-semibold">Specialization:</span> {certificate.specialization}
+                      </p>
+                    ) : null}
+                    {certificate.authority ? (
+                      <p>
+                        <span className="font-semibold">Authority:</span> {certificate.authority}
+                      </p>
+                    ) : null}
+                    {certificate.region ? (
+                      <p>
+                        <span className="font-semibold">Region:</span> {certificate.region}
+                      </p>
+                    ) : null}
+                    {certificate.learning_hours ? (
+                      <p>
+                        <span className="font-semibold">Learning Hours:</span> {certificate.learning_hours}
+                      </p>
+                    ) : null}
+                  </div>
+                )}
               </div>
 
               {/* Description + CTA */}
@@ -159,6 +213,26 @@ const CertificateModal: React.FC<CertificateModalProps> = ({ open, onClose, cert
                     </p>
                   </div>
                 )}
+
+                {certificate.skills ? (
+                  <div>
+                    <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
+                      Skills
+                    </h3>
+                    <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">{certificate.skills}</p>
+                  </div>
+                ) : null}
+
+                {certificate.custom_details ? (
+                  <div>
+                    <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
+                      Additional Details
+                    </h3>
+                    <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+                      {certificate.custom_details}
+                    </p>
+                  </div>
+                ) : null}
 
                 {certificate.credential_url && (
                   <a

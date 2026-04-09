@@ -19,6 +19,7 @@ from reportlab.platypus import Image, KeepTogether, PageBreak, Paragraph, Simple
 from sqlalchemy.orm import Session, selectinload
 
 from ..database import Award, BlogPost, Certificate, Education, Experience, Profile, Project, Service, Skill, Testimonial
+from ..schemas import CertificateResponse
 
 logger = logging.getLogger(__name__)
 
@@ -215,7 +216,10 @@ def collect_portfolio_data(db: Session) -> dict[str, Any]:
     skills = db.query(Skill).order_by(Skill.category.asc(), Skill.display_order.asc()).all()
     services = db.query(Service).order_by(Service.display_order.asc()).all()
     awards = db.query(Award).order_by(Award.display_order.asc()).all()
-    certificates = db.query(Certificate).order_by(Certificate.display_order.asc()).all()
+    certificates = [
+        CertificateResponse.model_validate(item, from_attributes=True)
+        for item in db.query(Certificate).order_by(Certificate.display_order.asc()).all()
+    ]
     testimonials = (
         db.query(Testimonial)
         .filter(Testimonial.status == "approved", Testimonial.is_featured == True)

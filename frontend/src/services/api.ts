@@ -135,10 +135,22 @@ export interface AwardResponse extends AwardBase {
 
 export interface CertificateBase {
   title: string;
+  certificate_type: string;
+  custom_type_label?: string;
   issuer?: string;
+  authority?: string;
   issue_date?: string;
+  expiry_date?: string;
+  credential_status?: string;
   credential_id?: string;
   credential_url?: string;
+  specialization?: string;
+  level?: string;
+  result?: string;
+  learning_hours?: number;
+  skills?: string;
+  region?: string;
+  custom_details?: string;
   image_url?: string;
   description?: string;
   display_order: number;

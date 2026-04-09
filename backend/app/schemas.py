@@ -1,7 +1,8 @@
-from pydantic import BaseModel, EmailStr, HttpUrl, field_validator, Field
+from pydantic import BaseModel, EmailStr, HttpUrl, field_validator, model_validator, Field
 from typing import List, Optional
 from datetime import datetime
 import re
+from .utils.certificate_status import normalize_credential_status
 
 # Base schemas
 class ProjectBase(BaseModel):
@@ -220,10 +221,22 @@ class AwardResponse(AwardBase):
 # Certificates schemas
 class CertificateBase(BaseModel):
     title: str
+    certificate_type: str = "technical"
+    custom_type_label: Optional[str] = None
     issuer: Optional[str] = None
+    authority: Optional[str] = None
     issue_date: Optional[str] = None
+    expiry_date: Optional[str] = None
+    credential_status: Optional[str] = None
     credential_id: Optional[str] = None
     credential_url: Optional[str] = None
+    specialization: Optional[str] = None
+    level: Optional[str] = None
+    result: Optional[str] = None
+    learning_hours: Optional[int] = None
+    skills: Optional[str] = None
+    region: Optional[str] = None
+    custom_details: Optional[str] = None
     image_url: Optional[str] = None
     description: Optional[str] = None
     display_order: int = 0
@@ -235,10 +248,22 @@ class CertificateCreate(CertificateBase):
 
 class CertificateUpdate(BaseModel):
     title: Optional[str] = None
+    certificate_type: Optional[str] = None
+    custom_type_label: Optional[str] = None
     issuer: Optional[str] = None
+    authority: Optional[str] = None
     issue_date: Optional[str] = None
+    expiry_date: Optional[str] = None
+    credential_status: Optional[str] = None
     credential_id: Optional[str] = None
     credential_url: Optional[str] = None
+    specialization: Optional[str] = None
+    level: Optional[str] = None
+    result: Optional[str] = None
+    learning_hours: Optional[int] = None
+    skills: Optional[str] = None
+    region: Optional[str] = None
+    custom_details: Optional[str] = None
     image_url: Optional[str] = None
     description: Optional[str] = None
     display_order: Optional[int] = None
@@ -247,6 +272,15 @@ class CertificateUpdate(BaseModel):
 class CertificateResponse(CertificateBase):
     id: int
     created_at: datetime
+
+    @model_validator(mode="after")
+    def normalize_status(self):
+        self.credential_status = normalize_credential_status(
+            issue_date=self.issue_date,
+            expiry_date=self.expiry_date,
+            current_status=self.credential_status,
+        )
+        return self
 
     class Config:
         from_attributes = True
