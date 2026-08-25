@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
-import { apiService, ProfileResponse } from '@/services/api';
-import { BackgroundBlob } from './decorations/BackgroundBlob';
+import { apiService } from '@/services/api';
 import { GridPattern } from './decorations/GridPattern';
 import { HeroGraphic } from './decorations/sections/HeroGraphic';
 
@@ -26,28 +25,36 @@ const copy = {
   ctaSecondary: 'Get in touch',
 };
 
-const Hero = () => {
-  const [profile, setProfile] = useState<ProfileResponse | null>(null);
+interface HeroProps {
+  /** Server-rendered profile (ISR). When present, skips the client fetch. */
+  initialProfile?: { location?: string | null } | null;
+}
+
+const Hero = ({ initialProfile = null }: HeroProps) => {
+  const [profile, setProfile] = useState<{ location?: string | null } | null>(initialProfile);
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
+    if (initialProfile) return; // server data present — no client fetch needed
+    let cancelled = false;
     const loadProfile = async () => {
       try {
         const data = await apiService.getProfile();
-        setProfile(data);
+        if (!cancelled) setProfile(data);
       } catch (error) {
-        console.error('Failed to load profile data:', error);
+        if (!cancelled) console.error('Failed to load profile data:', error);
       }
     };
     loadProfile();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [initialProfile]);
 
   const location = profile?.location || 'Yogyakarta, ID';
 
   return (
     <section id="hero" className="relative min-h-[90vh] md:min-h-screen bg-zinc-50 flex items-center justify-center overflow-hidden pt-24 pb-16">
-      <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.16),transparent_55%)]" />
-      <BackgroundBlob />
       <GridPattern />
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
@@ -74,10 +81,10 @@ const Hero = () => {
               initial={reduceMotion ? "visible" : "hidden"}
               animate="visible"
               variants={heroVariants}
-              className="text-[3.5rem] sm:text-6xl md:text-7xl lg:text-[5.5rem] font-medium tracking-tight text-zinc-900 leading-[1.05]"
+              className="break-words text-[3.5rem] sm:text-6xl md:text-7xl lg:text-[5.5rem] font-medium tracking-tight text-zinc-900 leading-[1.05]"
             >
                {copy.name.split(' ')[0]} <br className="md:hidden" />
-               <span className="text-zinc-400">{copy.name.split(' ').slice(1).join(' ')}</span>
+               <span className="text-zinc-500">{copy.name.split(' ').slice(1).join(' ')}</span>
             </motion.h1>
 
             <motion.div
@@ -163,13 +170,13 @@ const Hero = () => {
                  />
                </div>
                <div className="w-full flex items-center justify-between pt-3 px-1 text-zinc-400">
-                 <span className="text-[10px] font-mono uppercase tracking-wider">IMG_9042</span>
-                 <span className="text-[10px] font-mono">2024</span>
+                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em]">Yogyakarta, ID</span>
+                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em]">2024</span>
                </div>
              </motion.div>
 
              {/* Front Card */}
-             <motion.div 
+             <motion.div
                initial={reduceMotion ? { opacity: 1, rotate: 6, x: 20, y: -20 } : { opacity: 0, y: 150, rotate: 20, scale: 0.8 }}
                animate={{ opacity: 1, y: -20, rotate: 4, x: 20, scale: 1 }}
                transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
@@ -177,18 +184,18 @@ const Hero = () => {
                whileHover={{ scale: 1.05, rotate: 6, y: -30 }}
              >
                <div className="relative w-full h-[85%] overflow-hidden bg-zinc-200">
-                  <Image 
-                    src="/giga-pics/giga-1.jpg" 
-                    alt="Profile photo" 
-                    fill 
+                  <Image
+                    src="/giga-pics/giga-1.jpg"
+                    alt="Profile photo"
+                    fill
                     priority
                     className="object-cover hover:scale-105 transition-transform duration-700 ease-out"
                     sizes="(max-width: 768px) 260px, 320px"
                   />
                </div>
                <div className="w-full flex items-center justify-between pt-4 px-1 text-zinc-400">
-                 <span className="text-[10px] font-mono uppercase tracking-wider">SYS_INIT_OK</span>
-                 <span className="text-[10px] font-mono">ACT_1</span>
+                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em]">Giga Hidjrika</span>
+                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em]">Est. 2022</span>
                </div>
              </motion.div>
 

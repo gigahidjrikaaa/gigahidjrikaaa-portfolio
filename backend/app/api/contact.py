@@ -5,6 +5,10 @@ from ..database import get_db, ContactMessage
 from ..services.email_service import send_contact_email
 from ..utils import sanitize_text
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
@@ -19,5 +23,11 @@ async def create_contact_message(message: schemas.ContactForm, db: Session = Dep
     db.add(db_message)
     db.commit()
     db.refresh(db_message)
-    await send_contact_email(sanitized_data['name'], sanitized_data['email'], sanitized_data['message'])
+    # The message is safely stored at this point. Email delivery is
+    # best-effort: an SMTP outage must not turn a saved submission into a
+    # 500 (that would make visitors retry and create duplicates).
+    try:
+        await send_contact_email(sanitized_data['name'], sanitized_data['email'], sanitized_data['message'])
+    except Exception:
+        logger.exception("Contact email delivery failed for message id=%s", db_message.id)
     return db_message

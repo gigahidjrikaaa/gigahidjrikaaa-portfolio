@@ -188,11 +188,11 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ open, onClose, project }) =
 
               {/* Title + tagline overlay */}
               <div className="absolute inset-x-0 bottom-0 px-6 pb-5 pt-12">
-                <h2 className="text-xl font-bold leading-tight text-white sm:text-2xl md:text-3xl">
+                <h2 className="break-words text-xl font-bold leading-tight text-white sm:text-2xl md:text-3xl">
                   {project.title}
                 </h2>
                 {project.tagline && (
-                  <p className="mt-1 text-sm font-medium text-white/65">{project.tagline}</p>
+                  <p className="mt-1 break-words text-sm font-medium text-white/65">{project.tagline}</p>
                 )}
               </div>
             </div>

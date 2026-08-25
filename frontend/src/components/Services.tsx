@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { CircleCheck } from "lucide-react";
 import { apiService, ServiceResponse } from "@/services/api";
+import { useApiData } from "@/hooks/useApiData";
 
 const copy = {
   eyebrow: "WHY CHOOSE",
@@ -22,24 +23,11 @@ const copy = {
 };
 
 const Services = () => {
-  const [services, setServices] = useState<ServiceResponse[]>([]);
-  const [, setLoading] = useState(true);
+  // Services are optional enhancement content: on failure the section
+  // degrades to the static copy below instead of showing an error.
+  const { data: servicesData } = useApiData<ServiceResponse[]>(() => apiService.getServices());
+  const services = useMemo(() => servicesData ?? [], [servicesData]);
   const reduceMotion = useReducedMotion();
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await apiService.getServices();
-        setServices(data);
-      } catch (error) {
-        console.error("Failed to fetch services", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
-  }, []);
 
   const reasons = useMemo(() => {
     if (services.length > 0) {
@@ -88,7 +76,7 @@ const Services = () => {
             <ul className="space-y-3 pt-2">
               {reasons.map((item) => (
                 <li key={item} className="flex items-start gap-3 text-gray-700">
-                  <CheckCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-gray-400" />
+                  <CircleCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-gray-400" />
                   <span className="text-sm">{item}</span>
                 </li>
               ))}

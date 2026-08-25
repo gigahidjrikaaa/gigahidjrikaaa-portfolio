@@ -2,8 +2,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { FaGithub, FaLinkedinIn, FaTwitter, FaEnvelope } from 'react-icons/fa';
+import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 
 const Footer = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -15,28 +16,25 @@ const Footer = () => {
   const copy = {
     brand: '[GigaDev]',
     rights: `© ${currentYear} Giga Hidjrika. All Rights Reserved.`,
-    attribution: 'Designed and built with ❤️ using Next.js, Framer Motion, and TailwindCSS',
+    attribution: 'Designed and built with Next.js, Framer Motion, and TailwindCSS',
     links: [
-      { label: 'About', href: '#about' },
-      { label: 'Awards', href: '#awards' },
-      { label: 'Projects', href: '#projects' },
-      { label: 'Testimonials', href: '#testimonials' },
-      { label: 'Blog', href: '#blog' },
-      { label: 'Contact', href: '#contact' },
+      { label: 'About', href: '/#about' },
+      { label: 'Projects', href: '/#projects' },
+      { label: 'Testimonials', href: '/#testimonials' },
+      { label: 'Blog', href: '/blog' },
+      { label: 'Know more', href: '/more' },
+      { label: 'Contact', href: '/#contact' },
     ],
     socials: [
-      { name: 'GitHub', href: 'https://github.com/gigahidjrikaaa', icon: FaGithub },
-      { name: 'LinkedIn', href: 'https://linkedin.com/in/gigahidjrikaaa', icon: FaLinkedinIn },
-      { name: 'Twitter', href: 'https://twitter.com/gigahidjrikaaa', icon: FaTwitter },
-      { name: 'Email', href: 'mailto:contact@gigahidjrikaaa.com', icon: FaEnvelope },
+      { name: 'GitHub', href: 'https://github.com/gigahidjrikaaa', icon: Github },
+      { name: 'LinkedIn', href: 'https://linkedin.com/in/gigahidjrikaaa', icon: Linkedin },
+      { name: 'Twitter', href: 'https://twitter.com/gigahidjrikaaa', icon: Twitter },
+      { name: 'Email', href: 'mailto:contact@gigahidjrikaaa.com', icon: Mail },
     ],
   };
 
   return (
-    <footer className="relative bg-white border-t border-gray-200/60 overflow-hidden">
-      <div className="absolute -top-40 left-1/2 w-96 h-96 bg-gray-100/80 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute -bottom-20 right-1/4 w-64 h-64 bg-gray-100/80 rounded-full blur-[100px] pointer-events-none"></div>
-
+    <footer className="relative border-t border-zinc-200 bg-white">
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Logo & Copyright */}
@@ -76,13 +74,13 @@ const Footer = () => {
           {/* Quick Links */}
           <div className="flex gap-4 text-xs flex-wrap justify-center">
             {copy.links.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 className="text-gray-500 hover:text-gray-900 transition-colors duration-300"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </div>
         </div>

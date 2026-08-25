@@ -1,12 +1,14 @@
 // src/components/Experience.tsx
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { MapPin, ArrowUpRight, Briefcase } from 'lucide-react';
 import { apiService, ExperienceResponse } from '@/services/api';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
+import ErrorState from '@/components/ui/ErrorState';
+import { useApiData } from '@/hooks/useApiData';
 import ExperienceModal from './ExperienceModal';
 import { ExperienceGraphic } from './decorations/sections/ExperienceGraphic';
 
@@ -23,17 +25,10 @@ function descriptionPreview(raw: string, maxLen = 160): string {
 }
 
 const Experience = () => {
-  const [experience, setExperience] = useState<ExperienceResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: experienceData, loading, error, retry } = useApiData<ExperienceResponse[]>(() => apiService.getExperience());
+  const experience = experienceData ?? [];
   const [selectedExperience, setSelectedExperience] = useState<ExperienceResponse | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    apiService.getExperience()
-      .then(setExperience)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
 
   const handleOpen = (item: ExperienceResponse) => {
     setSelectedExperience(item);
@@ -45,7 +40,7 @@ const Experience = () => {
   };
 
   return (
-    <section id="experience" className="relative bg-zinc-50 py-24 dark:bg-zinc-900 md:py-32">
+    <section id="experience" className="relative bg-zinc-50 py-24 md:py-32">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── Header ─────────────────────────────────────────────────── */}
@@ -75,6 +70,12 @@ const Experience = () => {
         {/* ── Entries ────────────────────────────────────────────────── */}
         {loading ? (
           <LoadingAnimation label="Loading experience…" />
+        ) : error ? (
+          <ErrorState
+            title="Experience couldn't load"
+            message={error}
+            onRetry={retry}
+          />
         ) : experience.length > 0 ? (
           <div className="divide-y divide-gray-100 border-t border-gray-100">
             {experience.map((item, idx) => (
@@ -88,14 +89,14 @@ const Experience = () => {
                 <button
                   type="button"
                   onClick={() => handleOpen(item)}
-                  className="group w-full py-7 text-left transition-colors duration-150 hover:bg-gray-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20 dark:hover:bg-zinc-800/50"
+                  className="group w-full py-7 text-left transition-colors duration-150 hover:bg-gray-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20"
                 >
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-[180px_1fr] sm:gap-8 lg:grid-cols-[220px_1fr]">
 
                     {/* ── Left: company meta ─────────────────────────── */}
                     <div className="flex items-start gap-3 sm:flex-col sm:gap-2">
                       {/* Logo */}
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 sm:h-9 sm:w-9 dark:border-zinc-700 dark:bg-zinc-800">
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 sm:h-9 sm:w-9">
                         {item.company_logo_url ? (
                           <Image
                             src={item.company_logo_url}
@@ -110,10 +111,10 @@ const Experience = () => {
                       </div>
 
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-gray-800 dark:text-zinc-200">
+                        <p className="truncate text-sm font-semibold text-gray-800">
                           {item.company}
                         </p>
-                        <p className="mt-0.5 font-mono text-xs text-gray-400">{item.period}</p>
+                        <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-400">{item.period}</p>
                       </div>
                     </div>
 
@@ -121,7 +122,7 @@ const Experience = () => {
                     <div className="min-w-0 space-y-2">
                       {/* Role row */}
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
+                        <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
                           {item.title}
                         </h3>
                         {item.is_current && (
@@ -142,13 +143,13 @@ const Experience = () => {
 
                       {/* Description preview */}
                       {item.description && (
-                        <p className="text-sm leading-relaxed text-gray-500 dark:text-zinc-400">
+                        <p className="text-sm leading-relaxed text-gray-500">
                           {descriptionPreview(item.description)}
                         </p>
                       )}
 
                       {/* View more link */}
-                      <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-400 transition-colors group-hover:text-gray-700 dark:group-hover:text-zinc-200">
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-400 transition-colors group-hover:text-gray-700">
                         View details
                         <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                       </span>

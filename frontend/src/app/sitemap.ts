@@ -50,6 +50,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: toFreq(cfg.sitemap_home_changefreq),
       priority: cfg.sitemap_home_priority,
     },
+    {
+      url: `${siteUrl}/more`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
   ];
 
   // Blog index

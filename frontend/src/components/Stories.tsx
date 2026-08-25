@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { apiService, StoryResponse } from "@/services/api";
-import LoadingAnimation from "@/components/ui/LoadingAnimation";
+import { useApiData } from "@/hooks/useApiData";
 
 // Duration each story auto-advances (ms)
 const STORY_DURATION = 5000;
@@ -31,12 +31,12 @@ const StoryBubble = ({ story, onClick, delay }: StoryBubbleProps) => (
     className="flex flex-shrink-0 flex-col items-center gap-2"
     aria-label={story.title || "View story"}
   >
-    {/* Ring wrapper */}
+    {/* Ring wrapper — featured stories get the solid ring */}
     <div
       className={`rounded-full p-[3px] ${
         story.is_featured
-          ? "bg-gradient-to-tr from-yellow-400 via-rose-500 to-violet-500"
-          : "bg-gray-200"
+          ? "bg-zinc-900"
+          : "bg-zinc-200"
       }`}
     >
       <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-white bg-gray-100">
@@ -214,32 +214,16 @@ const StoryModal = ({ stories, startIndex, onClose }: StoryModalProps) => {
 // Main section
 // ---------------------------------------------------------------------------
 const Stories = () => {
-  const [stories, setStories] = useState<StoryResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Optional behind-the-scenes content: stays collapsed while loading or on
+  // error so the page never shows an empty section shell.
+  const { data: storiesData, loading } = useApiData<StoryResponse[]>(() => apiService.getStories());
+  const stories = storiesData ?? [];
   const [modalStartIndex, setModalStartIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-    apiService
-      .getStories()
-      .then(setStories)
-      .catch((err) => console.error("Failed to fetch stories", err))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return (
-      <section className="bg-white py-24 dark:bg-zinc-900 md:py-32">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <LoadingAnimation label="Loading stories…" />
-        </div>
-      </section>
-    );
-  }
-
-  if (stories.length === 0) return null;
+  if (loading || stories.length === 0) return null;
 
   return (
-    <section id="stories" className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32">
+    <section id="stories" className="relative overflow-hidden bg-white py-24 md:py-32">
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -247,15 +231,15 @@ const Stories = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-12 text-center"
+          className="mb-12 max-w-2xl"
         >
-          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-400">
+          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
             Behind the Scenes
           </span>
-          <h2 className="mt-2 text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
-            Moments &amp; Stories
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl lg:text-5xl">
+            Moments &amp; stories
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-gray-500 leading-relaxed">
+          <p className="mt-4 text-zinc-600 leading-relaxed">
             A glimpse into my workspace, late-night builds, and the people who make
             the journey worth it.
           </p>

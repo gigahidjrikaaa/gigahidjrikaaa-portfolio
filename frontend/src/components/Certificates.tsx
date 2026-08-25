@@ -3,10 +3,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { DocumentCheckIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { FileCheck, ArrowUpRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { apiService, CertificateResponse } from '@/services/api';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
+import ErrorState from '@/components/ui/ErrorState';
+import { useApiData } from '@/hooks/useApiData';
 import {
   deriveCredentialStatus,
   getDaysUntilExpiry,
@@ -57,25 +59,11 @@ const copy = {
 };
 
 const Certificates = () => {
-  const [certificates, setCertificates] = useState<CertificateResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: certificatesData, loading, error, retry } = useApiData<CertificateResponse[]>(() => apiService.getCertificates());
+  const certificates = useMemo(() => certificatesData ?? [], [certificatesData]);
   const [activeTypeFilter, setActiveTypeFilter] = useState<string>('all');
   const [selectedCertificate, setSelectedCertificate] = useState<CertificateResponse | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await apiService.getCertificates();
-        setCertificates(data);
-      } catch (error) {
-        console.error('Failed to fetch certificates', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
 
   const typeFilters = useMemo(
     () => ['all', ...Array.from(new Set(certificates.map((item) => item.certificate_type || 'technical')))],
@@ -128,7 +116,7 @@ const Certificates = () => {
   };
 
   return (
-    <section id="certificates" className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32">
+    <section id="certificates" className="relative overflow-hidden bg-white py-24 md:py-32">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-24 top-14 h-72 w-72 rounded-full bg-slate-200/40 blur-3xl" />
         <div className="absolute -right-20 bottom-10 h-80 w-80 rounded-full bg-slate-300/30 blur-3xl" />
@@ -141,25 +129,25 @@ const Certificates = () => {
           viewport={{ once: true, amount: 0.2 }}
           variants={containerVariants}
         >
-          <motion.div variants={itemVariants} className="mb-16 text-center">
-            <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">{copy.eyebrow}</span>
-            <h2 className="mt-2 text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">{copy.title}</h2>
-            <p className="mx-auto mt-4 max-w-xl text-gray-500 leading-relaxed">{copy.subtitle}</p>
+          <motion.div variants={itemVariants} className="mb-16 max-w-2xl">
+            <span className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">{copy.eyebrow}</span>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl lg:text-5xl">{copy.title}</h2>
+            <p className="mt-4 text-zinc-600 leading-relaxed">{copy.subtitle}</p>
           </motion.div>
 
           {!loading && certificates.length > 0 ? (
             <motion.div variants={itemVariants} className="mb-8 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <p className="text-xs uppercase tracking-[0.15em] text-slate-500">{copy.stats.total}</p>
-                <p className="mt-2 text-3xl font-bold text-slate-900">{certificateStats.total}</p>
+              <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">{copy.stats.total}</p>
+                <p className="mt-2 text-3xl font-semibold text-zinc-900">{certificateStats.total}</p>
               </div>
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 shadow-sm">
-                <p className="text-xs uppercase tracking-[0.15em] text-emerald-700">{copy.stats.active}</p>
-                <p className="mt-2 text-3xl font-bold text-emerald-900">{certificateStats.active}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-700">{copy.stats.active}</p>
+                <p className="mt-2 text-3xl font-semibold text-emerald-900">{certificateStats.active}</p>
               </div>
-              <div className="rounded-2xl border border-sky-200 bg-sky-50/60 p-4 shadow-sm">
-                <p className="text-xs uppercase tracking-[0.15em] text-sky-700">{copy.stats.verified}</p>
-                <p className="mt-2 text-3xl font-bold text-sky-900">{certificateStats.verified}</p>
+              <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">{copy.stats.verified}</p>
+                <p className="mt-2 text-3xl font-semibold text-zinc-900">{certificateStats.verified}</p>
               </div>
             </motion.div>
           ) : null}
@@ -190,6 +178,12 @@ const Certificates = () => {
 
           {loading ? (
             <LoadingAnimation label={copy.loading} />
+          ) : error ? (
+            <ErrorState
+              title="Certifications couldn't load"
+              message={error}
+              onRetry={retry}
+            />
           ) : filteredCertificates.length > 0 ? (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredCertificates.map((cert, index) => {
@@ -202,7 +196,7 @@ const Certificates = () => {
                     key={cert.id}
                     variants={itemVariants}
                     whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                    className={`group relative flex cursor-pointer flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white/95 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl ${
+                    className={`group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl ${
                       index === 0 && filteredCertificates.length > 1 ? 'sm:col-span-2 xl:col-span-2' : ''
                     }`}
                     onClick={() => handleCertificateClick(cert)}
@@ -213,14 +207,14 @@ const Certificates = () => {
                     <div
                       className={`absolute inset-x-0 top-0 h-1 ${
                         resolvedStatus === 'expired'
-                          ? 'bg-gradient-to-r from-rose-400 via-rose-600 to-rose-400'
+                          ? 'bg-rose-400'
                           : resolvedStatus === 'active'
-                            ? 'bg-gradient-to-r from-emerald-400 via-emerald-600 to-emerald-400'
-                            : 'bg-gradient-to-r from-slate-400 via-slate-700 to-slate-400'
+                            ? 'bg-emerald-500'
+                            : 'bg-zinc-300'
                       }`}
                     />
 
-                    <div className="relative aspect-[4/3] w-full bg-gray-100">
+                    <div className="relative aspect-[4/3] w-full bg-zinc-100">
                       {cert.image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -229,8 +223,8 @@ const Certificates = () => {
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                          <DocumentCheckIcon className="h-12 w-12 text-gray-400" />
+                        <div className="flex h-full w-full items-center justify-center bg-zinc-50">
+                          <FileCheck className="h-12 w-12 text-zinc-300" />
                         </div>
                       )}
 
@@ -304,7 +298,7 @@ const Certificates = () => {
                             className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
                           >
                             Verify credential
-                            <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+                            <ArrowUpRight className="h-3.5 w-3.5" />
                           </button>
                         ) : (
                           <span className="text-xs text-gray-400">Click to view details</span>

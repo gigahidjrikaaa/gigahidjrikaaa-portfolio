@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight, Newspaper, X } from "lucide-react";
 import { apiService, PressMentionResponse } from "@/services/api";
+import { useApiData } from "@/hooks/useApiData";
 
 // ─── utils ────────────────────────────────────────────────────────────────────
 
@@ -13,8 +14,10 @@ function getDomain(url: string): string {
 }
 
 function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return dateStr;
   try {
-    return new Date(dateStr).toLocaleDateString("en-US", {
+    return date.toLocaleDateString("en-US", {
       month: "short", day: "numeric", year: "numeric",
     });
   } catch { return dateStr; }
@@ -135,8 +138,8 @@ function FeaturedCard({ mention }: { mention: PressMentionResponse }) {
         <div>
           {/* Badges */}
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
-              ⭐ Featured
+            <span className="inline-flex items-center rounded-full bg-zinc-900 px-3 py-1 text-xs font-bold text-white">
+              Featured
             </span>
             {pCfg && (
               <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${pCfg.badge}`}>
@@ -161,7 +164,7 @@ function FeaturedCard({ mention }: { mention: PressMentionResponse }) {
           </div>
 
           {/* Title */}
-          <h3 className="text-xl font-bold leading-snug text-slate-900 group-hover:text-slate-700 sm:text-2xl">
+          <h3 className="text-xl font-bold leading-snug text-zinc-900 group-hover:text-slate-700 sm:text-2xl">
             {mention.title}
           </h3>
 
@@ -177,7 +180,7 @@ function FeaturedCard({ mention }: { mention: PressMentionResponse }) {
         </div>
 
         {/* CTA */}
-        <div className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-slate-800 transition-colors group-hover:text-violet-600">
+        <div className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-slate-800 transition-colors group-hover:text-zinc-800">
           <span>Read the full story</span>
           <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </div>
@@ -246,7 +249,7 @@ function MentionCard({ mention, index }: { mention: PressMentionResponse; index:
         </div>
 
         {/* Title */}
-        <h3 className="flex-1 text-sm font-bold leading-snug text-slate-900 line-clamp-3 group-hover:text-slate-700">
+        <h3 className="flex-1 text-sm font-bold leading-snug text-zinc-900 line-clamp-3 group-hover:text-slate-700">
           {mention.title}
         </h3>
 
@@ -261,7 +264,7 @@ function MentionCard({ mention, index }: { mention: PressMentionResponse; index:
         )}
 
         {/* Footer */}
-        <div className="mt-4 flex items-center gap-1 text-xs font-bold text-slate-800 transition-colors group-hover:text-violet-600">
+        <div className="mt-4 flex items-center gap-1 text-xs font-bold text-slate-800 transition-colors group-hover:text-zinc-800">
           <span>{domain || "Read article"}</span>
           <ArrowUpRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </div>
@@ -283,7 +286,7 @@ function ModalMentionRow({ mention }: { mention: PressMentionResponse }) {
       href={mention.publication_url || "#"}
       target={mention.publication_url ? "_blank" : undefined}
       rel="noopener noreferrer"
-      className="group flex items-start gap-4 rounded-xl border border-slate-100 bg-white p-4 transition-all duration-200 hover:border-violet-200 hover:bg-violet-50/40 hover:shadow-sm"
+      className="group flex items-start gap-4 rounded-xl border border-slate-100 bg-white p-4 transition-all duration-200 hover:border-zinc-200 hover:bg-zinc-50/40 hover:shadow-sm"
     >
       {/* Favicon / platform colour dot */}
       <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50">
@@ -304,13 +307,13 @@ function ModalMentionRow({ mention }: { mention: PressMentionResponse }) {
       <div className="min-w-0 flex-1">
         <div className="mb-0.5 flex flex-wrap items-center gap-2">
           {mention.is_featured && (
-            <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">⭐ Featured</span>
+            <span className="inline-flex items-center rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-bold text-white">Featured</span>
           )}
           {pCfg && (
             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${pCfg.badge}`}>{pCfg.label}</span>
           )}
         </div>
-        <p className="truncate text-sm font-semibold text-slate-900 group-hover:text-violet-700">
+        <p className="truncate text-sm font-semibold text-zinc-900 group-hover:text-zinc-900">
           {mention.title}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
@@ -325,7 +328,7 @@ function ModalMentionRow({ mention }: { mention: PressMentionResponse }) {
       </div>
 
       {/* Arrow */}
-      <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-300 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-violet-500" />
+      <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-300 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-zinc-600" />
     </a>
   );
 }
@@ -378,7 +381,7 @@ function AllMentionsModal({
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">All Media Coverage</h2>
+            <h2 className="text-lg font-bold text-zinc-900">All Media Coverage</h2>
             <p className="text-xs text-slate-400">{mentions.length} article{mentions.length !== 1 ? "s" : ""}</p>
           </div>
           <button
@@ -435,16 +438,11 @@ function AllMentionsModal({
 const REGULAR_PREVIEW = 6;
 
 const PressMentions = () => {
-  const [mentions, setMentions] = useState<PressMentionResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Optional social-proof content: on error the section collapses instead of
+  // showing a broken state (matches the empty behavior below).
+  const { data: mentionsData, loading } = useApiData<PressMentionResponse[]>(() => apiService.getPressMentions());
+  const mentions = mentionsData ?? [];
   const [modalOpen, setModalOpen] = useState(false);
-
-  useEffect(() => {
-    apiService.getPressMentions()
-      .then(setMentions)
-      .catch((e) => console.error("Failed to fetch press mentions", e))
-      .finally(() => setLoading(false));
-  }, []);
 
   if (loading || mentions.length === 0) return null;
 
@@ -454,17 +452,7 @@ const PressMentions = () => {
   const visibleGrid = regular.slice(0, REGULAR_PREVIEW);
 
   return (
-    <section id="press" className="relative overflow-hidden bg-zinc-50 py-24 dark:bg-zinc-900 md:py-32">
-      {/* Decorative background */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_120%_50%_at_50%_-5%,theme(colors.violet.50)_0%,transparent_70%)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-0 h-px w-3/4 -translate-x-1/2 bg-gradient-to-r from-transparent via-violet-200 to-transparent"
-      />
-
+    <section id="press" className="relative overflow-hidden bg-zinc-50 py-24 md:py-32">
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -472,15 +460,15 @@ const PressMentions = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-12 text-center"
+          className="mb-12 max-w-2xl"
         >
-          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
-            Press & Media
+          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+            Press &amp; Media
           </span>
-          <h2 className="mt-2 text-3xl font-semibold leading-tight text-slate-900 sm:text-4xl lg:text-5xl">
-            Featured In
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl lg:text-5xl">
+            Featured in
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-slate-500 leading-relaxed">
+          <p className="mt-4 text-zinc-600 leading-relaxed">
             Articles, interviews, and features across press and social media.
           </p>
         </motion.div>
@@ -517,10 +505,10 @@ const PressMentions = () => {
               >
                 <button
                   onClick={() => setModalOpen(true)}
-                  className="group inline-flex items-center gap-2.5 rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 hover:shadow-md"
+                  className="group inline-flex items-center gap-2.5 rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-900 hover:shadow-md"
                 >
                   <span>Show all {mentions.length} articles</span>
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500 transition-colors group-hover:bg-violet-100 group-hover:text-violet-600">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500 transition-colors group-hover:bg-zinc-200 group-hover:text-zinc-900">
                     +{mentions.length - REGULAR_PREVIEW}
                   </span>
                 </button>

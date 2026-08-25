@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import { FaCodeBranch, FaExternalLinkAlt, FaGithub, FaStar } from "react-icons/fa";
+import { ArrowUpRight, Github, GitBranch, Star } from "lucide-react";
 import LoadingAnimation from "@/components/ui/LoadingAnimation";
 import LanguageDecoration from "@/components/github/LanguageDecoration";
 import { apiService, HighlightedGitHubRepoResponse } from "@/services/api";
@@ -115,7 +115,7 @@ const RepositoryCard = ({ repo, emphasized = false, shouldReduceMotion }: Reposi
       rel="noopener noreferrer"
       variants={itemVariants}
       whileHover={shouldReduceMotion ? undefined : { y: -4 }}
-      className={`group relative block overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-gray-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 ${
+      className={`group relative block overflow-hidden rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition-all hover:border-zinc-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 ${
         emphasized ? "sm:p-6" : ""
       }`}
       aria-label={`Open repository ${repo.full_name} in a new tab`}
@@ -125,40 +125,40 @@ const RepositoryCard = ({ repo, emphasized = false, shouldReduceMotion }: Reposi
       <div className="relative z-10">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">{repo.owner.login}</p>
-            <h4 className="mt-1 line-clamp-2 text-base font-semibold text-gray-900">{repo.name}</h4>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">{repo.owner.login}</p>
+            <h4 className="mt-1 line-clamp-2 text-base font-semibold text-zinc-900">{repo.name}</h4>
           </div>
-          <FaExternalLinkAlt className="mt-1 h-3 w-3 shrink-0 text-gray-400 transition group-hover:text-gray-700" />
+          <ArrowUpRight className="mt-1 h-3 w-3 shrink-0 text-zinc-400 transition group-hover:text-zinc-700" />
         </div>
 
-        <p className={`mt-3 text-sm leading-relaxed text-gray-600 ${emphasized ? "line-clamp-4" : "line-clamp-3"}`}>
+        <p className={`mt-3 text-sm leading-relaxed text-zinc-600 ${emphasized ? "line-clamp-4" : "line-clamp-3"}`}>
           {repo.description || copy.defaultRepoDescription}
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 font-medium text-gray-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-gray-500" />
+          <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2.5 py-1 font-medium text-zinc-700">
+            <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" />
             {repo.language || "Unknown"}
           </span>
 
           {repo.topics?.slice(0, emphasized ? 3 : 2).map((topic) => (
             <span
               key={topic}
-              className="rounded-full border border-gray-200 bg-white px-2.5 py-1 font-medium text-gray-600"
+              className="rounded-full border border-zinc-200 bg-white px-2.5 py-1 font-medium text-zinc-600"
             >
               {topic}
             </span>
           ))}
         </div>
 
-        <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+        <div className="mt-5 flex items-center justify-between border-t border-zinc-100 pt-4 text-xs text-zinc-500">
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1">
-              <FaStar className="h-3 w-3 text-amber-500" />
+              <Star className="h-3 w-3 text-zinc-700" fill="currentColor" />
               {repo.stargazers_count}
             </span>
             <span className="inline-flex items-center gap-1">
-              <FaCodeBranch className="h-3 w-3" />
+              <GitBranch className="h-3 w-3" />
               {repo.forks_count}
             </span>
           </div>
@@ -317,7 +317,7 @@ const GitHubIntegration = () => {
 
   if (loading) {
     return (
-      <section className="border-b border-gray-200 bg-zinc-50 py-24 md:py-32">
+      <section className="border-b border-zinc-200 bg-zinc-50 py-24 md:py-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <LoadingAnimation label={copy.loading} />
         </div>
@@ -327,19 +327,19 @@ const GitHubIntegration = () => {
 
   if (error) {
     return (
-      <section className="border-b border-gray-200 bg-zinc-50 py-24 md:py-32">
+      <section className="border-b border-zinc-200 bg-zinc-50 py-24 md:py-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-            <h2 className="text-2xl font-semibold text-gray-900">{copy.error}</h2>
-            <p className="mt-3 text-sm leading-relaxed text-gray-600">{copy.fallback}</p>
+          <div className="mx-auto max-w-2xl rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm">
+            <h2 className="text-2xl font-semibold text-zinc-900">{copy.error}</h2>
+            <p className="mt-3 text-sm leading-relaxed text-zinc-600">{copy.fallback}</p>
             <a
               href={profileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
               aria-label="Open GitHub profile in a new tab"
             >
-              <FaGithub className="h-4 w-4" />
+              <Github className="h-4 w-4" />
               {copy.profileCta}
             </a>
           </div>
@@ -349,10 +349,8 @@ const GitHubIntegration = () => {
   }
 
   return (
-    <section aria-labelledby="github-section-title" className="relative overflow-hidden border-b border-gray-200 bg-zinc-50 py-24 md:py-32">
+    <section aria-labelledby="github-section-title" className="relative overflow-hidden border-b border-zinc-200 bg-zinc-50 py-24 md:py-32">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-24 top-8 h-72 w-72 rounded-full bg-gray-200/70 blur-3xl" />
-        <div className="absolute right-0 top-32 h-72 w-72 rounded-full bg-gray-300/40 blur-3xl" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:46px_46px]" />
       </div>
 
@@ -366,74 +364,74 @@ const GitHubIntegration = () => {
         >
           <motion.div variants={animationItem} className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <span className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">{copy.eyebrow}</span>
-              <h2 id="github-section-title" className="mt-3 text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
+              <span className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500">{copy.eyebrow}</span>
+              <h2 id="github-section-title" className="mt-3 text-3xl font-semibold leading-tight text-zinc-900 sm:text-4xl lg:text-5xl">
                 {copy.title}
               </h2>
-              <p className="mt-4 max-w-2xl text-gray-600">{copy.subtitle}</p>
+              <p className="mt-4 max-w-2xl text-zinc-600">{copy.subtitle}</p>
             </div>
 
             <a
               href={profileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 self-start rounded-full bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 lg:self-auto"
+              className="inline-flex items-center gap-2 self-start rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 lg:self-auto"
               aria-label="Open GitHub profile in a new tab"
             >
-              <FaGithub className="h-4 w-4" />
+              <Github className="h-4 w-4" />
               {copy.profileCta}
-              <FaExternalLinkAlt className="h-3 w-3" />
+              <ArrowUpRight className="h-3 w-3" />
             </a>
           </motion.div>
 
           <motion.div variants={animationContainer} className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-            <motion.article variants={animationItem} className="rounded-3xl border border-gray-200 bg-white/95 p-6 shadow-sm backdrop-blur-sm sm:p-8">
+            <motion.article variants={animationItem} className="rounded-3xl border border-zinc-200 bg-white/95 p-6 shadow-sm backdrop-blur-sm sm:p-8">
               <div className="flex items-start gap-4 sm:gap-5">
                 <Image
                   src={user?.avatar_url || "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"}
                   alt={`${profileName} avatar`}
                   width={80}
                   height={80}
-                  className="h-16 w-16 rounded-2xl border border-gray-200 object-cover sm:h-20 sm:w-20"
+                  className="h-16 w-16 rounded-2xl border border-zinc-200 object-cover sm:h-20 sm:w-20"
                 />
 
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{copy.profilePanelTitle}</p>
-                  <h3 className="mt-2 truncate text-2xl font-semibold text-gray-900">{profileName}</h3>
-                  <p className="mt-1 text-sm text-gray-500">@{user?.login || GITHUB_USERNAME}</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">{copy.profilePanelTitle}</p>
+                  <h3 className="mt-2 truncate text-2xl font-semibold text-zinc-900">{profileName}</h3>
+                  <p className="mt-1 text-sm text-zinc-500">@{user?.login || GITHUB_USERNAME}</p>
                 </div>
               </div>
 
-              <p className="mt-5 text-sm leading-relaxed text-gray-600">{user?.bio || copy.noBio}</p>
+              <p className="mt-5 text-sm leading-relaxed text-zinc-600">{user?.bio || copy.noBio}</p>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                  <p className="text-xs uppercase tracking-[0.14em] text-gray-500">{copy.stats.followers}</p>
-                  <p className="mt-2 text-2xl font-semibold text-gray-900">{stats.followers.toLocaleString()}</p>
+                <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                  <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">{copy.stats.followers}</p>
+                  <p className="mt-2 text-2xl font-semibold text-zinc-900">{stats.followers.toLocaleString()}</p>
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                  <p className="text-xs uppercase tracking-[0.14em] text-gray-500">{copy.stats.activity}</p>
-                  <p className="mt-2 text-2xl font-semibold text-gray-900">{contributions.toLocaleString()}</p>
+                <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                  <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">{copy.stats.activity}</p>
+                  <p className="mt-2 text-2xl font-semibold text-zinc-900">{contributions.toLocaleString()}</p>
                 </div>
               </div>
             </motion.article>
 
             <motion.div variants={animationContainer} className="grid gap-4 sm:grid-cols-2">
-              <motion.div variants={animationItem} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <p className="text-xs uppercase tracking-[0.14em] text-gray-500">{copy.stats.repositories}</p>
-                <p className="mt-3 text-3xl font-semibold text-gray-900">{stats.repositories.toLocaleString()}</p>
+              <motion.div variants={animationItem} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">{copy.stats.repositories}</p>
+                <p className="mt-3 text-3xl font-semibold text-zinc-900">{stats.repositories.toLocaleString()}</p>
               </motion.div>
-              <motion.div variants={animationItem} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <p className="text-xs uppercase tracking-[0.14em] text-gray-500">{copy.stats.stars}</p>
-                <p className="mt-3 text-3xl font-semibold text-gray-900">{stats.stars.toLocaleString()}</p>
+              <motion.div variants={animationItem} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">{copy.stats.stars}</p>
+                <p className="mt-3 text-3xl font-semibold text-zinc-900">{stats.stars.toLocaleString()}</p>
               </motion.div>
-              <motion.div variants={animationItem} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <p className="text-xs uppercase tracking-[0.14em] text-gray-500">{copy.stats.forks}</p>
-                <p className="mt-3 text-3xl font-semibold text-gray-900">{stats.forks.toLocaleString()}</p>
+              <motion.div variants={animationItem} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">{copy.stats.forks}</p>
+                <p className="mt-3 text-3xl font-semibold text-zinc-900">{stats.forks.toLocaleString()}</p>
               </motion.div>
-              <motion.div variants={animationItem} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <p className="text-xs uppercase tracking-[0.14em] text-gray-500">{copy.highlightedRepos}</p>
-                <p className="mt-3 text-3xl font-semibold text-gray-900">{highlightedConfig.length}</p>
+              <motion.div variants={animationItem} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">{copy.highlightedRepos}</p>
+                <p className="mt-3 text-3xl font-semibold text-zinc-900">{highlightedConfig.length}</p>
               </motion.div>
             </motion.div>
           </motion.div>
@@ -441,12 +439,12 @@ const GitHubIntegration = () => {
           <motion.div variants={animationContainer} className="space-y-8">
             <motion.div variants={animationItem}>
               <div className="mb-5 flex items-center justify-between gap-3">
-                <h3 className="text-xl font-semibold text-gray-900">{copy.highlightedRepos}</h3>
-                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Curated from admin</span>
+                <h3 className="text-xl font-semibold text-zinc-900">{copy.highlightedRepos}</h3>
+                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Curated from admin</span>
               </div>
 
               {highlightedRepos.length === 0 ? (
-                <p className="text-sm text-gray-500">{copy.noHighlightedRepos}</p>
+                <p className="text-sm text-zinc-500">{copy.noHighlightedRepos}</p>
               ) : (
                 <div className="grid gap-4 lg:grid-cols-2">
                   {highlightedRepos.map((repo) => (
@@ -463,11 +461,11 @@ const GitHubIntegration = () => {
 
             <motion.div variants={animationItem}>
               <div className="mb-5">
-                <h3 className="text-xl font-semibold text-gray-900">{copy.topRepos}</h3>
+                <h3 className="text-xl font-semibold text-zinc-900">{copy.topRepos}</h3>
               </div>
 
               {topRepos.length === 0 ? (
-                <p className="text-sm text-gray-500">{copy.noTopRepos}</p>
+                <p className="text-sm text-zinc-500">{copy.noTopRepos}</p>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {topRepos.map((repo) => (

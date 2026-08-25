@@ -39,10 +39,10 @@ export function highlightMissingFields(form: HTMLFormElement | null, fieldIds: s
 
   let firstInvalidField: FormFieldElement | null = null;
 
-  fieldIds.forEach((fieldId) => {
+  for (const fieldId of fieldIds) {
     const field = form.querySelector<HTMLElement>(`#${fieldId}`);
     if (!field) {
-      return;
+      continue;
     }
 
     field.setAttribute("aria-invalid", "true");
@@ -51,7 +51,7 @@ export function highlightMissingFields(form: HTMLFormElement | null, fieldIds: s
     if (!firstInvalidField && isFormFieldElement(field)) {
       firstInvalidField = field;
     }
-  });
+  }
 
   if (firstInvalidField) {
     firstInvalidField.focus();

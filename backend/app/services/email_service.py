@@ -14,11 +14,17 @@ async def send_email(to_email: str, subject: str, body: str):
     message["From"] = settings.FROM_EMAIL
     message["To"] = to_email
 
+    # Port 465 expects implicit TLS; port 587 expects plaintext connect
+    # followed by STARTTLS. Using implicit TLS on 587 fails the handshake
+    # (SSL: WRONG_VERSION_NUMBER), so pick the mode from the port.
+    implicit_tls = settings.SMTP_PORT == 465
+
     await aiosmtplib.send(
         message,
         hostname=settings.SMTP_HOST,
         port=settings.SMTP_PORT,
-        use_tls=True,
+        use_tls=implicit_tls,
+        start_tls=not implicit_tls,
         username=settings.SMTP_USER,
         password=settings.SMTP_PASSWORD,
     )

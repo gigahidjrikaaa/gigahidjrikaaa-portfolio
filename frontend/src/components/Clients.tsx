@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { ExternalLink, Building2 } from "lucide-react";
 import { apiService, ClientResponse } from "@/services/api";
-import LoadingAnimation from "@/components/ui/LoadingAnimation";
+import { useApiData } from "@/hooks/useApiData";
 
 // ---------------------------------------------------------------------------
 // Featured client card — larger, text description visible
@@ -111,31 +111,15 @@ const ClientTile = ({
 // Main section
 // ---------------------------------------------------------------------------
 const Clients = () => {
-  const [clients, setClients] = useState<ClientResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Optional social-proof content: stays collapsed while loading or on error
+  // so the page never shows an empty section shell.
+  const { data: clientsData, loading } = useApiData<ClientResponse[]>(() => apiService.getClients());
+  const clients = clientsData ?? [];
 
   const sectionRef = useRef<HTMLDivElement>(null);
   const inView = useInView(sectionRef, { once: true, amount: 0.15 });
 
-  useEffect(() => {
-    apiService
-      .getClients()
-      .then(setClients)
-      .catch((err) => console.error("Failed to fetch clients", err))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return (
-      <section className="bg-white py-24 dark:bg-zinc-900 md:py-32">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <LoadingAnimation label="Loading clients…" />
-        </div>
-      </section>
-    );
-  }
-
-  if (clients.length === 0) return null;
+  if (loading || clients.length === 0) return null;
 
   const featured = clients.filter((c) => c.is_featured);
   const rest = clients.filter((c) => !c.is_featured);
@@ -144,7 +128,7 @@ const Clients = () => {
     <section
       id="clients"
       ref={sectionRef}
-      className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32"
+      className="relative overflow-hidden bg-white py-24 md:py-32"
     >
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
@@ -152,15 +136,15 @@ const Clients = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-16 text-center"
+          className="mb-16 max-w-2xl"
         >
-          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-400">
+          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
             Track Record
           </span>
-          <h2 className="mt-2 text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
-            Trusted By
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl lg:text-5xl">
+            Trusted by
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-gray-500 leading-relaxed">
+          <p className="mt-4 text-zinc-600 leading-relaxed">
             Companies and organizations I&apos;ve had the privilege to build with,
             contribute to, and deliver value for.
           </p>
@@ -170,9 +154,9 @@ const Clients = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={inView ? { opacity: 1, scale: 1 } : {}}
               transition={{ delay: 0.3 }}
-              className="mt-5 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-5 py-2 text-sm font-medium text-gray-600 shadow-sm"
+              className="mt-5 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-5 py-2 text-sm font-medium text-zinc-600 shadow-sm"
             >
-              <Building2 className="h-4 w-4 text-gray-400" />
+              <Building2 className="h-4 w-4 text-zinc-400" />
               {clients.length} client{clients.length !== 1 ? "s" : ""} &amp; partners
             </motion.div>
           )}

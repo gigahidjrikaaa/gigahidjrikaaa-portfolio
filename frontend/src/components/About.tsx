@@ -6,6 +6,7 @@ import { motion, useInView } from 'framer-motion';
 import { MapPin, Code2, LayoutGrid } from 'lucide-react';
 import Image from 'next/image';
 import { apiService, ProfileResponse } from '@/services/api';
+import { containerVariants, itemVariants } from '@/lib/motion';
 import { CodeBrackets } from './decorations/CodeBrackets';
 import { AboutGraphic } from './decorations/sections/AboutGraphic';
 
@@ -52,61 +53,57 @@ function Counter({ target, suffix = '' }: { target: number; suffix?: string }) {
 
 const About = () => {
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  const [avatarFailed, setAvatarFailed] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.15 });
 
   useEffect(() => {
-    apiService.getProfile().then(setProfile).catch(console.error);
+    let cancelled = false;
+    apiService
+      .getProfile()
+      .then((data) => {
+        if (!cancelled) setProfile(data);
+      })
+      .catch(() => {
+        // Static fallbacks below already cover a missing profile.
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  const avatarSrc =
+    !avatarFailed && profile?.avatar_url ? profile.avatar_url : '/giga-pics/giga-3.jpg';
 
   const headline = profile?.headline || 'A software engineer working across AI, blockchain, and modern web development — building products from concept to production.';
   const bio = profile?.bio || 'My work covers the full product lifecycle — from user interfaces and backend systems to AI integrations. I focus on writing clean code and shipping things that actually hold up.';
   const location = profile?.location || 'Yogyakarta, Indonesia';
   const availability = profile?.availability || 'Available for work';
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { type: "spring", stiffness: 100, damping: 15 }
-    }
-  };
-
   return (
     <section
       id="about"
       ref={sectionRef}
-      className="relative py-24 dark:bg-black bg-zinc-50 overflow-hidden md:py-32"
+      className="relative py-24 bg-zinc-50 overflow-hidden md:py-32"
     >
-      {/* Decorative blobs */}
+      {/* Decorations */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 right-0 h-[500px] w-[500px] rounded-full bg-emerald-500/5 blur-[120px]" />
-        <div className="absolute bottom-0 left-1/4 h-80 w-80 rounded-full bg-sky-500/5 blur-[100px]" />
         <CodeBrackets />
       </div>
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <div className="mb-12 md:mb-20 text-center">
-          <motion.h2 
+
+        <div className="mb-12 md:mb-20 max-w-2xl">
+          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+            About
+          </span>
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5 }}
-            className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-white mb-4"
+            className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight text-zinc-900"
           >
-            About <span className="text-zinc-400">Me</span>
+            A little <span className="text-zinc-500">about me</span>
           </motion.h2>
         </div>
 
@@ -121,31 +118,31 @@ const About = () => {
           {/* 1. Main Bio Card (col-span-2, row-span-2) */}
           <motion.div 
             variants={itemVariants}
-            className="md:col-span-2 lg:col-span-2 md:row-span-2 relative overflow-hidden rounded-3xl p-8 bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 shadow-sm"
+            className="md:col-span-2 lg:col-span-2 md:row-span-2 relative overflow-hidden rounded-3xl p-8 bg-white border border-zinc-200 shadow-sm"
           >
             <div className="relative z-10 h-full flex flex-col">
               <div className="flex items-center gap-2 mb-6">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-                  <LayoutGrid className="h-4 w-4 text-zinc-600 dark:text-zinc-300" />
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100">
+                  <LayoutGrid className="h-4 w-4 text-zinc-600" />
                 </span>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Who I Am</h3>
+                <h3 className="text-xl font-semibold text-gray-900">Who I Am</h3>
               </div>
               
-              <p className="text-xl md:text-2xl font-medium leading-tight text-gray-900 dark:text-zinc-100 mb-6">
+              <p className="text-xl md:text-2xl font-medium leading-tight text-gray-900 mb-6">
                 {headline}
               </p>
               
               <div className="mt-auto space-y-4">
-                <p className="text-base text-gray-600 dark:text-zinc-400">
+                <p className="text-base text-gray-600">
                   {bio}
                 </p>
                 
-                <div className="flex items-center flex-wrap gap-x-6 gap-y-3 pt-6 mt-2 border-t border-zinc-100 dark:border-zinc-800">
-                  <div className="flex items-center gap-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                    <MapPin className="h-4 w-4 text-emerald-500" />
+                <div className="flex items-center flex-wrap gap-x-6 gap-y-3 pt-6 mt-2 border-t border-zinc-100">
+                  <div className="flex items-center gap-2 text-sm font-medium text-zinc-500">
+                    <MapPin className="h-4 w-4 text-zinc-400" />
                     {location}
                   </div>
-                  <div className="flex items-center gap-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                  <div className="flex items-center gap-2 text-sm font-medium text-zinc-500">
                     <span className="relative flex h-2 w-2">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
@@ -156,7 +153,7 @@ const About = () => {
               </div>
             </div>
             {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
           </motion.div>
 
           {/* 2. Photo/Image Card (col-span-1, row-span-2) */}
@@ -165,11 +162,12 @@ const About = () => {
             className="md:col-span-1 lg:col-span-1 md:row-span-2 relative overflow-hidden rounded-3xl h-[400px] md:h-auto group"
           >
             <Image
-              src={profile?.avatar_url || '/giga-pics/giga-3.jpg'}
+              src={avatarSrc}
               alt="Profile"
               fill
               className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, 33vw"
+              onError={() => setAvatarFailed(true)}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
             <div className="absolute bottom-6 left-6 right-6">
@@ -177,7 +175,7 @@ const About = () => {
                 <Code2 className="w-4 h-4" />
                 <span>Currently Building</span>
               </div>
-              <p className="text-white font-medium mt-1 group-hover:text-emerald-400 transition-colors">AI & Full-stack Tools</p>
+              <p className="text-white font-medium mt-1">AI &amp; Full-stack Tools</p>
             </div>
           </motion.div>
 
@@ -187,12 +185,12 @@ const About = () => {
               <motion.div
                 key={stat.label}
                 variants={itemVariants}
-                className={`relative overflow-hidden rounded-3xl p-6 bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 flex flex-col justify-center ${i === 0 ? 'bg-zinc-900 border-none dark:bg-white text-white dark:text-zinc-900' : ''}`}
+                className={`relative overflow-hidden rounded-3xl p-6 bg-white border border-zinc-200 flex flex-col justify-center ${i === 0 ? 'bg-zinc-900 border-none text-white' : ''}`}
               >
-                <span className={`text-4xl font-bold ${i === 0 ? 'text-white dark:text-zinc-900' : 'text-gray-900 dark:text-white'}`}>
+                <span className={`text-4xl font-bold ${i === 0 ? 'text-white' : 'text-gray-900'}`}>
                   <Counter target={stat.target} suffix={stat.suffix} />
                 </span>
-                <span className={`text-sm mt-2 font-medium ${i === 0 ? 'text-zinc-300 dark:text-zinc-500' : 'text-zinc-500 dark:text-zinc-400'}`}>{stat.label}</span>
+                <span className={`text-sm mt-2 font-medium ${i === 0 ? 'text-zinc-300' : 'text-zinc-500'}`}>{stat.label}</span>
               </motion.div>
             ))}
           </div>
@@ -200,7 +198,7 @@ const About = () => {
           {/* 4. Timeline / Journey Card (col-span-full, row-span-1) */}
           <motion.div 
             variants={itemVariants}
-            className="md:col-span-3 lg:col-span-4 relative overflow-hidden rounded-3xl p-8 bg-zinc-900 dark:bg-zinc-900/80 border border-zinc-800 group"
+            className="md:col-span-3 lg:col-span-4 relative overflow-hidden rounded-3xl p-8 bg-zinc-900 border border-zinc-800 group"
           >
             <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-100 transition-[opacity,transform] duration-700 ease-out group-hover:scale-110 pointer-events-none">
               <AboutGraphic />

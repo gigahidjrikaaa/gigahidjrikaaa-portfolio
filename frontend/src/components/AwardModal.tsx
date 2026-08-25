@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { XMarkIcon, TrophyIcon, CalendarIcon, BuildingOfficeIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { X, Trophy, Building2, Calendar, ArrowUpRight } from 'lucide-react';
 
 type Award = {
   id: number;
@@ -93,7 +93,7 @@ const AwardModal: React.FC<AwardModalProps> = ({ open, onClose, award }) => {
               className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-900"
               aria-label="Close modal"
             >
-              <XMarkIcon className="h-5 w-5" />
+              <X className="h-5 w-5" />
             </button>
 
             {/* Header */}
@@ -108,7 +108,7 @@ const AwardModal: React.FC<AwardModalProps> = ({ open, onClose, award }) => {
                       className="h-10 w-10 object-contain"
                     />
                   ) : (
-                    <TrophyIcon className="h-8 w-8 text-amber-400" />
+                    <Trophy className="h-8 w-8 text-zinc-600" />
                   )}
                 </div>
 
@@ -117,13 +117,13 @@ const AwardModal: React.FC<AwardModalProps> = ({ open, onClose, award }) => {
                   <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-gray-500">
                     {award.issuer && (
                       <span className="flex items-center gap-2">
-                        <BuildingOfficeIcon className="h-4 w-4" />
+                        <Building2 className="h-4 w-4" />
                         {award.issuer}
                       </span>
                     )}
                     {award.award_date && (
                       <span className="flex items-center gap-2">
-                        <CalendarIcon className="h-4 w-4" />
+                        <Calendar className="h-4 w-4" />
                         {award.award_date}
                       </span>
                     )}
@@ -152,7 +152,7 @@ const AwardModal: React.FC<AwardModalProps> = ({ open, onClose, award }) => {
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
                   >
                     View Credential
-                    <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                    <ArrowUpRight className="h-4 w-4" />
                   </a>
                 </div>
               )}

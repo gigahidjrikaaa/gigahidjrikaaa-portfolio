@@ -190,6 +190,21 @@ export interface TestimonialSubmit {
   submitter_email: string;
 }
 
+export interface ContactMessageSubmit {
+  name: string;
+  email: string;
+  message: string;
+}
+
+export interface ContactMessageResponse {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
+
 export interface TestimonialResponse {
   id: number;
   name: string;
@@ -474,7 +489,7 @@ export interface AnalyticsStats {
 }
 
 // --- API Services ---
-class ApiError extends Error {
+export class ApiError extends Error {
   status: number;
 
   constructor(message: string, status: number) {
@@ -737,6 +752,13 @@ class ApiService {
 
   async submitTestimonial(payload: TestimonialSubmit): Promise<{ message: string }> {
     return this.request<{ message: string }>('/testimonials/submit', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async submitContactMessage(payload: ContactMessageSubmit): Promise<ContactMessageResponse> {
+    return this.request<ContactMessageResponse>('/contact/', {
       method: 'POST',
       body: JSON.stringify(payload),
     });

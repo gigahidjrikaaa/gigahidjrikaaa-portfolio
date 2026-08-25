@@ -38,7 +38,7 @@ const CardBody = ({ post }: { post: BlogPostResponse }) => {
         {/* Top-left badges */}
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
           {post.is_featured && (
-            <span className="rounded-full bg-amber-500/90 px-3 py-1 text-xs font-semibold text-white shadow">
+            <span className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-white shadow">
               Featured
             </span>
           )}

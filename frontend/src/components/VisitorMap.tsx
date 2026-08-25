@@ -57,10 +57,10 @@ function MicroStat({ icon, label, value, badge, accentColor = "#e2e8f0", animate
   const { value: animated_val, ref } = useCounter(numeric ? (value as number) : 0, 1200, animated);
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm">
-      <span className="text-slate-400">{icon}</span>
+    <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 ">
+      <span className="text-zinc-400">{icon}</span>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-medium uppercase tracking-widest text-slate-500">{label}</p>
+        <p className="text-[11px] font-medium uppercase tracking-widest text-zinc-500">{label}</p>
         <span
           ref={ref}
           className="text-lg font-bold tabular-nums leading-tight"
@@ -92,7 +92,7 @@ function RegionMicroChart({ regions }: RegionMicroChartProps) {
     <div ref={ref} className="space-y-2.5">
       {regions.map(({ region, pct, color }, i) => (
         <div key={region} className="flex items-center gap-3">
-          <span className="w-[130px] truncate text-right text-[11px] text-slate-400">{region}</span>
+          <span className="w-[130px] truncate text-right text-[11px] text-zinc-400">{region}</span>
           <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
             <motion.div
               className="absolute inset-y-0 left-0 rounded-full"
@@ -102,7 +102,7 @@ function RegionMicroChart({ regions }: RegionMicroChartProps) {
               transition={{ duration: 1.1, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
             />
           </div>
-          <span className="w-8 text-right text-[11px] tabular-nums text-slate-500">{pct}%</span>
+          <span className="w-8 text-right text-[11px] tabular-nums text-zinc-500">{pct}%</span>
         </div>
       ))}
     </div>
@@ -133,37 +133,41 @@ const VisitorMap = () => {
   // When section enters view: fetch stats
   useEffect(() => {
     if (!inView) return;
-    apiService.getAnalyticsStats().then(setStats).catch(console.error);
+    let cancelled = false;
+    apiService
+      .getAnalyticsStats()
+      .then((data) => {
+        if (!cancelled) setStats(data);
+      })
+      .catch(() => {
+        // Decorative section: silently keep the placeholder state on failure.
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [inView]);
 
   return (
     <section
       id="global-presence"
       ref={sectionRef}
-      className="relative overflow-hidden bg-[#0a0f1e] py-24 md:py-32"
+      className="relative overflow-hidden bg-zinc-950 py-24 md:py-32"
     >
-      {/* Background radial glow blobs */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-1/4 h-96 w-96 rounded-full bg-sky-600/10 blur-[100px]" />
-        <div className="absolute -right-32 bottom-1/4 h-96 w-96 rounded-full bg-indigo-600/10 blur-[100px]" />
-        <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-400/5 blur-[80px]" />
-      </div>
-
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-16 text-center"
+          className="mb-16 max-w-2xl"
         >
-          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-400/80">
+          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-400">
             Global Footprint
           </span>
-          <h2 className="mt-2 text-3xl font-semibold leading-tight text-white sm:text-4xl lg:text-5xl">
-            Visitors from Around the World
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
+            Visitors from around the world
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-slate-400 leading-relaxed">
+          <p className="mt-4 text-zinc-400 leading-relaxed">
             Read by engineers, founders, and hiring teams across every continent.
           </p>
         </motion.div>
@@ -179,14 +183,6 @@ const VisitorMap = () => {
             className="relative flex justify-center"
           >
             <div className="relative h-[560px] w-full max-w-[560px] sm:h-[680px] sm:max-w-[680px]">
-              {/* Outer glow ring */}
-              <div
-                aria-hidden
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: "radial-gradient(circle, rgba(14,165,233,0.08) 0%, transparent 70%)",
-                }}
-              />
               <Globe3D className="h-full w-full" />
             </div>
 
@@ -233,9 +229,9 @@ const VisitorMap = () => {
             </div>
 
             {/* 7-day sparkline card */}
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 ">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
                   7-Day Trend
                 </p>
               </div>
@@ -253,8 +249,8 @@ const VisitorMap = () => {
                           style={{
                             height: `${pct * 0.48}px`,
                             background: i === sparkValues.length - 1
-                              ? "linear-gradient(to top, #0ea5e9, #38bdf8)"
-                              : "rgba(148,163,184,0.2)",
+                              ? "linear-gradient(to top, #e4e4e7, #ffffff)"
+                              : "rgba(255,255,255,0.15)",
                             minHeight: 4,
                             maxHeight: 48,
                           }}
@@ -267,7 +263,7 @@ const VisitorMap = () => {
                   </div>
                 );
               })()}
-              <div className="mt-3 flex justify-between text-[10px] text-slate-600">
+              <div className="mt-3 flex justify-between text-[10px] text-zinc-600">
                 {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((d) => (
                   <span key={d}>{d}</span>
                 ))}
@@ -275,8 +271,8 @@ const VisitorMap = () => {
             </div>
 
             {/* Region breakdown */}
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
-              <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 ">
+              <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
                 By Region
               </p>
               <RegionMicroChart regions={stats?.regions ?? []} />
@@ -284,16 +280,16 @@ const VisitorMap = () => {
 
             {/* Origin tags */}
             <div>
-              <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
                 Prominent origins
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {(stats?.top_cities.map(c => c.label) ?? []).map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex cursor-default items-center gap-1 rounded-full border border-white/8 bg-white/5 px-3 py-1 text-[11px] font-medium text-slate-400"
+                    className="inline-flex cursor-default items-center gap-1 rounded-full border border-white/8 bg-white/5 px-3 py-1 text-[11px] font-medium text-zinc-400"
                   >
-                    <MapPin className="h-2.5 w-2.5 text-sky-500/70" />
+                    <MapPin className="h-2.5 w-2.5 text-zinc-500" />
                     {tag}
                   </span>
                 ))}

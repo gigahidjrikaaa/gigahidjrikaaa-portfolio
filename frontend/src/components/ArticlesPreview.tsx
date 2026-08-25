@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { apiService, BlogPostResponse } from "@/services/api";
 import LoadingAnimation from "@/components/ui/LoadingAnimation";
+import ErrorState from "@/components/ui/ErrorState";
+import { useApiData } from "@/hooks/useApiData";
 import { ExternalLink } from "lucide-react";
 
 const copy = {
@@ -21,6 +22,7 @@ const copy = {
 const formatDate = (value?: string | null) => {
   if (!value) return null;
   const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "2-digit",
@@ -29,30 +31,14 @@ const formatDate = (value?: string | null) => {
 };
 
 export default function ArticlesPreview() {
-  const [posts, setPosts] = useState<BlogPostResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: postsData, loading, error, retry } = useApiData<BlogPostResponse[]>(() =>
+    apiService.getBlogPostsPaged({ page: 1, page_size: 3 }).then((data) => {
+      const candidates = data.latest?.length ? data.latest : data.items;
+      return candidates.slice(0, 3);
+    })
+  );
+  const posts = postsData ?? [];
   const reduceMotion = useReducedMotion();
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchPosts = async () => {
-      try {
-        const data = await apiService.getBlogPostsPaged({ page: 1, page_size: 3 });
-        const candidates = data.latest?.length ? data.latest : data.items;
-        if (!cancelled) setPosts(candidates.slice(0, 3));
-      } catch (error) {
-        console.error("Failed to fetch blog posts", error);
-        if (!cancelled) setPosts([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    fetchPosts();
-
-    return () => { cancelled = true; };
-  }, []);
 
   const fadeUp = (delay = 0) => ({
     initial: reduceMotion ? false : { opacity: 0, y: 24 },
@@ -62,7 +48,7 @@ export default function ArticlesPreview() {
   });
 
   return (
-    <section id="articles" className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32">
+    <section id="articles" className="relative overflow-hidden bg-white py-24 md:py-32">
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
@@ -91,6 +77,12 @@ export default function ArticlesPreview() {
 
         {loading ? (
           <LoadingAnimation label={copy.loading} />
+        ) : error ? (
+          <ErrorState
+            title="Articles couldn't load"
+            message={error}
+            onRetry={retry}
+          />
         ) : posts.length === 0 ? (
           <motion.div
             className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-gray-600"

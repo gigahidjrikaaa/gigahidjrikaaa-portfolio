@@ -3,11 +3,17 @@
 
 import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { FaGithub, FaLinkedinIn, FaTwitter, FaEnvelope, FaFilePdf, FaDownload } from 'react-icons/fa';
-import { apiService, ProfileResponse } from '@/services/api';
+import { Github, Linkedin, Twitter, Mail, FileText, Download } from 'lucide-react';
+import { apiService, ApiError, ProfileResponse } from '@/services/api';
 import { toDirectDownloadUrl } from '@/utils/googleDrive';
 import { OrbitalRings } from './decorations/OrbitalRings';
 import { ContactGraphic } from './decorations/sections/ContactGraphic';
+
+const LIMITS = {
+  name: 100,
+  email: 254,
+  message: 5000,
+} as const;
 
 const copy = {
   eyebrow: 'GET IN TOUCH',
@@ -23,8 +29,25 @@ const copy = {
     emailPlaceholder: 'you@example.com',
     messagePlaceholder: 'Write your message here...',
     submit: 'Send Inquiry',
+    submitting: 'Sending…',
   },
-  statusPending: 'Thanks! Your message has been received.',
+  validation: {
+    firstNameRequired: 'Please enter your first name.',
+    lastNameRequired: 'Please enter your last name.',
+    nameTooLong: 'Combined name must be 100 characters or fewer.',
+    emailRequired: 'Please enter your email address.',
+    emailInvalid: 'That email address doesn\u2019t look right. Please check it.',
+    messageRequired: 'Please write a short message.',
+    messageTooLong: 'Message must be 5,000 characters or fewer.',
+  },
+  status: {
+    success: 'Thanks! Your message has been received. I usually reply within 1-2 business days.',
+    rateLimited: 'You\u2019ve sent several messages recently. Please wait a few minutes and try again.',
+    validation: 'Please review the highlighted fields and try again.',
+    network: 'Unable to reach the server right now. Please check your connection and try again.',
+    generic: 'Something went wrong while sending your message. Please try again, or email me directly at gigahidjrikaaa@gmail.com.',
+  },
+  characterCount: (used: number, max: number) => `${used.toLocaleString()} / ${max.toLocaleString()}`,
   socialPrompt: 'Get in touch',
   socials: {
     github: 'GitHub',
@@ -45,8 +68,53 @@ const copy = {
   },
 };
 
+interface FormValues {
+  firstName: string;
+  lastName: string;
+  email: string;
+  message: string;
+}
+
+type FieldName = keyof FormValues;
+type FieldErrors = Partial<Record<FieldName, string>>;
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+function validate(values: FormValues): FieldErrors {
+  const errors: FieldErrors = {};
+  const fullName = `${values.firstName.trim()} ${values.lastName.trim()}`.trim();
+
+  if (!values.firstName.trim()) errors.firstName = copy.validation.firstNameRequired;
+  if (!values.lastName.trim()) errors.lastName = copy.validation.lastNameRequired;
+  if (fullName.length > LIMITS.name) errors.firstName = copy.validation.nameTooLong;
+
+  const email = values.email.trim();
+  if (!email) errors.email = copy.validation.emailRequired;
+  else if (email.length > LIMITS.email || !EMAIL_PATTERN.test(email)) errors.email = copy.validation.emailInvalid;
+
+  const message = values.message.trim();
+  if (!message) errors.message = copy.validation.messageRequired;
+  else if (message.length > LIMITS.message) errors.message = copy.validation.messageTooLong;
+
+  return errors;
+}
+
+function toSubmitError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 429) return copy.status.rateLimited;
+    if (error.status === 422) return copy.status.validation;
+    if (error.status >= 500) return copy.status.generic;
+    return error.message || copy.status.generic;
+  }
+  if (error instanceof Error && error.message) return error.message;
+  return copy.status.network;
+}
+
 const Contact = () => {
-  const [status, setStatus] = useState<string | null>(null);
+  const [values, setValues] = useState<FormValues>({ firstName: '', lastName: '', email: '', message: '' });
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [isPortfolioDownloading, setIsPortfolioDownloading] = useState(false);
   const [portfolioError, setPortfolioError] = useState<string | null>(null);
@@ -83,9 +151,47 @@ const Contact = () => {
         : 'cursor-not-allowed border border-gray-200 bg-gray-100 text-gray-500'
     }`;
 
-  const handleSubmit = (event: { preventDefault: () => void }) => {
+  const setFieldValue = (field: FieldName, value: string) => {
+    setValues((prev) => ({ ...prev, [field]: value }));
+    // Clear the field-level error as soon as the user edits that field.
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+    if (submitStatus === 'error') {
+      setSubmitStatus('idle');
+      setSubmitError(null);
+    }
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setStatus(copy.statusPending);
+    if (submitStatus === 'submitting') return; // double-submit guard
+
+    const nextErrors = validate(values);
+    setFieldErrors(nextErrors);
+    if (Object.values(nextErrors).some(Boolean)) {
+      setSubmitStatus('error');
+      setSubmitError(copy.status.validation);
+      return;
+    }
+
+    setSubmitStatus('submitting');
+    setSubmitError(null);
+
+    try {
+      await apiService.submitContactMessage({
+        name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
+        email: values.email.trim(),
+        message: values.message.trim(),
+      });
+      setSubmitStatus('success');
+      setValues({ firstName: '', lastName: '', email: '', message: '' });
+      setFieldErrors({});
+    } catch (error) {
+      setSubmitStatus('error');
+      setSubmitError(toSubmitError(error));
+      // Values are intentionally preserved so the user can retry without retyping.
+    }
   };
 
   const handlePortfolioDownload = async () => {
@@ -109,8 +215,27 @@ const Contact = () => {
     }
   };
 
+  const inputClassName = (hasError: boolean) =>
+    `block w-full rounded-lg border bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:ring-0 ${
+      hasError
+        ? 'border-red-400 focus:border-red-500'
+        : 'border-gray-200 focus:border-gray-400'
+    }`;
+
+  const renderFieldError = (field: FieldName) => {
+    const message = fieldErrors[field];
+    if (!message) return null;
+    return (
+      <p id={`${field}-error`} className="mt-1.5 text-xs font-medium text-red-600">
+        {message}
+      </p>
+    );
+  };
+
+  const describedBy = (field: FieldName) => (fieldErrors[field] ? `${field}-error` : undefined);
+
   return (
-    <section id="contact" className="relative overflow-hidden bg-white py-24 dark:bg-zinc-900 md:py-32">
+    <section id="contact" className="relative overflow-hidden bg-white py-24 md:py-32">
       <OrbitalRings />
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
@@ -118,7 +243,7 @@ const Contact = () => {
           whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.6 }}
-          className="mx-auto max-w-4xl rounded-[32px] bg-white p-8 shadow-sm md:p-12"
+          className="mx-auto max-w-4xl rounded-3xl bg-white p-8 shadow-sm md:p-12"
         >
           <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.2fr]">
             {/* Left: Heading & socials */}
@@ -146,7 +271,7 @@ const Contact = () => {
                     className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900"
                     aria-label={copy.socials.github}
                   >
-                    <FaGithub className="h-4 w-4" />
+                    <Github className="h-4 w-4" />
                   </a>
                   <a
                     href="https://linkedin.com/in/gigahidjrikaaa"
@@ -155,7 +280,7 @@ const Contact = () => {
                     className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900"
                     aria-label={copy.socials.linkedin}
                   >
-                    <FaLinkedinIn className="h-4 w-4" />
+                    <Linkedin className="h-4 w-4" />
                   </a>
                   <a
                     href="https://twitter.com/gigahidjrikaaa"
@@ -164,21 +289,21 @@ const Contact = () => {
                     className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900"
                     aria-label={copy.socials.twitter}
                   >
-                    <FaTwitter className="h-4 w-4" />
+                    <Twitter className="h-4 w-4" />
                   </a>
                   <a
                     href="mailto:gigahidjrikaaa@gmail.com"
                     className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900"
                     aria-label={copy.socials.email}
                   >
-                    <FaEnvelope className="h-4 w-4" />
+                    <Mail className="h-4 w-4" />
                   </a>
                 </div>
               </div>
 
               <div className="mt-8 rounded-2xl border border-gray-200 bg-gray-50 p-6">
                 <div className="mb-3 flex items-center gap-2">
-                  <FaFilePdf className="text-gray-600" />
+                  <FileText className="text-gray-600" />
                   <h3 className="text-lg font-semibold text-gray-900">
                     {copy.downloads.title}
                   </h3>
@@ -198,7 +323,7 @@ const Contact = () => {
                       }
                     }}
                   >
-                    <FaDownload className="h-4 w-4" />
+                    <Download className="h-4 w-4" />
                     {resumeDownloadUrl ? copy.downloads.resume : copy.downloads.resumeUnavailable}
                   </a>
                   <a
@@ -214,7 +339,7 @@ const Contact = () => {
                       }
                     }}
                   >
-                    <FaDownload className="h-4 w-4" />
+                    <Download className="h-4 w-4" />
                     {cvDownloadUrl ? copy.downloads.cv : copy.downloads.cvUnavailable}
                   </a>
 
@@ -224,7 +349,7 @@ const Contact = () => {
                     className={getDownloadButtonClass(!isPortfolioDownloading)}
                     onClick={handlePortfolioDownload}
                   >
-                    <FaDownload className="h-4 w-4" />
+                    <Download className="h-4 w-4" />
                     {isPortfolioDownloading ? copy.downloads.portfolioLoading : copy.downloads.portfolio}
                   </button>
                 </div>
@@ -238,7 +363,7 @@ const Contact = () => {
             </div>
 
             {/* Right: Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="firstName" className="mb-1 block text-sm font-medium text-gray-700">
@@ -249,9 +374,16 @@ const Contact = () => {
                     id="firstName"
                     name="firstName"
                     required
+                    autoComplete="given-name"
+                    maxLength={LIMITS.name}
                     placeholder={copy.form.firstNamePlaceholder}
-                    className="block w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-0"
+                    value={values.firstName}
+                    onChange={(e) => setFieldValue('firstName', e.target.value)}
+                    aria-invalid={Boolean(fieldErrors.firstName)}
+                    aria-describedby={describedBy('firstName')}
+                    className={inputClassName(Boolean(fieldErrors.firstName))}
                   />
+                  {renderFieldError('firstName')}
                 </div>
                 <div>
                   <label htmlFor="lastName" className="mb-1 block text-sm font-medium text-gray-700">
@@ -262,9 +394,16 @@ const Contact = () => {
                     id="lastName"
                     name="lastName"
                     required
+                    autoComplete="family-name"
+                    maxLength={LIMITS.name}
                     placeholder={copy.form.lastNamePlaceholder}
-                    className="block w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-0"
+                    value={values.lastName}
+                    onChange={(e) => setFieldValue('lastName', e.target.value)}
+                    aria-invalid={Boolean(fieldErrors.lastName)}
+                    aria-describedby={describedBy('lastName')}
+                    className={inputClassName(Boolean(fieldErrors.lastName))}
                   />
+                  {renderFieldError('lastName')}
                 </div>
               </div>
 
@@ -277,37 +416,68 @@ const Contact = () => {
                   id="email"
                   name="email"
                   required
+                  autoComplete="email"
+                  maxLength={LIMITS.email}
                   placeholder={copy.form.emailPlaceholder}
-                  className="block w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-0"
+                  value={values.email}
+                  onChange={(e) => setFieldValue('email', e.target.value)}
+                  aria-invalid={Boolean(fieldErrors.email)}
+                  aria-describedby={describedBy('email')}
+                  className={inputClassName(Boolean(fieldErrors.email))}
                 />
+                {renderFieldError('email')}
               </div>
 
               <div>
-                <label htmlFor="message" className="mb-1 block text-sm font-medium text-gray-700">
-                  {copy.form.message}
-                </label>
+                <div className="mb-1 flex items-baseline justify-between gap-3">
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+                    {copy.form.message}
+                  </label>
+                  <span
+                    className={`text-xs tabular-nums ${
+                      values.message.length > LIMITS.message ? 'font-semibold text-red-600' : 'text-gray-400'
+                    }`}
+                  >
+                    {copy.characterCount(values.message.length, LIMITS.message)}
+                  </span>
+                </div>
                 <textarea
                   id="message"
                   name="message"
                   rows={4}
                   required
+                  maxLength={LIMITS.message}
                   placeholder={copy.form.messagePlaceholder}
-                  className="block w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-0"
+                  value={values.message}
+                  onChange={(e) => setFieldValue('message', e.target.value)}
+                  aria-invalid={Boolean(fieldErrors.message)}
+                  aria-describedby={describedBy('message')}
+                  className={inputClassName(Boolean(fieldErrors.message))}
                 />
+                {renderFieldError('message')}
               </div>
 
               <button
                 type="submit"
-                className="inline-flex w-full items-center justify-center rounded-full bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800"
+                disabled={submitStatus === 'submitting'}
+                className="inline-flex w-full items-center justify-center rounded-full bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                aria-live="polite"
               >
-                {copy.form.submit}
+                {submitStatus === 'submitting' ? copy.form.submitting : copy.form.submit}
               </button>
 
-              {status ? (
-                <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700" role="status" aria-live="polite">
-                  {status}
-                </div>
-              ) : null}
+              <div role="status" aria-live="polite">
+                {submitStatus === 'success' ? (
+                  <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+                    {copy.status.success}
+                  </div>
+                ) : null}
+                {submitStatus === 'error' && submitError ? (
+                  <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {submitError}
+                  </div>
+                ) : null}
+              </div>
             </form>
           </div>
         </motion.div>

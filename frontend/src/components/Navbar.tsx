@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Bars3Icon, XMarkIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
+import { Menu, X, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
@@ -72,12 +72,12 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { name: copy.links.about,      href: '#about',      sectionId: 'about' },
-    { name: copy.links.experience, href: '#experience', sectionId: 'experience' },
-    { name: copy.links.projects,   href: '#projects',   sectionId: 'projects' },
-    { name: copy.links.skills,     href: '#skills',     sectionId: 'skills' },
+    { name: copy.links.about,      href: '/#about',      sectionId: 'about' },
+    { name: copy.links.experience, href: '/#experience', sectionId: 'experience' },
+    { name: copy.links.projects,   href: '/#projects',   sectionId: 'projects' },
+    { name: copy.links.skills,     href: '/#skills',     sectionId: 'skills' },
     { name: copy.links.blog,       href: '/blog',       sectionId: null },
-    { name: copy.links.contact,    href: '#contact',    sectionId: 'contact' },
+    { name: copy.links.contact,    href: '/#contact',    sectionId: 'contact' },
   ];
 
   const allLinks: Array<{ name: string; href: string; sectionId: string | null; isAdmin?: boolean }> = [...navLinks];
@@ -146,7 +146,7 @@ const Navbar = () => {
                 >
                   {link.name}
                   {link.isAdmin && (
-                    <ShieldCheckIcon className="h-3.5 w-3.5 text-emerald-600" aria-label={copy.adminBadge} />
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" aria-label={copy.adminBadge} />
                   )}
                   {active && (
                     <span className="absolute -bottom-1.5 left-0 h-0.5 w-full bg-zinc-900 rounded-full" />
@@ -163,12 +163,12 @@ const Navbar = () => {
                 className="flex items-center gap-1.5 rounded border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-widest text-emerald-700"
                 title={copy.adminBadge}
               >
-                <ShieldCheckIcon className="h-3.5 w-3.5" />
+                <ShieldCheck className="h-3.5 w-3.5" />
                 <span>Admin</span>
               </div>
             )}
             <Link
-              href="#contact"
+              href="/#contact"
               className="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-5 py-2.5 text-[13px] font-medium uppercase tracking-[0.08em] text-white hover:bg-zinc-800 transition-colors duration-150"
             >
               {copy.cta}
@@ -188,11 +188,11 @@ const Navbar = () => {
               <AnimatePresence mode="wait" initial={false}>
                 {isMobileMenuOpen ? (
                   <motion.span key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                    <XMarkIcon className="h-6 w-6" aria-hidden />
+                    <X className="h-6 w-6" aria-hidden />
                   </motion.span>
                 ) : (
                   <motion.span key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                    <Bars3Icon className="h-6 w-6" aria-hidden />
+                    <Menu className="h-6 w-6" aria-hidden />
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -216,7 +216,7 @@ const Navbar = () => {
             <div className="px-4 pb-6 pt-4 space-y-2">
               {isAdmin && (
                 <div className="mb-4 flex items-center gap-1.5 rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium uppercase tracking-[0.1em] text-emerald-700">
-                  <ShieldCheckIcon className="h-4 w-4" />
+                  <ShieldCheck className="h-4 w-4" />
                   <span>Logged in as Admin</span>
                 </div>
               )}
@@ -236,14 +236,14 @@ const Navbar = () => {
                       ].join(' ')}
                     >
                       {link.name}
-                      {link.isAdmin && <ShieldCheckIcon className="h-4 w-4 text-emerald-600" />}
+                      {link.isAdmin && <ShieldCheck className="h-4 w-4 text-emerald-600" />}
                     </Link>
                   );
                 })}
               </div>
               <div className="pt-4">
                 <Link
-                  href="#contact"
+                  href="/#contact"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex w-full items-center justify-center rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium uppercase tracking-[0.1em] text-white hover:bg-zinc-800 transition-colors"
                 >

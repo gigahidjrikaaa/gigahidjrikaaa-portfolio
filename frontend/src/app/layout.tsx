@@ -1,9 +1,22 @@
 import type { Metadata } from "next";
+import { Sora, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import AppProviders from "./providers";
 import { apiService } from "@/services/api";
+
+const headingFont = Sora({
+  subsets: ["latin"],
+  variable: "--font-heading",
+  display: "swap",
+});
+
+const bodyFont = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -94,7 +107,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${headingFont.variable} ${bodyFont.variable}`}>
       <body className="flex flex-col min-h-screen scroll-smooth">
         <script
           type="application/ld+json"

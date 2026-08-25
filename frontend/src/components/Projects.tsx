@@ -1,15 +1,17 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence, useInView, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { ArrowUpRight, Github, ExternalLink, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { apiService } from "@/services/api";
 import ProjectModal from './ProjectModal';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
+import ErrorState from '@/components/ui/ErrorState';
+import { useApiData } from '@/hooks/useApiData';
 import { FloatingShapes } from './decorations/FloatingShapes';
 import { ProjectsGraphic } from './decorations/sections/ProjectsGraphic';
 
-interface ProjectItem {
+export interface ProjectItem {
   id: number;
   title: string;
   tagline: string;
@@ -35,6 +37,11 @@ interface ProjectItem {
   metrics_impact?: string;
   solo_contributions?: string;
   tech_decisions?: string;
+}
+
+interface ProjectsProps {
+  /** Server-rendered projects (ISR). When present, skips the client fetch. */
+  initialProjects?: ProjectItem[] | null;
 }
 
 const PROJECT_PLACEHOLDER_IMAGE = '/placeholder.png';
@@ -63,9 +70,17 @@ function useTilt(maxTilt = 8) {
   return { ref, rotateX, rotateY, handleMouseMove, handleMouseLeave };
 }
 
-const Projects = () => {
-  const [projects, setProjects] = useState<ProjectItem[]>([]);
-  const [loading, setLoading] = useState(true);
+const Projects = ({ initialProjects = null }: ProjectsProps) => {
+  // Server-rendered data (ISR) renders instantly; the client fetch only runs
+  // when the server could not provide data (initialProjects === null).
+  const { data: projectsData, loading, error, retry } = useApiData<ProjectItem[]>(
+    () => apiService.getProjects(),
+    { enabled: initialProjects === null }
+  );
+  const projects = useMemo(
+    () => projectsData ?? initialProjects ?? [],
+    [projectsData, initialProjects]
+  );
   const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'featured' | 'all'>('all');
@@ -73,20 +88,6 @@ const Projects = () => {
   const [carouselDir, setCarouselDir] = useState<1 | -1>(1);
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await apiService.getProjects();
-        setProjects(data);
-      } catch (error) {
-        console.error('Failed to fetch projects', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
 
   const featuredProjects = useMemo(() => projects.filter(p => p.is_featured), [projects]);
   const activeProjects = useMemo(() => projects.filter(p => p.is_active), [projects]);
@@ -155,9 +156,9 @@ const Projects = () => {
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white/70 mb-6"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/30 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white/80 mb-6"
                   >
-                    <Star className="h-3 w-3 text-amber-400" fill="currentColor" />
+                    <Star className="h-3 w-3 text-white" fill="currentColor" />
                     Featured
                   </motion.div>
                   {project.is_active && (
@@ -178,7 +179,7 @@ const Projects = () => {
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
-                    className="text-3xl md:text-4xl font-bold text-white leading-tight"
+                    className="break-words text-3xl md:text-4xl font-bold text-white leading-tight"
                   >
                     {project.title}
                   </motion.h3>
@@ -198,7 +199,7 @@ const Projects = () => {
                       className="mt-5 flex flex-wrap gap-2"
                     >
                       {project.tech_stack.slice(0, 5).map(t => (
-                        <span key={t} className="rounded-full border border-white/20 bg-white/10 px-3 py-0.5 text-xs font-medium text-white/80">
+                        <span key={t} className="rounded-full border border-white/25 px-3 py-0.5 text-xs font-medium text-white/80">
                           {t}
                         </span>
                       ))}
@@ -223,7 +224,7 @@ const Projects = () => {
                       href={project.live_url || project.github_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-white/20 active:scale-95"
+                      className="inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-white/10 active:scale-95"
                     >
                       {project.live_url ? <><ExternalLink className="h-3.5 w-3.5" /> Live demo</> : <><Github className="h-3.5 w-3.5" /> Source code</>}
                     </a>
@@ -336,7 +337,7 @@ const Projects = () => {
             {/* Featured badge */}
             {project.is_featured && (
               <div className="absolute left-3 top-3 flex flex-col gap-1">
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow">
+                <span className="inline-flex items-center gap-1 rounded-full bg-zinc-900 px-2.5 py-0.5 text-xs font-semibold text-white shadow">
                   <Star className="h-2.5 w-2.5" fill="currentColor" /> Featured
                 </span>
                 {project.is_active && (
@@ -450,7 +451,7 @@ const Projects = () => {
   };
 
   return (
-    <section id="projects" className="relative overflow-hidden bg-zinc-50 py-24 dark:bg-zinc-900 md:py-32" ref={sectionRef}>
+    <section id="projects" className="relative overflow-hidden bg-zinc-50 py-24 md:py-32" ref={sectionRef}>
       <FloatingShapes />
       {/* Subtle grid background */}
       <div
@@ -566,6 +567,12 @@ const Projects = () => {
         {/* Grid */}
         {loading ? (
           <LoadingAnimation label="Loading projects..." />
+        ) : error ? (
+          <ErrorState
+            title="Projects couldn't load"
+            message={error}
+            onRetry={retry}
+          />
         ) : displayProjects.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
