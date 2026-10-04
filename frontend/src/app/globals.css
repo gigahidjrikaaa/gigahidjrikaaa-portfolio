@@ -4,7 +4,9 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --font-stack-body: var(--font-body); 
+  /* next/font self-hosted fonts: --font-heading / --font-body are declared
+     directly on <html> by layout.tsx (Sora / Instrument Sans) */
+  --font-stack-body: var(--font-body);
   --font-stack-heading: var(--font-heading);
   --bg-color: var(--color-background); 
   --text-color: var(--color-text-primary);

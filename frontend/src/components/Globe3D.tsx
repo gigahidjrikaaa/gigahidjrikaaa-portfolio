@@ -8,6 +8,7 @@
 import { Suspense, useRef, useMemo } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { OrbitControls, Sphere } from "@react-three/drei";
+import { useReducedMotion } from "framer-motion";
 import * as THREE from "three";
 
 // ─── Location data ────────────────────────────────────────────────────────────
@@ -167,17 +168,14 @@ function Atmosphere() {
 
 // ─── Globe mesh ───────────────────────────────────────────────────────────────
 
-function GlobeMesh() {
+function GlobeMesh({ spin = true }: { spin?: boolean }) {
   const groupRef = useRef<THREE.Group>(null);
-  // Daylight earth texture — NASA Blue Marble via three-globe CDN
-  const earthTexture = useLoader(
-    THREE.TextureLoader,
-    "https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-day.jpg"
-  );
+  // Daylight earth texture — NASA Blue Marble, self-hosted to avoid a third-party CDN round-trip
+  const earthTexture = useLoader(THREE.TextureLoader, "/textures/earth-day.jpg");
   earthTexture.colorSpace = THREE.SRGBColorSpace;
 
   useFrame((_, delta) => {
-    if (groupRef.current) {
+    if (groupRef.current && spin) {
       groupRef.current.rotation.y += delta * 0.06;
     }
   });
@@ -242,6 +240,8 @@ interface Globe3DProps {
 }
 
 export default function Globe3D({ className }: Globe3DProps) {
+  const reduceMotion = useReducedMotion();
+
   return (
     <div className={className ?? "h-full w-full"}>
       <Canvas
@@ -257,7 +257,7 @@ export default function Globe3D({ className }: Globe3DProps) {
         <pointLight        position={[0,  4,  2]}  intensity={0.2} color="#bfdbfe" />
 
         <Suspense fallback={null}>
-          <GlobeMesh />
+          <GlobeMesh spin={!reduceMotion} />
         </Suspense>
 
         <OrbitControls

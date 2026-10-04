@@ -69,7 +69,6 @@ const Hero = ({ initialProfile = null }: HeroProps) => {
               className="flex items-center gap-3 mb-8"
             >
               <div className="flex items-center justify-center relative w-2 h-2">
-                <span className="absolute inline-flex h-2.5 w-2.5 animate-ping rounded-full bg-emerald-500 opacity-75"></span>
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
               </div>
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Available for work</span>
@@ -162,7 +161,7 @@ const Hero = ({ initialProfile = null }: HeroProps) => {
              >
                <div className="relative w-full h-[85%] overflow-hidden bg-zinc-100 grayscale hover:grayscale-0 transition-all duration-700">
                  <Image 
-                   src="/giga-pics/giga-3.jpg" 
+                   src="/giga-pics/giga-3.webp"
                    alt="Profile photo 2" 
                    fill 
                    className="object-cover"
@@ -185,7 +184,7 @@ const Hero = ({ initialProfile = null }: HeroProps) => {
              >
                <div className="relative w-full h-[85%] overflow-hidden bg-zinc-200">
                   <Image
-                    src="/giga-pics/giga-1.jpg"
+                    src="/giga-pics/giga-1.webp"
                     alt="Profile photo"
                     fill
                     priority

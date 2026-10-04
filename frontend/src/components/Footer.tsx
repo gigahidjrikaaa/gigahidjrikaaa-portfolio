@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
+import Logo from './Logo';
 
 const Footer = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -14,7 +15,7 @@ const Footer = () => {
   }, []);
 
   const copy = {
-    brand: '[GigaDev]',
+    brand: 'Giga Hidjrika',
     rights: `© ${currentYear} Giga Hidjrika. All Rights Reserved.`,
     attribution: 'Designed and built with Next.js, Framer Motion, and TailwindCSS',
     links: [
@@ -39,13 +40,16 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Logo & Copyright */}
           <div className="flex flex-col items-center md:items-start">
-            <motion.div
-              className="text-xl font-semibold mb-3 text-gray-900"
-              whileHover={{ scale: 1.02 }}
-              transition={{ duration: 0.2 }}
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 mb-3 group"
+              aria-label="Giga Hidjrika — home"
             >
-              {copy.brand}
-            </motion.div>
+              <Logo className="h-8 w-8 text-zinc-900 transition-transform duration-300 group-hover:rotate-[30deg]" />
+              <span className="text-lg font-semibold tracking-tight text-gray-900">
+                {copy.brand}
+              </span>
+            </Link>
             <div className="text-sm text-gray-500 text-center md:text-left">
               {copy.rights}
             </div>

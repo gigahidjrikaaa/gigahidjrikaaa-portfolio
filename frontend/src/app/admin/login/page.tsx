@@ -42,7 +42,7 @@ const AdminLogin = () => {
     <div className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0">
         <Image
-          src="/giga-pics/giga-2.jpg"
+          src="/giga-pics/giga-2.webp"
           alt="Admin login background"
           fill
           priority

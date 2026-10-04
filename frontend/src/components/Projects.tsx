@@ -168,10 +168,7 @@ const Projects = ({ initialProjects = null }: ProjectsProps) => {
                       transition={{ delay: 0.12 }}
                       className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300 mb-2"
                     >
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                      </span>
+                      <span className="inline-flex h-1.5 rounded-full bg-emerald-400" />
                       In progress
                     </motion.div>
                   )}
@@ -342,10 +339,7 @@ const Projects = ({ initialProjects = null }: ProjectsProps) => {
                 </span>
                 {project.is_active && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
-                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
-                    </span>
+                    <span className="inline-flex h-1.5 rounded-full bg-white" />
                     Active
                   </span>
                 )}
@@ -354,10 +348,7 @@ const Projects = ({ initialProjects = null }: ProjectsProps) => {
             {!project.is_featured && project.is_active && (
               <div className="absolute left-3 top-3">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
-                  </span>
+                  <span className="inline-flex h-1.5 rounded-full bg-white" />
                   Active
                 </span>
               </div>
@@ -503,10 +494,7 @@ const Projects = ({ initialProjects = null }: ProjectsProps) => {
             className="mb-10 flex flex-wrap items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/60 px-5 py-3.5"
           >
             <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
+              <span className="inline-flex h-2 rounded-full bg-emerald-500" />
               Currently building
             </div>
             <span className="h-3.5 w-px bg-emerald-200" />

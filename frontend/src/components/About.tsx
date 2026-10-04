@@ -73,7 +73,7 @@ const About = () => {
   }, []);
 
   const avatarSrc =
-    !avatarFailed && profile?.avatar_url ? profile.avatar_url : '/giga-pics/giga-3.jpg';
+    !avatarFailed && profile?.avatar_url ? profile.avatar_url : '/giga-pics/giga-3.webp';
 
   const headline = profile?.headline || 'A software engineer working across AI, blockchain, and modern web development — building products from concept to production.';
   const bio = profile?.bio || 'My work covers the full product lifecycle — from user interfaces and backend systems to AI integrations. I focus on writing clean code and shipping things that actually hold up.';
@@ -143,10 +143,7 @@ const About = () => {
                     {location}
                   </div>
                   <div className="flex items-center gap-2 text-sm font-medium text-zinc-500">
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                    </span>
+                    <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                     {availability}
                   </div>
                 </div>
@@ -210,7 +207,7 @@ const About = () => {
               {milestones.map((m) => (
                 <div key={m.year} className="flex-1 relative pl-6 md:pl-0 md:pt-6 border-l md:border-l-0 md:border-t border-zinc-700/50">
                   {/* Timeline dot */}
-                  <div className={`absolute left-[-5px] md:left-auto md:top-[-5px] h-2.5 w-2.5 rounded-full ring-4 ring-zinc-900 ${m.current ? 'bg-emerald-500 box-content shadow-[0_0_12px_rgba(16,185,129,0.6)]' : 'bg-zinc-600'}`} />
+                  <div className={`absolute left-[-5px] md:left-auto md:top-[-5px] h-2.5 w-2.5 rounded-full ring-4 ring-zinc-900 ${m.current ? 'bg-emerald-500 box-content' : 'bg-zinc-600'}`} />
                   
                   <p className={`text-sm font-bold mt-[-4px] md:mt-2 mb-1 ${m.current ? 'text-emerald-400' : 'text-zinc-400'}`}>{m.year}</p>
                   <p className="text-sm text-zinc-300 pr-4">{m.event}</p>

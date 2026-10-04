@@ -183,7 +183,9 @@ const VisitorMap = () => {
             className="relative flex justify-center"
           >
             <div className="relative h-[560px] w-full max-w-[560px] sm:h-[680px] sm:max-w-[680px]">
-              <Globe3D className="h-full w-full" />
+              {/* Mount the Three.js globe only once the section is approached —
+                  defers the WebGL context, three.js chunk, and earth texture download */}
+              {inView && <Globe3D className="h-full w-full" />}
             </div>
 
 

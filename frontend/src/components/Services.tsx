@@ -50,7 +50,7 @@ const Services = () => {
           <div className="relative aspect-[4/3] overflow-hidden rounded-[32px] bg-gray-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/giga-pics/giga-4.jpg"
+              src="/giga-pics/giga-4.webp"
               alt="Product planning and delivery workflow"
               className="h-full w-full object-cover"
             />

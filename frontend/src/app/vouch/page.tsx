@@ -190,7 +190,7 @@ export default function VouchPage() {
 
           <motion.div variants={fadeUp} className="mb-8">
             <Image 
-              src="/giga-pics/giga-5.jpg" 
+              src="/giga-pics/giga-5.webp" 
               alt="Giga" 
               width={96} 
               height={96} 

@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Menu, X, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import Logo from './Logo';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -119,10 +120,8 @@ const Navbar = () => {
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-white text-xs font-bold tracking-tight transition-transform group-hover:scale-105">
-                GH
-              </div>
+            <Link href="/" className="flex items-center gap-2.5 group" aria-label="Giga Hidjrika — home">
+              <Logo className="h-7 w-7 text-zinc-900 transition-transform duration-300 group-hover:rotate-[30deg]" />
               <span className="text-[15px] font-medium tracking-tight text-zinc-900 transition-colors hidden sm:block">
                 {copy.brand}
               </span>

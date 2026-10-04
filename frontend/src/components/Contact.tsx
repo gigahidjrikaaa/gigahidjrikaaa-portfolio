@@ -255,10 +255,7 @@ const Contact = () => {
 
             {/* Response promise */}
             <div className="mt-8 inline-flex items-center gap-2.5 rounded-full border border-zinc-200 bg-white px-4 py-2">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
+              <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               <span className="text-sm font-medium text-zinc-700">{copy.promise}</span>
             </div>
 
