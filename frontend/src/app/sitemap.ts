@@ -1,7 +1,5 @@
 import { MetadataRoute } from "next";
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
+import { SITE_URL, API_BASE_URL } from "@/lib/site";
 
 interface SitemapConfig {
   sitemap_home_priority: number;
@@ -31,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Fetch sitemap config from SEO settings (falls back to DEFAULTS on error)
   let cfg: SitemapConfig = DEFAULTS;
   try {
-    const res = await fetch(`${apiBase}/seo`, { next: { revalidate: 3600 } });
+    const res = await fetch(`${API_BASE_URL}/seo`, { next: { revalidate: 3600 } });
     if (res.ok) {
       const data = await res.json();
       if (data) cfg = { ...DEFAULTS, ...data };
@@ -45,13 +43,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const urls: MetadataRoute.Sitemap = [
     {
-      url: siteUrl,
+      url: SITE_URL,
       lastModified: new Date(),
       changeFrequency: toFreq(cfg.sitemap_home_changefreq),
       priority: cfg.sitemap_home_priority,
     },
     {
-      url: `${siteUrl}/more`,
+      url: `${SITE_URL}/more`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.6,
@@ -61,7 +59,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Blog index
   if (cfg.sitemap_blog_enabled) {
     urls.push({
-      url: `${siteUrl}/blog`,
+      url: `${SITE_URL}/blog`,
       lastModified: new Date(),
       changeFrequency: toFreq(cfg.sitemap_blog_changefreq),
       priority: cfg.sitemap_blog_priority,
@@ -71,15 +69,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Blog posts
   if (cfg.sitemap_posts_enabled) {
     try {
-      const response = await fetch(`${apiBase}/blog?status=published&page_size=100`, {
+      const response = await fetch(`${API_BASE_URL}/blog?status=published&page_size=100`, {
         next: { revalidate: 3600 },
       });
       if (response.ok) {
-        const data: { items: Array<{ slug: string; updated_at: string }> } = await response.json();
-        if (data.items) {
-          data.items.forEach((post) => {
+        // The list endpoint returns a bare array; accept both shapes so a
+        // wrapping envelope can't silently drop every post from the sitemap.
+        const data: Array<{ slug: string; updated_at: string }> | { items: Array<{ slug: string; updated_at: string }> } =
+          await response.json();
+        const items = Array.isArray(data) ? data : data.items;
+        if (items) {
+          items.forEach((post) => {
             urls.push({
-              url: `${siteUrl}/blog/${post.slug}`,
+              url: `${SITE_URL}/blog/${post.slug}`,
               lastModified: post.updated_at,
               changeFrequency: toFreq(cfg.sitemap_posts_changefreq),
               priority: cfg.sitemap_posts_priority,
@@ -99,7 +101,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         JSON.parse(cfg.sitemap_custom_pages);
       custom.forEach(({ url, priority, changefreq }) => {
         if (url) {
-          const fullUrl = url.startsWith("http") ? url : `${siteUrl}${url}`;
+          const fullUrl = url.startsWith("http") ? url : `${SITE_URL}${url}`;
           urls.push({
             url: fullUrl,
             lastModified: new Date(),

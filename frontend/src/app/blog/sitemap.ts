@@ -1,8 +1,9 @@
 import { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/site";
 import { apiService, type BlogPostResponse } from "@/services/api";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = SITE_URL;
   let posts: BlogPostResponse[] = [];
 
   try {

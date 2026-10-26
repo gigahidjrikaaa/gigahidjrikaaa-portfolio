@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import AppProviders from "./providers";
 import { apiService } from "@/services/api";
+import { SITE_URL } from "@/lib/site";
 
 const headingFont = Sora({
   subsets: ["latin"],
@@ -18,7 +19,7 @@ const bodyFont = Instrument_Sans({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const siteUrl = SITE_URL;
 
 const OG_FALLBACK_IMAGE = "https://images.unsplash.com/photo-1517694712202-14dd9538a97?w=1200&h=630&fit=crop";
 
@@ -41,7 +42,17 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = seo?.site_description || `Hi, I'm ${fullName}, a ${jobTitle}. I build AI-powered products and full-stack solutions in Web3, React, Next.js, and Python.`;
   const keywords = seo?.keywords || "blockchain, web3, ai, python, react, next.js, full-stack, software engineer, giga hidjrika, aura adkhy";
   const ogImage = seo?.og_image_url || OG_FALLBACK_IMAGE;
-  const canonical = seo?.canonical_url || siteUrl;
+  // The admin-configured canonical may drift from the deployed origin
+  // (e.g. apex domain vs www). A canonical must always live on the origin
+  // that actually serves the pages, so keep only its path and re-root it.
+  const canonical = (() => {
+    try {
+      const configured = new URL(seo?.canonical_url || "/", siteUrl);
+      return new URL(configured.pathname + configured.search, siteUrl).toString();
+    } catch {
+      return siteUrl;
+    }
+  })();
 
   return {
     title,

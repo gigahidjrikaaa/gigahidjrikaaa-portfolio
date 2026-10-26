@@ -9,8 +9,9 @@ import PressMentions from "@/components/PressMentions";
 import GitHubIntegration from "@/components/GitHubIntegration";
 import Stories from "@/components/Stories";
 import VisitorMap from "@/components/VisitorMap";
+import { SITE_URL } from "@/lib/site";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const siteUrl = SITE_URL;
 
 export const metadata: Metadata = {
   title: "Know more — Giga Hidjrika",
