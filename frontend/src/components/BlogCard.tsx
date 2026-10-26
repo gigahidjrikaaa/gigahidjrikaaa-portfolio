@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { BlogPostResponse } from "@/services/api";
-import { ExternalLink } from "lucide-react";
+import { ArrowUpRight, ExternalLink, Newspaper } from "lucide-react";
+import { EASE_OUT } from "@/lib/motion";
 
 const formatDate = (value?: string | null) => {
   if (!value) return null;
@@ -14,6 +16,15 @@ const formatDate = (value?: string | null) => {
     year: "numeric",
   }).format(date);
 };
+
+/** Branded stand-in for posts without a cover: faint orbit rings + icon. */
+const CoverPlaceholder = () => (
+  <div className="relative flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100">
+    <div aria-hidden className="absolute left-[12%] top-[18%] h-28 w-28 rounded-full border border-zinc-200" />
+    <div aria-hidden className="absolute bottom-[14%] right-[16%] h-16 w-16 rounded-full border border-dashed border-zinc-200" />
+    <Newspaper className="h-9 w-9 text-zinc-300" />
+  </div>
+);
 
 const CardBody = ({ post }: { post: BlogPostResponse }) => {
   const publishedAt = formatDate(post.published_at || post.created_at);
@@ -31,8 +42,8 @@ const CardBody = ({ post }: { post: BlogPostResponse }) => {
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">
-            Cover image pending
+          <div className="h-full w-full transition-transform duration-500 group-hover:scale-[1.03]">
+            <CoverPlaceholder />
           </div>
         )}
         {/* Top-left badges */}
@@ -61,9 +72,16 @@ const CardBody = ({ post }: { post: BlogPostResponse }) => {
       <div className="flex flex-1 flex-col p-6">
         <div className="flex items-center gap-3 text-xs text-gray-500">
           {publishedAt && <span>{publishedAt}</span>}
-          {post.reading_time_minutes ? <span>{post.reading_time_minutes} min read</span> : null}
+          {post.reading_time_minutes ? (
+            <>
+              <span aria-hidden>·</span>
+              <span className="tabular-nums">{post.reading_time_minutes} min read</span>
+            </>
+          ) : null}
         </div>
-        <h3 className="mt-3 text-lg font-semibold text-gray-900">{post.title}</h3>
+        <h3 className="mt-3 text-lg font-semibold leading-snug tracking-tight text-gray-900">
+          {post.title}
+        </h3>
         {post.excerpt && <p className="mt-3 text-sm text-gray-600 line-clamp-3">{post.excerpt}</p>}
 
         {tags.length > 0 && (
@@ -76,11 +94,17 @@ const CardBody = ({ post }: { post: BlogPostResponse }) => {
           </div>
         )}
 
-        <div className="mt-auto flex items-center gap-1 pt-6 text-sm font-semibold text-gray-900 group-hover:underline">
+        <div className="mt-auto flex items-center gap-1.5 pt-6 text-sm font-semibold text-gray-900">
           {isExternal ? (
-            <>Read on {post.external_source || "External Site"} <ExternalLink className="h-3 w-3" /></>
+            <>
+              Read on {post.external_source || "External Site"}
+              <ExternalLink className="h-3 w-3" />
+            </>
           ) : (
-            "Read more →"
+            <>
+              Read more
+              <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </>
           )}
         </div>
       </div>
@@ -91,26 +115,34 @@ const CardBody = ({ post }: { post: BlogPostResponse }) => {
 const BlogCard = ({ post }: { post: BlogPostResponse }) => {
   const isExternal = post.is_external && post.external_url;
   const sharedClass =
-    "group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg";
+    "group flex h-full flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg";
 
-  if (isExternal) {
-    return (
-      <a
-        href={post.external_url!}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={sharedClass}
-        aria-label={`Read "${post.title}" on ${post.external_source ?? "external site"} (opens in new tab)`}
-      >
-        <CardBody post={post} />
-      </a>
-    );
-  }
-
-  return (
+  const inner = isExternal ? (
+    <a
+      href={post.external_url!}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={sharedClass}
+      aria-label={`Read "${post.title}" on ${post.external_source ?? "external site"} (opens in new tab)`}
+    >
+      <CardBody post={post} />
+    </a>
+  ) : (
     <Link href={`/blog/${post.slug}`} className={sharedClass} aria-label={`Read "${post.title}"`}>
       <CardBody post={post} />
     </Link>
+  );
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
+      transition={{ duration: 0.55, ease: EASE_OUT }}
+      className="h-full"
+    >
+      {inner}
+    </motion.div>
   );
 };
 
