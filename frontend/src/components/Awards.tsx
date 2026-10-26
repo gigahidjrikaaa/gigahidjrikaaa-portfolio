@@ -64,7 +64,16 @@ const Awards = () => {
               onRetry={retry}
             />
           ) : awards.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            // Self-contained reveal scope: the grid mounts after the fetch
+            // resolves, so it cannot rely on the parent container's variant
+            // propagation (late children stay stuck at `hidden`).
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
+              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+            >
               {awards.map((award) => (
                 <motion.article
                   key={award.id}
@@ -117,7 +126,7 @@ const Awards = () => {
                   )}
                 </motion.article>
               ))}
-            </div>
+            </motion.div>
           ) : (
             <div className="text-zinc-500">{copy.empty}</div>
           )}

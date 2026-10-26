@@ -81,7 +81,16 @@ const Skills = () => {
               onRetry={retry}
             />
           ) : categories.length > 0 ? (
-            <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+            // Self-contained reveal scope: the masonry mounts after the fetch
+            // resolves, so it cannot rely on the parent container's variant
+            // propagation (late children stay stuck at `hidden`).
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
+              className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6"
+            >
               {categories.map((category) => {
                 const Icon = getCategoryIcon(category);
                 return (
@@ -135,7 +144,7 @@ const Skills = () => {
                   </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-gray-500">
               <Boxes className="h-12 w-12 text-zinc-300 mb-4" />

@@ -136,7 +136,16 @@ const Certificates = () => {
           </motion.div>
 
           {!loading && certificates.length > 0 ? (
-            <motion.div variants={itemVariants} className="mb-8 grid gap-3 sm:grid-cols-3">
+            // Self-contained reveal scope: these blocks mount after the fetch
+            // resolves, so they cannot rely on the parent container's variant
+            // propagation (late children stay stuck at `hidden`).
+            <motion.div
+              variants={itemVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
+              className="mb-8 grid gap-3 sm:grid-cols-3"
+            >
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">{copy.stats.total}</p>
                 <p className="mt-2 text-3xl font-semibold text-zinc-900">{certificateStats.total}</p>
@@ -153,7 +162,13 @@ const Certificates = () => {
           ) : null}
 
           {!loading && typeFilters.length > 1 ? (
-            <motion.div variants={itemVariants} className="mb-10 flex flex-wrap items-center gap-2">
+            <motion.div
+              variants={itemVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
+              className="mb-10 flex flex-wrap items-center gap-2"
+            >
               {typeFilters.map((typeValue) => {
                 const isActive = activeTypeFilter === typeValue;
                 const label = typeValue === 'all' ? copy.filterAll : getCertificateTypeLabel(typeValue);
@@ -185,7 +200,13 @@ const Certificates = () => {
               onRetry={retry}
             />
           ) : filteredCertificates.length > 0 ? (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
+              className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            >
               {filteredCertificates.map((cert, index) => {
                 const resolvedStatus = deriveCredentialStatus(cert);
                 const daysUntilExpiry = getDaysUntilExpiry(cert.expiry_date);
@@ -308,7 +329,7 @@ const Certificates = () => {
                   </motion.article>
                 );
               })}
-            </div>
+            </motion.div>
           ) : (
             <div className="text-center text-gray-500">{copy.empty}</div>
           )}
