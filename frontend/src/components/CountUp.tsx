@@ -7,6 +7,8 @@ interface CountUpProps {
   value: number;
   /** Seconds; kept short so the reveal never outruns the section's fade-in. */
   duration?: number;
+  /** Static tail appended after the number, e.g. "+" or "%". */
+  suffix?: string;
   className?: string;
 }
 
@@ -14,7 +16,7 @@ interface CountUpProps {
  * Counts from 0 to `value` the first time it enters the viewport.
  * Renders the final value immediately for prefers-reduced-motion users.
  */
-const CountUp = ({ value, duration = 1.1, className }: CountUpProps) => {
+const CountUp = ({ value, duration = 1.1, suffix = "", className }: CountUpProps) => {
   const reduceMotion = useReducedMotion();
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.5 });
@@ -43,6 +45,7 @@ const CountUp = ({ value, duration = 1.1, className }: CountUpProps) => {
   return (
     <span ref={ref} className={className} style={{ fontVariantNumeric: "tabular-nums" }}>
       {display.toLocaleString("en-US")}
+      {suffix}
     </span>
   );
 };
