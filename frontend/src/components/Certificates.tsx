@@ -2,13 +2,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { FileCheck, ArrowUpRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { apiService, CertificateResponse } from '@/services/api';
 import LoadingAnimation from '@/components/ui/LoadingAnimation';
 import ErrorState from '@/components/ui/ErrorState';
+import CountUp from '@/components/CountUp';
 import { useApiData } from '@/hooks/useApiData';
+import { EASE_OUT } from '@/lib/motion';
 import {
   deriveCredentialStatus,
   getDaysUntilExpiry,
@@ -148,15 +150,21 @@ const Certificates = () => {
             >
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">{copy.stats.total}</p>
-                <p className="mt-2 text-3xl font-semibold text-zinc-900">{certificateStats.total}</p>
+                <p className="mt-2 text-3xl font-semibold text-zinc-900">
+                  <CountUp value={certificateStats.total} />
+                </p>
               </div>
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 shadow-sm">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-700">{copy.stats.active}</p>
-                <p className="mt-2 text-3xl font-semibold text-emerald-900">{certificateStats.active}</p>
+                <p className="mt-2 text-3xl font-semibold text-emerald-900">
+                  <CountUp value={certificateStats.active} />
+                </p>
               </div>
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">{copy.stats.verified}</p>
-                <p className="mt-2 text-3xl font-semibold text-zinc-900">{certificateStats.verified}</p>
+                <p className="mt-2 text-3xl font-semibold text-zinc-900">
+                  <CountUp value={certificateStats.verified} />
+                </p>
               </div>
             </motion.div>
           ) : null}
@@ -200,6 +208,9 @@ const Certificates = () => {
               onRetry={retry}
             />
           ) : filteredCertificates.length > 0 ? (
+            // Self-contained scroll reveal on the grid; cards animate via
+            // plain initial/animate below (whileInView on AnimatePresence
+            // children never fires for post-filter remounts).
             <motion.div
               variants={containerVariants}
               initial="hidden"
@@ -207,7 +218,8 @@ const Certificates = () => {
               viewport={{ once: true, amount: 0.1 }}
               className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
-              {filteredCertificates.map((cert, index) => {
+              <AnimatePresence mode="popLayout" initial={false}>
+                {filteredCertificates.map((cert, index) => {
                 const resolvedStatus = deriveCredentialStatus(cert);
                 const daysUntilExpiry = getDaysUntilExpiry(cert.expiry_date);
                 const expiringSoon = daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
@@ -215,7 +227,23 @@ const Certificates = () => {
                 return (
                   <motion.article
                     key={cert.id}
-                    variants={itemVariants}
+                    layout
+                    initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      transition: {
+                        duration: 0.35,
+                        ease: EASE_OUT,
+                        delay: (index % 4) * 0.05,
+                      },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      scale: 0.95,
+                      transition: { duration: 0.2, ease: EASE_OUT },
+                    }}
                     whileHover={{ y: -4, transition: { duration: 0.2 } }}
                     className={`group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl ${
                       index === 0 && filteredCertificates.length > 1 ? 'sm:col-span-2 xl:col-span-2' : ''
@@ -328,7 +356,8 @@ const Certificates = () => {
                     </div>
                   </motion.article>
                 );
-              })}
+                })}
+              </AnimatePresence>
             </motion.div>
           ) : (
             <div className="text-center text-gray-500">{copy.empty}</div>

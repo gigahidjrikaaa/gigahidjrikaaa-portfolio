@@ -9,6 +9,7 @@ import PressMentions from "@/components/PressMentions";
 import GitHubIntegration from "@/components/GitHubIntegration";
 import Stories from "@/components/Stories";
 import VisitorMap from "@/components/VisitorMap";
+import KnowMoreHeadline from "@/components/KnowMoreHeadline";
 import { SITE_URL } from "@/lib/site";
 
 const siteUrl = SITE_URL;
@@ -41,9 +42,7 @@ export default function MorePage() {
             <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
             Back to portfolio
           </Link>
-          <h1 className="mt-6 max-w-2xl text-4xl font-medium tracking-tight text-zinc-900 md:text-5xl">
-            Know <span className="text-zinc-400">more.</span>
-          </h1>
+          <KnowMoreHeadline />
           <p className="mt-4 max-w-xl text-base leading-relaxed text-zinc-600">
             The fuller picture behind the homepage: recognition, credentials,
             clients, press, open-source activity, and moments from along the way.

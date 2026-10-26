@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, Github, GitBranch, Star } from "lucide-react";
 import LoadingAnimation from "@/components/ui/LoadingAnimation";
+import CountUp from "@/components/CountUp";
 import LanguageDecoration from "@/components/github/LanguageDecoration";
 import { apiService, HighlightedGitHubRepoResponse } from "@/services/api";
 
@@ -407,11 +408,11 @@ const GitHubIntegration = () => {
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                   <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">{copy.stats.followers}</p>
-                  <p className="mt-2 text-2xl font-semibold text-zinc-900">{stats.followers.toLocaleString()}</p>
+                  <p className="mt-2 text-2xl font-semibold text-zinc-900"><CountUp value={stats.followers} /></p>
                 </div>
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                   <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">{copy.stats.activity}</p>
-                  <p className="mt-2 text-2xl font-semibold text-zinc-900">{contributions.toLocaleString()}</p>
+                  <p className="mt-2 text-2xl font-semibold text-zinc-900"><CountUp value={contributions} /></p>
                 </div>
               </div>
             </motion.article>
@@ -419,19 +420,19 @@ const GitHubIntegration = () => {
             <motion.div variants={animationContainer} className="grid gap-4 sm:grid-cols-2">
               <motion.div variants={animationItem} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
                 <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">{copy.stats.repositories}</p>
-                <p className="mt-3 text-3xl font-semibold text-zinc-900">{stats.repositories.toLocaleString()}</p>
+                <p className="mt-3 text-3xl font-semibold text-zinc-900"><CountUp value={stats.repositories} /></p>
               </motion.div>
               <motion.div variants={animationItem} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
                 <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">{copy.stats.stars}</p>
-                <p className="mt-3 text-3xl font-semibold text-zinc-900">{stats.stars.toLocaleString()}</p>
+                <p className="mt-3 text-3xl font-semibold text-zinc-900"><CountUp value={stats.stars} /></p>
               </motion.div>
               <motion.div variants={animationItem} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
                 <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">{copy.stats.forks}</p>
-                <p className="mt-3 text-3xl font-semibold text-zinc-900">{stats.forks.toLocaleString()}</p>
+                <p className="mt-3 text-3xl font-semibold text-zinc-900"><CountUp value={stats.forks} /></p>
               </motion.div>
               <motion.div variants={animationItem} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
                 <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">{copy.highlightedRepos}</p>
-                <p className="mt-3 text-3xl font-semibold text-zinc-900">{highlightedConfig.length}</p>
+                <p className="mt-3 text-3xl font-semibold text-zinc-900"><CountUp value={highlightedConfig.length} /></p>
               </motion.div>
             </motion.div>
           </motion.div>
