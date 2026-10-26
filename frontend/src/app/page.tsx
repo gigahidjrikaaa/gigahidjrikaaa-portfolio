@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import Hero from '@/components/Hero';
+import FeaturedIn from '@/components/FeaturedIn';
 import About from '@/components/About';
 import Highlights from '@/components/Highlights';
 import Experience from '@/components/Experience';
@@ -60,6 +61,8 @@ export default async function Home() {
   return (
     <>
       <Hero initialProfile={profile} />
+
+      <FeaturedIn />
 
       <Projects initialProjects={projects} />
 

@@ -48,8 +48,23 @@ const Skills = () => {
 
   const categories = Object.keys(skillsByCategory);
 
+  // Category accents cycle emerald -> sky -> zinc so the masonry reads as a
+  // composed system rather than three identical white cards.
+  const accents = [
+    { bar: 'bg-emerald-500', tile: 'bg-emerald-50 text-emerald-600', dot: 'bg-emerald-500' },
+    { bar: 'bg-sky-500', tile: 'bg-sky-50 text-sky-600', dot: 'bg-sky-500' },
+    { bar: 'bg-zinc-900', tile: 'bg-zinc-100 text-zinc-600', dot: 'bg-zinc-400' },
+  ];
+  const accentFor = (i: number) => accents[i % accents.length];
+
   return (
     <section id="skills" className="relative overflow-hidden bg-zinc-50 py-24 md:py-32">
+      {/* Corner orbit motif — the brand's node-and-orbit mark, faint */}
+      <div aria-hidden className="pointer-events-none absolute -right-40 -top-40 h-[480px] w-[480px] rounded-full border border-zinc-200/70">
+        <div className="absolute inset-[18%] rounded-full border border-dashed border-zinc-200/80" />
+        <div className="absolute inset-[36%] rounded-full border border-zinc-200/70" />
+        <span className="absolute left-1/2 top-0 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-400/70" />
+      </div>
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial="hidden"
@@ -91,33 +106,45 @@ const Skills = () => {
               viewport={{ once: true, amount: 0.1 }}
               className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6"
             >
-              {categories.map((category) => {
+              {categories.map((category, catIndex) => {
                 const Icon = getCategoryIcon(category);
+                const accent = accentFor(catIndex);
+                const categorySkills = skillsByCategory[category];
                 return (
                   <motion.div
                     key={category}
                     variants={itemVariants}
-                    className="break-inside-avoid relative overflow-hidden rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition-colors hover:border-zinc-300"
+                    className="group relative break-inside-avoid overflow-hidden rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition-colors hover:border-zinc-300"
                   >
+                    {/* Category accent bar + watermark index */}
+                    <span aria-hidden className={`absolute inset-x-0 top-0 h-1 ${accent.bar}`} />
+                    <span aria-hidden className="pointer-events-none absolute -right-1 -top-3 select-none text-6xl font-semibold tracking-tighter text-zinc-100">
+                      {String(catIndex + 1).padStart(2, '0')}
+                    </span>
+
                     {/* Category Header */}
-                    <div className="mb-6 flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-600">
+                    <div className="relative mb-6 flex items-center gap-3">
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${accent.tile}`}>
                         <Icon className="h-5 w-5" />
                       </div>
                       <h3 className="text-lg font-semibold capitalize tracking-wide text-gray-900">
                         {category}
                       </h3>
+                      <span className="ml-auto inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
+                        <span className={`h-1.5 w-1.5 rounded-full ${accent.dot}`} />
+                        {categorySkills.length} skills
+                      </span>
                     </div>
 
                     {/* Skills List */}
-                    <div className="space-y-3">
-                      {skillsByCategory[category].map((skill, idx) => {
+                    <div className="relative space-y-3">
+                      {categorySkills.map((skill, idx) => {
                         const level = clampProficiency(skill.proficiency);
                         // Convert 5 level to percentage for the bar
                         const percentage = (level / 5) * 100;
-                        
+
                         return (
-                          <div 
+                          <div
                             key={skill.id}
                             className="group relative flex flex-col gap-1.5 rounded-xl bg-zinc-50 p-3 hover:bg-white transition-colors border border-transparent hover:border-zinc-200"
                           >
@@ -125,8 +152,11 @@ const Skills = () => {
                               <span className="font-medium text-zinc-900 text-sm">
                                 {skill.name}
                               </span>
+                              <span className="text-[10px] font-semibold tabular-nums text-zinc-400">
+                                {Math.round(percentage)}%
+                              </span>
                             </div>
-                            
+
                             {/* Visual Progress Bar instead of dots */}
                             <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200">
                               <motion.div
@@ -134,7 +164,7 @@ const Skills = () => {
                                 whileInView={{ width: `${percentage}%` }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 1, delay: 0.2 + idx * 0.1, ease: 'easeOut' }}
-                                className="h-full rounded-full bg-zinc-900"
+                                className={`h-full rounded-full ${accent.bar}`}
                               />
                             </div>
                           </div>

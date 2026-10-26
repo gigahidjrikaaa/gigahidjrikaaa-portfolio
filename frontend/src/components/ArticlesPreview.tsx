@@ -6,7 +6,7 @@ import { apiService, BlogPostResponse } from "@/services/api";
 import LoadingAnimation from "@/components/ui/LoadingAnimation";
 import ErrorState from "@/components/ui/ErrorState";
 import { useApiData } from "@/hooks/useApiData";
-import { ExternalLink } from "lucide-react";
+import { ArrowUpRight, Newspaper } from "lucide-react";
 
 const copy = {
   eyebrow: "BLOG",
@@ -94,60 +94,163 @@ export default function ArticlesPreview() {
             </Link>
           </motion.div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-3">
-            {posts.map((post, index) => {
+          <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:gap-10">
+            {/* Featured article: cover-led, grayscale-to-color on hover */}
+            {(() => {
+              const post = posts[0];
               const publishedAt = formatDate(post.published_at || post.created_at);
               const isExternal = post.is_external && post.external_url;
               const href = isExternal ? post.external_url! : `/blog/${post.slug}`;
-
-              const CardContent = (
+              const cover = post.og_image_url || post.cover_image_url;
+              const readTime = post.reading_time_minutes
+                ? `${post.reading_time_minutes} min read`
+                : null;
+              const Inner = (
                 <>
-                  <div className="flex items-center gap-3 text-xs text-gray-500">
-                    {publishedAt ? <span>{publishedAt}</span> : null}
+                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-zinc-100">
+                    {cover ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={cover}
+                        alt=""
+                        className="h-full w-full object-cover grayscale transition-all duration-700 ease-out group-hover:scale-[1.03] group-hover:grayscale-0"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-zinc-100">
+                        <Newspaper className="h-10 w-10 text-zinc-300" />
+                      </div>
+                    )}
                     {post.category ? (
-                      <span className="rounded-full bg-gray-100 px-3 py-1 text-gray-600">{post.category}</span>
+                      <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-zinc-700 shadow-sm backdrop-blur">
+                        {post.category}
+                      </span>
                     ) : null}
                   </div>
-
-                  <h3 className="mt-4 text-lg font-semibold text-gray-900">{post.title}</h3>
-                  {post.excerpt ? (
-                    <p className="mt-3 text-sm text-gray-600 line-clamp-3">{post.excerpt}</p>
-                  ) : null}
-
-                  <div className="mt-6 flex items-center gap-1 text-sm font-semibold text-gray-900 group-hover:underline">
-                    {isExternal ? `Read on ${post.external_source || "External Site"}` : copy.readOnBlog}
-                    {isExternal && <ExternalLink className="h-3 w-3" />}
+                  <div className="flex flex-1 flex-col p-6 md:p-7">
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      {publishedAt ? <span>{publishedAt}</span> : null}
+                      {readTime ? (
+                        <>
+                          <span aria-hidden>·</span>
+                          <span className="tabular-nums">{readTime}</span>
+                        </>
+                      ) : null}
+                    </div>
+                    <h3 className="mt-3 text-2xl font-semibold tracking-tight text-gray-900">
+                      {post.title}
+                    </h3>
+                    {post.excerpt ? (
+                      <p className="mt-3 text-sm leading-relaxed text-gray-600 line-clamp-3">
+                        {post.excerpt}
+                      </p>
+                    ) : null}
+                    <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-semibold text-gray-900">
+                      {isExternal
+                        ? `Read on ${post.external_source || "External Site"}`
+                        : copy.readOnBlog}
+                      <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                    </span>
                   </div>
                 </>
               );
-
-              const cardClasses =
-                "group block h-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg";
-
+              const featuredClasses =
+                "group flex h-full flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl";
               return (
-                <motion.div key={post.id} {...fadeUp(0.1 + index * 0.07)}>
+                <motion.div
+                  key={post.id}
+                  {...fadeUp(0.1)}
+                  className="lg:row-span-1"
+                >
                   {isExternal ? (
-                    <a
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={cardClasses}
-                      aria-label={post.title}
-                    >
-                      {CardContent}
+                    <a href={href} target="_blank" rel="noopener noreferrer" className={featuredClasses} aria-label={post.title}>
+                      {Inner}
                     </a>
                   ) : (
-                    <Link
-                      href={href}
-                      className={cardClasses}
-                      aria-label={post.title}
-                    >
-                      {CardContent}
+                    <Link href={href} className={featuredClasses} aria-label={post.title}>
+                      {Inner}
                     </Link>
                   )}
                 </motion.div>
               );
-            })}
+            })()}
+
+            {/* Remaining posts: numbered editorial list */}
+            <div className="flex flex-col">
+              {posts.slice(1).map((post, index) => {
+                const publishedAt = formatDate(post.published_at || post.created_at);
+                const isExternal = post.is_external && post.external_url;
+                const href = isExternal ? post.external_url! : `/blog/${post.slug}`;
+                const readTime = post.reading_time_minutes
+                  ? `${post.reading_time_minutes} min`
+                  : null;
+
+                const Row = (
+                  <>
+                    <span aria-hidden className="text-sm font-semibold tabular-nums text-zinc-300">
+                      {String(index + 2).padStart(2, "0")}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        {post.category ? (
+                          <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-gray-600">
+                            {post.category}
+                          </span>
+                        ) : null}
+                        {publishedAt ? <span>{publishedAt}</span> : null}
+                        {readTime ? (
+                          <>
+                            <span aria-hidden>·</span>
+                            <span className="tabular-nums">{readTime}</span>
+                          </>
+                        ) : null}
+                      </div>
+                      <h3 className="mt-2.5 text-lg font-semibold leading-snug tracking-tight text-gray-900 transition-colors group-hover:text-zinc-600">
+                        {post.title}
+                      </h3>
+                      {post.excerpt ? (
+                        <p className="mt-2 text-sm leading-relaxed text-gray-600 line-clamp-2">
+                          {post.excerpt}
+                        </p>
+                      ) : null}
+                    </span>
+                    <span className="self-center rounded-full border border-gray-200 p-2 text-gray-400 transition-all duration-300 group-hover:border-gray-900 group-hover:bg-gray-900 group-hover:text-white">
+                      <ArrowUpRight className="h-4 w-4" />
+                    </span>
+                  </>
+                );
+                const rowClasses =
+                  "group flex w-full items-start gap-5 border-t border-gray-200 px-2 py-6 text-left transition-colors first:border-t-0 hover:bg-gray-50/60";
+                const rowMotion = { ...fadeUp(0.18 + index * 0.08) };
+
+                return isExternal ? (
+                  <motion.a
+                    key={post.id}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={rowClasses}
+                    aria-label={post.title}
+                    {...rowMotion}
+                  >
+                    {Row}
+                  </motion.a>
+                ) : (
+                  <motion.div key={post.id} {...rowMotion}>
+                    <Link href={href} className={rowClasses} aria-label={post.title}>
+                      {Row}
+                    </Link>
+                  </motion.div>
+                );
+              })}
+
+              <Link
+                href="/blog"
+                className="mt-2 inline-flex items-center gap-2 px-2 text-sm font-semibold text-gray-900 hover:underline"
+              >
+                {copy.cta}
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         )}
       </div>
